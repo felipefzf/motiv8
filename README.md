@@ -7,6 +7,6 @@ Aplicación web orientada a fomentar el deporte en personas cercanas a la tecnol
 
 ## Enlaces
 
+ - [React DOCS](https://es.react.dev/learn)
+ - [NestJS DOCS](https://docs.nestjs.com)
  - [Strava API V3](https://developers.strava.com/docs/reference/)
- - [Awesome README](https://github.com/matiassingers/awesome-readme)
- - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
