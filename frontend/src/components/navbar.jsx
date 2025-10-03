@@ -7,7 +7,8 @@ export default function Navbar() {
     <nav style={{ padding: "10px", background: "#eee" }}>
       <Link to="/">Home</Link> |{" "}
       <Link to="/about">About</Link> |{" "}
-      <Link to="/profile">Profile</Link>
+      <Link to="/profile">Profile</Link>|{" "}
+      <Link to="/teams">Teams</Link>
     </nav>
   );
 }
