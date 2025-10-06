@@ -1,0 +1,26 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/home";
+import About from "./pages/about";
+import Profile from "./pages/profile";
+import Navbar from "./components/navbar";
+import { Navigate } from "react-router-dom";
+import Teams from "./pages/teams";
+
+
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/teams" element={<Teams/>} />
+        <Route path="/*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
