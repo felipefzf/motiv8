@@ -5,6 +5,7 @@ import Profile from "./pages/profile";
 import Navbar from "./components/navbar";
 import { Navigate } from "react-router-dom";
 import Teams from "./pages/teams";
+import Login from "./pages/login";
 
 
 
@@ -14,9 +15,11 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        
         <Route path="/about" element={<About />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/teams" element={<Teams/>} />
+        <Route path="/login" element={<Login/>} />
         <Route path="/*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
