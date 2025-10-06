@@ -1,34 +1,28 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import axios from 'axios';
+import React from "react";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    console.log('Login con:', email, password);
+  const handleStravaLogin = () => {
+    window.location.href = "https://www.strava.com/oauth/authorize?client_id=179868&response_type=code&redirect_uri=http://localhost/exchange_token&approval_prompt=force&scope=read";
   };
 
   return (
     <div className="login-container">
-      <h1 className="login-title">MOTIV8</h1>
-      <form className="login-form" onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Iniciar sesión</button>
-      </form>
+      <h2>Inicia sesión</h2>
+      <button
+        onClick={handleStravaLogin}
+        style={{
+          backgroundColor: "#fc4c02",
+          color: "white",
+          padding: "10px 20px",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        🔗 Conectar con Strava
+      </button>
     </div>
   );
 }
