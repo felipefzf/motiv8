@@ -12,8 +12,8 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Página Home</h1>
-      <p>Backend dice: {mensaje}</p>
+      <h1 style={{alignItems:"upper",justifyContent:"left",display:"flex"}}>Motiv8</h1>
+      <p style={{alignItems:"center",justifyContent:"center",display:"flex"}}>Backend dice: {mensaje}</p>
     </div>
   );
 }

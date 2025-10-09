@@ -35,18 +35,17 @@ export default function Login() {
   const clientId = 179868;
   const redirectUri = "http://localhost:5173/home";
 
-  const handleStravaLogin = () => { 
-  const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=read_all`;
-  window.location.href = authUrl;
-
+  const handleStravaLogin = () => {
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=read_all`;
+    window.location.href = authUrl;
   };
 
   return (
     <div className="login-container">
-      <h2>Inicia sesión</h2>
-      <button
+      <h1 style={{alignItems:"upper",justifyContent:"left",display:"flex"}}>Inicia sesión</h1>
+      <button 
         onClick={handleStravaLogin}
-        style={{
+        style={{alignItems:"center",justifyContent:"center",display:"flex",
           backgroundColor: "#fc4c02",
           color: "white",
           padding: "10px 20px",
