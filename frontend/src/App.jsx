@@ -12,7 +12,7 @@ import Login from "./pages/login";
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
+      
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -21,6 +21,7 @@ function App() {
         <Route path="/login" element={<Login/>} />
         <Route path="/*" element={<Navigate to="/" />} />
       </Routes>
+      <Navbar />
     </BrowserRouter>
   );
 }
