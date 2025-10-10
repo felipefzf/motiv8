@@ -7,7 +7,7 @@ const Activities = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-
+//
     const fetchAccessTokenAndActivities = async () => {
       try {
         const tokenResponse = await axios.post('http://localhost:5000/exchange_token', { code });
@@ -24,7 +24,7 @@ const Activities = () => {
       fetchAccessTokenAndActivities();
     }
   }, []);
-
+//
   return (
     <div>
       <h2>Actividades de Strava</h2>
