@@ -9,7 +9,9 @@ import axios from 'axios';
 export default function Login() {
   const clientId = 179868;
   const redirectUri = "http://localhost:5173/activities";
-  const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=activity:read_all`;
+  const scope = 'activity:read_all';
+  const responseType = 'code';
+  const authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scope}`;
 
   const handleStravaLogin = () => {
     window.location.href = authUrl;
