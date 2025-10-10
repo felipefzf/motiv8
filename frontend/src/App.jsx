@@ -13,7 +13,7 @@ import Activities from "./pages/activities";
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
+      
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -23,6 +23,7 @@ function App() {
         <Route path="/activities" element={<Activities/>} />
         <Route path="/*" element={<Navigate to="/" />} />
       </Routes>
+      <Navbar />
     </BrowserRouter>
   );
 }

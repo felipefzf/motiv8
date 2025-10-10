@@ -2,8 +2,8 @@
 export default function Profile() {
   return (
     <div>
-      <h1>Perfil de usuario</h1>
-      <p>Aquí irá la información del usuario.</p>
+      <h1 style={{alignItems:"upper",justifyContent:"left",display:"flex"}}>Perfil de usuario</h1>
+      <p style={{alignItems:"center",justifyContent:"center",display:"flex"}}>Aquí irá la información del usuario.</p>
     </div>
   );
 }
