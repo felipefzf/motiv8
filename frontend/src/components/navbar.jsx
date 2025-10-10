@@ -9,7 +9,8 @@ export default function Navbar() {
       <Link to="/about">About</Link> |{" "}
       <Link to="/profile">Profile</Link>|{" "}
       <Link to="/login">Login</Link>|{" "}
-      <Link to="/teams">Teams</Link>
+      <Link to="/teams">Teams</Link>|{" "}
+      <Link to="/activities">Activities</Link>
     </nav>
   );
 }

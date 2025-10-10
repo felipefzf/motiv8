@@ -6,6 +6,7 @@ import Navbar from "./components/navbar";
 import { Navigate } from "react-router-dom";
 import Teams from "./pages/teams";
 import Login from "./pages/login";
+import Activities from "./pages/activities";
 
 
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/teams" element={<Teams/>} />
         <Route path="/login" element={<Login/>} />
+        <Route path="/activities" element={<Activities/>} />
         <Route path="/*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
