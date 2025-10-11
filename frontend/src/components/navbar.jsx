@@ -1,26 +1,76 @@
-import { Link, Navigate } from "react-router-dom";
-import homeImg from "./img/home.png";
-import profileImg from "./img/profile.png";
-import aboutImg from "./img/about.png";
-import loginImg from "./img/login.png";
-import teamImg from "./img/team.png";
+import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import homeImg from "../assets/home.png";
+import profileImg from "../assets/profile.png";
+import aboutImg from "../assets/about.png";
+import loginImg from "../assets/login.png";
+import teamImg from "../assets/team.png";
 
 export default function Navbar() {
-  return (
-    <nav style={{ padding: "10px", background: "#eee", width: "100%", alignItems: "center", justifyContent: "center", display: "flex" }}>
+  const location = useLocation();
 
-      <Link to="/about">
-        <img src={aboutImg} alt="About" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link> |{" "}
-      <Link to="/profile">
-        <img src={profileImg} alt="Perfil" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} sdaonMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/" style={{ display: "inline-flex", alignItems: "center" }}>
-        <img src={homeImg} alt="Inicio" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/login">
-        <img src={loginImg} alt="Login" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/teams">
-        <img src={teamImg} alt="Equipos" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/activities">
-        <img src={aboutImg} alt="About" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
+  const links = [
+    { to: "/", img: homeImg, alt: "Inicio" },
+    { to: "/login", img: loginImg, alt: "Login" },
+    { to: "/teams", img: teamImg, alt: "Equipos" },
+    { to: "/activities", img: aboutImg, alt: "Actividades" },
+    { to: "/profile", img: profileImg, alt: "Perfil" },
+  ];
+
+  return (
+    <nav
+      style={{
+        padding: "12px",
+        background: "#f7f7f7",
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "20px",
+        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+      }}
+    >
+      {links.map((link) => {
+        const isActive = location.pathname === link.to;
+
+        return (
+          <Link key={link.to} to={link.to} style={{ position: "relative" }}>
+            <motion.img
+              src={link.img}
+              alt={link.alt}
+              initial={{ scale: 1 }}
+              whileHover={{ scale: 1.15, rotate: 3 }}
+              animate={isActive ? { scale: 1.2, y: -4 } : { scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+              style={{
+                width: "38px",
+                height: "38px",
+                borderRadius: "10px",
+                cursor: "pointer",
+                filter: isActive
+                  ? "drop-shadow(0 0 8px #00b4d8)"
+                  : "drop-shadow(0 0 0 transparent)",
+              }}
+            />
+            {/* {isActive && (
+              <motion.div
+                layoutId="activeIndicator"
+                style={{
+                  position: "absolute",
+                  bottom: "-6px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "#00b4d8",
+                }}
+                transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              />
+            )} */}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
