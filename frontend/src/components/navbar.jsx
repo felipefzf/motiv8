@@ -1,14 +1,19 @@
-import { Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+// src/components/Navbar/Navbar.jsx
+
+// 1. Importa los hooks necesarios
+import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react"; 
+import styles from "./Navbar.module.css"; 
+
 import homeImg from "../assets/home.png";
 import profileImg from "../assets/profile.png";
 import aboutImg from "../assets/about.png";
 import loginImg from "../assets/login.png";
 import teamImg from "../assets/team.png";
 
-export default function Navbar() {
-  const location = useLocation();
+// ... (tus imports de imágenes) ...
 
+export default function Navbar() {
   const links = [
     { to: "/", img: homeImg, alt: "Inicio" },
     { to: "/login", img: loginImg, alt: "Login" },
@@ -17,60 +22,66 @@ export default function Navbar() {
     { to: "/profile", img: profileImg, alt: "Perfil" },
   ];
 
-  return (
-    <nav
-      style={{
-        padding: "12px",
-        background: "#f7f7f7",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: "20px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-      }}
-    >
-      {links.map((link) => {
-        const isActive = location.pathname === link.to;
+  const navRef = useRef(null);
+  const location = useLocation();
 
-        return (
-          <Link key={link.to} to={link.to} style={{ position: "relative" }}>
-            <motion.img
-              src={link.img}
-              alt={link.alt}
-              initial={{ scale: 1 }}
-              whileHover={{ scale: 1.15, rotate: 3 }}
-              animate={isActive ? { scale: 1.2, y: -4 } : { scale: 1, y: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "10px",
-                cursor: "pointer",
-                filter: isActive
-                  ? "drop-shadow(0 0 8px #00b4d8)"
-                  : "drop-shadow(0 0 0 transparent)",
-              }}
-            />
-            {/* {isActive && (
-              <motion.div
-                layoutId="activeIndicator"
-                style={{
-                  position: "absolute",
-                  bottom: "-6px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "#00b4d8",
-                }}
-                transition={{ type: "spring", stiffness: 500, damping: 20 }}
-              />
-            )} */}
-          </Link>
-        );
-      })}
+  // --- ARREGLO AQUÍ ---
+  // El estado inicial SOLO controla lo horizontal y la opacidad.
+  const [bubbleStyle, setBubbleStyle] = useState({
+    opacity: 0,
+    left: 0,
+    width: 0,
+  });
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const activeLink = nav.querySelector(`.${styles.activeLink}`);
+
+    if (activeLink) {
+      const { offsetLeft, offsetWidth } = activeLink;
+      
+      // --- ARREGLO AQUÍ ---
+      // Solo actualizamos las propiedades horizontales.
+      setBubbleStyle({
+        left: offsetLeft,
+        width: offsetWidth,
+        opacity: 1, // Opacidad de la burbuja (puedes cambiarla)
+      });
+    } else {
+      // Ocultamos la burbuja si no hay link activo
+      setBubbleStyle({
+        opacity: 0,
+        left: bubbleStyle.left, // Mantenemos la posición para que se desvanezca
+        width: bubbleStyle.width,
+      });
+    }
+    // Añadimos bubbleStyle.left y bubbleStyle.width a las dependencias
+  }, [location.pathname, bubbleStyle.left, bubbleStyle.width]);
+
+  return (
+    <nav ref={navRef} className={styles.navbar}>
+      
+      {/* TRABAJANDO EN BUBBLE AQUI ABAJITO */}
+      {/* <div className={styles.bubble} style={bubbleStyle} /> */}
+
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          end={link.to === "/"}
+          className={({ isActive }) =>
+            `${styles.navLink} ${isActive ? styles.activeLink : ""}`
+          }
+        >
+          <img
+            src={link.img}
+            alt={link.alt}
+            className={styles.navImage}
+          />
+        </NavLink>
+      ))}
     </nav>
   );
 }
