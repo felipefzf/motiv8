@@ -9,7 +9,6 @@ import Login from "./pages/login";
 import Activities from "./pages/activities";
 
 
-
 function App() {
   return (
     <BrowserRouter>

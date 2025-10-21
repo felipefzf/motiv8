@@ -1,26 +1,88 @@
-import { Link, Navigate } from "react-router-dom";
-import homeImg from "./img/home.png";
-import profileImg from "./img/profile.png";
-import aboutImg from "./img/about.png";
-import loginImg from "./img/login.png";
-import teamImg from "./img/team.png";
+// src/components/Navbar/Navbar.jsx
+
+// 1. Importa los hooks necesarios
+import { NavLink, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react"; 
+import styles from "./Navbar.module.css"; 
+
+import homeImg from "../assets/home.png";
+import profileImg from "../assets/profile.png";
+import aboutImg from "../assets/about.png";
+import loginImg from "../assets/login.png";
+import teamImg from "../assets/team.png";
+
+// ... (tus imports de imágenes) ...
 
 export default function Navbar() {
-  return (
-    <nav style={{ padding: "10px", background: "#eee", width: "100%", alignItems: "center", justifyContent: "center", display: "flex" }}>
+  const links = [
+    
+    { to: "/activities", img: aboutImg, alt: "Actividades" },
+    { to: "/login", img: loginImg, alt: "Login" },
+    { to: "/", img: homeImg, alt: "Inicio" },
+    { to: "/teams", img: teamImg, alt: "Equipos" },
+    { to: "/profile", img: profileImg, alt: "Perfil" },
+  ];
 
-      <Link to="/about">
-        <img src={aboutImg} alt="About" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link> |{" "}
-      <Link to="/profile">
-        <img src={profileImg} alt="Perfil" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} sdaonMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/" style={{ display: "inline-flex", alignItems: "center" }}>
-        <img src={homeImg} alt="Inicio" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/login">
-        <img src={loginImg} alt="Login" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/teams">
-        <img src={teamImg} alt="Equipos" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
-      <Link to="/activities">
-        <img src={aboutImg} alt="About" style={{ width: "35px", height: "35px", cursor: "pointer", borderRadius: "8px", transition: "transform 0.2s ease", }} onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")} onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")} /></Link>|{" "}
+  const navRef = useRef(null);
+  const location = useLocation();
+
+  // --- ARREGLO AQUÍ ---
+  // El estado inicial SOLO controla lo horizontal y la opacidad.
+  const [bubbleStyle, setBubbleStyle] = useState({
+    opacity: 0,
+    left: 0,
+    width: 0,
+  });
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const activeLink = nav.querySelector(`.${styles.activeLink}`);
+
+    if (activeLink) {
+      const { offsetLeft, offsetWidth } = activeLink;
+      
+      // --- ARREGLO AQUÍ ---
+      // Solo actualizamos las propiedades horizontales.
+      setBubbleStyle({
+        left: offsetLeft,
+        width: offsetWidth,
+        opacity: 1, // Opacidad de la burbuja (puedes cambiarla)
+      });
+    } else {
+      // Ocultamos la burbuja si no hay link activo
+      setBubbleStyle({
+        opacity: 0,
+        left: bubbleStyle.left, // Mantenemos la posición para que se desvanezca
+        width: bubbleStyle.width,
+      });
+    }
+    // Añadimos bubbleStyle.left y bubbleStyle.width a las dependencias
+  }, [location.pathname, bubbleStyle.left, bubbleStyle.width]);
+
+  return (
+    <nav ref={navRef} className={styles.navbar}>
+      
+      {/* TRABAJANDO EN BUBBLE AQUI ABAJITO */}
+      {/* <div className={styles.bubble} style={bubbleStyle} /> */}
+
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          end={link.to === "/"}
+          className={({ isActive }) =>
+            `${styles.navLink} ${isActive ? styles.activeLink : ""}`
+          }
+        >
+          <img
+            src={link.img}
+            alt={link.alt}
+            className={styles.navImage}
+          />
+        </NavLink>
+      ))}
     </nav>
   );
 }
