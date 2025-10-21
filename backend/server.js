@@ -107,7 +107,38 @@ app.post('/missions', async (req, res) => {
     res.status(500).json({ error: error.message || 'Error interno del servidor' });
   }
 });
+//CAMBIAR PARA GUARDAR LOS DATOS DE LAS ACTIVIDADES 
+app.post('/missions', async (req, res) => {
+  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
 
+  // Validación básica (puedes añadir más validaciones)
+  if (!name || !description || !type || !targetValue || !unit || !reward) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
+  }
+
+  try {
+    const newMission = {
+      name,
+      description,
+      type,
+      targetValue: Number(targetValue), // Asegurarse de que sea un número
+      unit,
+      reward,
+      status: 'active', // Estado inicial
+      startDate: startDate ? new Date(startDate) : null, // Convertir a objeto Date o null
+      endDate: endDate ? new Date(endDate) : null,     // Convertir a objeto Date o null
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    const docRef = await db.collection('missions').add(newMission);
+    res.status(201).json({ message: 'Misión creada con éxito', id: docRef.id });
+
+  } catch (error) {
+    console.error('Error al crear misión:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+//
 app.get('/missions', async (req, res) => {
   try {
     const missionsRef = db.collection('missions');
