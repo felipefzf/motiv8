@@ -20,30 +20,34 @@ export default function Profile() {
         <p style={{ margin: 0 }}>Ubicación: Puente Alto, Chile</p>
         <p style={{ margin: 0 }}>Deporte Principal: Ciclismo</p>
         <br />
-        <div className="container" style={{ maxWidth: '400px', padding: 0 }}>
-          <div className="row row-cols-2 g-2">
-            <div className="col">
-              <div className="card text-center">
-                <div className="card-body p-2">Distancia: 270 KM</div>
+        <h3>Estadísticas</h3>
+        <div>
+          <div className="container" style={{ maxWidth: '400px', padding: 0, }}>
+            <div className="row row-cols-2 g-2">
+              <div className="col">
+                <div className="card text-center">
+                  <div className="card-body p-2">Distancia: 270 KM</div>
+                </div>
               </div>
-            </div>
-            <div className="col">
-              <div className="card text-center">
-                <div className="card-body p-2">Tiempo Activo: 120 HRS</div>
+              <div className="col">
+                <div className="card text-center">
+                  <div className="card-body p-2">Tiempo Activo: 120 HRS</div>
+                </div>
               </div>
-            </div>
-            <div className="col">
-              <div className="card text-center">
-                <div className="card-body p-2">Misiones: 45 Completadas</div>
+              <div className="col">
+                <div className="card text-center">
+                  <div className="card-body p-2">Misiones: 45 Completadas</div>
+                </div>
               </div>
-            </div>
-            <div className="col">
-              <div className="card text-center">
-                <div className="card-body p-2">Insignias: 10 Obtenidas</div>
+              <div className="col">
+                <div className="card text-center">
+                  <div className="card-body p-2">Insignias: 10 Obtenidas</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );
