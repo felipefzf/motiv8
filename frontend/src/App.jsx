@@ -7,6 +7,10 @@ import { Navigate } from "react-router-dom";
 import Teams from "./pages/teams";
 import Login from "./pages/login";
 import Activities from "./pages/activities";
+import Register from "./pages/register";
+import MissionCreator from "./pages/missionCreator";
+import MissionList from "./pages/missionList";
+
 
 
 function App() {
@@ -21,6 +25,9 @@ function App() {
         <Route path="/login" element={<Login/>} />
         <Route path="/activities" element={<Activities/>} />
         <Route path="/*" element={<Navigate to="/" />} />
+        <Route path="/register" element={<Register/>} />
+        <Route path="/missionCreator" element={<MissionCreator/>} />
+        <Route path="/missionList" element={<MissionList/>} />
       </Routes>
       <Navbar />
     </BrowserRouter>
