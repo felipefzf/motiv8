@@ -30,6 +30,7 @@ export default function Profile() {
                 </div>
               </div>
               <div className="col">
+                <br />
                 <div className="card text-center">
                   <div className="card-body p-2">Tiempo Activo: 120 HRS</div>
                 </div>
