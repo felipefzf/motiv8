@@ -15,10 +15,11 @@ import teamImg from "../assets/team.png";
 
 export default function Navbar() {
   const links = [
-    { to: "/", img: homeImg, alt: "Inicio" },
-    { to: "/login", img: loginImg, alt: "Login" },
-    { to: "/teams", img: teamImg, alt: "Equipos" },
+    
     { to: "/activities", img: aboutImg, alt: "Actividades" },
+    { to: "/login", img: loginImg, alt: "Login" },
+    { to: "/", img: homeImg, alt: "Inicio" },
+    { to: "/teams", img: teamImg, alt: "Equipos" },
     { to: "/profile", img: profileImg, alt: "Perfil" },
   ];
 
