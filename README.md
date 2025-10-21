@@ -20,13 +20,13 @@ FRONTEND:
     react-dom: 19.2.0
     react-router-dom: 7.9.3
     axios: 1.12.2
-    firebase-admin 13.5.0
+    firebase 12.4.0
 
 Código instalación:
 
 ```cmd
 cd frontend
-npm install react@19.2.0 react-dom@19.2.0 react-router-dom@7.9.3 axios@1.12.2 firebase-admin@13.5.0
+npm install react@19.2.0 react-dom@19.2.0 react-router-dom@7.9.3 axios@1.12.2 firebase@12.4.0
 cd..
 ```
 
@@ -38,12 +38,13 @@ DOCS:
 BACKEND:
     express: 5.1.0
     cors: 2.8.5
+    firebase-admin 13.5.0
 
 Código instalación:
 
 ```cmd
 cd backend
-npm install express@5.1.0 cors@2.8.5
+npm install express@5.1.0 cors@2.8.5 firebase-admin@13.5.0
 cd..
 ```
 
