@@ -125,4 +125,4 @@ Los siguientes pasos son necesarios para crear vistas en la aplicación y que pu
     <nav>
         <Link to="/vista">Vista</Link>
     </nav>
-    ```
+    ``` 
