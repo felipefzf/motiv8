@@ -26,7 +26,7 @@ const Activities = () => {
   }, []);
 //
   return (
-    <div>
+    <div style={{ color: '#fff', padding: '20px' }}>
       <h2>Actividades de Strava</h2>
       {activities.length === 0 ? (
         <p>No hay actividades para mostrar.</p>
