@@ -1,6 +1,9 @@
 // src/pages/Profile.jsx
 import tomy from '../assets/tomy.png';
-import bici from '../assets/bici.png';
+import bici from '../assets/bicicleta.png';
+import medalla from '../assets/medalla.png';
+import objetivo from '../assets/objetivo.png';
+import equipo from '../assets/equipo.png';
 
 export default function Profile() {
   return (
@@ -11,13 +14,13 @@ export default function Profile() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img
           src={tomy}
-          className="rounded-circle border border-warning"
+          className="rounded-circle border  border-warning"
           alt="..."
           width={200}
           height={200}
           style={{ marginBottom: '10px' }}
         />
-        <p style={{ margin: 0 }}>tms.pz  <span style={{ color: '#ffd000ff' }}>Nivel 6</span></p>
+        <h4 style={{ margin: 0 }}>tms.pz  <span style={{ color: '#ffd000ff' }}>Nivel 7</span></h4>
         <p style={{ margin: 0 }}>Ubicación: Puente Alto, Chile</p>
         <p style={{ margin: 0 }}>Deporte Principal: Ciclismo</p>
         <br />
@@ -39,12 +42,10 @@ export default function Profile() {
           }}
         >
           <img src={bici} alt="Medalla 1" width={60} height={60} />
-          <img src="/path/to/medalla2.png" alt="Medalla 2" width={60} height={60} />
-          <img src="/path/to/medalla3.png" alt="Medalla 3" width={60} height={60} />
-          <img src="/path/to/medalla4.png" alt="Medalla 4" width={60} height={60} />
-          <img src="/path/to/medalla5.png" alt="Medalla 5" width={60} height={60} />
+          <img src={medalla} alt="Medalla 2" width={60} height={60} />
+          <img src={objetivo} alt="Medalla 3" width={60} height={60} />
+          <img src={equipo} alt="Medalla 4" width={60} height={60} />
         </div>
-
       </div>
     </div>
   );

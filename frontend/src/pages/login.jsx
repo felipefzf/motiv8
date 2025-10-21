@@ -19,8 +19,10 @@ export default function Login() {
 
   return (
     <div className="login-container" style={{ color: '#fff', padding: '20px' }}>
-      <h1 style={{alignItems:"upper",justifyContent:"left",display:"flex"}}>Inicia sesión</h1>
-      <button 
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
+      <h3 style={{margin: '5px 0 10px 0'}}>Inicia sesión</h3>
+      <div>
+        <button 
         onClick={handleStravaLogin}
         style={{alignItems:"center",justifyContent:"center",display:"flex",
           backgroundColor: "#fc4c02",
@@ -33,6 +35,8 @@ export default function Login() {
       >
         🔗 Conectar con Strava
       </button>
+      </div>
+      
     </div>
   );
 }
