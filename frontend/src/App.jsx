@@ -10,13 +10,15 @@ import Activities from "./pages/activities";
 import Register from "./pages/register";
 import MissionCreator from "./pages/missionCreator";
 import MissionList from "./pages/missionList";
+import LoginPage from "./pages/loginpage";
+import AdminRoute from "./components/adminroute";
+import AdminDashboard from "./pages/admindashboard";
 
 
 
 function App() {
   return (
     <BrowserRouter>
-      
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
@@ -26,8 +28,13 @@ function App() {
         <Route path="/activities" element={<Activities/>} />
         <Route path="/*" element={<Navigate to="/" />} />
         <Route path="/register" element={<Register/>} />
-        <Route path="/missionCreator" element={<MissionCreator/>} />
         <Route path="/missionList" element={<MissionList/>} />
+        <Route path="/loginpage" element={<LoginPage/>} />
+
+        <Route element={<AdminRoute />}>
+          <Route path="/admindashboard" element={<AdminDashboard />} />
+          <Route path="/missionCreator" element={<MissionCreator/>} />
+        </Route>
       </Routes>
       <Navbar />
     </BrowserRouter>

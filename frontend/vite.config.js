@@ -10,4 +10,13 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      // Redirige todas las peticiones que empiecen con /api
+      '/api': {
+        target: 'http://localhost:5000', // Asegúrate que este sea el puerto de tu backend
+        changeOrigin: true,
+      }
+    }
+  }
 })

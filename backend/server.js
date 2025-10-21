@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
 import axios from "axios";
-// import testRoutes from "./routes/test.js";
+import testRoutes from "./routes/test.js";
 import admin from 'firebase-admin';
 import { createRequire } from 'module'; // Importa createRequire
+import { verifyToken, isAdmin } from './middlewares/authMiddleware.js'; // <-- IMPORTA
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require('./config/motiv8-b965b-firebase-adminsdk-fbsvc-4489c9f191.json');
@@ -13,7 +14,7 @@ admin.initializeApp({
 });
 
 // Ahora puedes obtener las instancias de Firestore y Auth aquí o en tus rutas
-const db = admin.firestore();
+export const db = admin.firestore();
 const auth = admin.auth();
 
 const app = express();
@@ -26,6 +27,8 @@ app.use(cors({
 const PORT = 5000
 const STRAVA_CLIENT_ID = 179868;
 const STRAVA_CLIENT_SECRET = '093af90ac7d9f9c8bb34f06c32e9041a7f0f0593';
+
+app.use("/api", testRoutes);
 
 app.post('/exchange_token', async (req, res) => {
   const { code } = req.body;
@@ -48,67 +51,8 @@ app.post('/exchange_token', async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email y contraseña son requeridos.' });
-  }
-
-  try {
-    const userRecord = await auth.createUser({
-      email: email,
-      password: password,
-    });
-
-    await db.collection('users').doc(userRecord.uid).set({
-      email: email,
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    res.status(201).json({ message: 'Usuario registrado con éxito', uid: userRecord.uid });
-
-  } catch (error) {
-    if (error.code === 'auth/email-already-in-use') {
-      return res.status(409).json({ error: 'El email ya está en uso.' });
-    }
-    console.error('Error al crear usuario:', error);
-    res.status(500).json({ error: error.message || 'Error interno del servidor' });
-  }
-});
-
-app.post('/missions', async (req, res) => {
-  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
-
-  // Validación básica (puedes añadir más validaciones)
-  if (!name || !description || !type || !targetValue || !unit || !reward) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
-  }
-
-  try {
-    const newMission = {
-      name,
-      description,
-      type,
-      targetValue: Number(targetValue), // Asegurarse de que sea un número
-      unit,
-      reward,
-      status: 'active', // Estado inicial
-      startDate: startDate ? new Date(startDate) : null, // Convertir a objeto Date o null
-      endDate: endDate ? new Date(endDate) : null,     // Convertir a objeto Date o null
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    };
-
-    const docRef = await db.collection('missions').add(newMission);
-    res.status(201).json({ message: 'Misión creada con éxito', id: docRef.id });
-
-  } catch (error) {
-    console.error('Error al crear misión:', error);
-    res.status(500).json({ error: error.message || 'Error interno del servidor' });
-  }
-});
 //CAMBIAR PARA GUARDAR LOS DATOS DE LAS ACTIVIDADES 
-app.post('/missions', async (req, res) => {
+app.post('/missions', verifyToken, isAdmin, async (req, res) => {
   const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
 
   // Validación básica (puedes añadir más validaciones)
@@ -136,6 +80,63 @@ app.post('/missions', async (req, res) => {
   } catch (error) {
     console.error('Error al crear misión:', error);
     res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+
+app.put('/missions/:id', verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
+
+  // Validación básica (igual que en tu POST)
+  if (!name || !description || !type || !targetValue || !unit || !reward) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
+  }
+
+  try {
+    const missionRef = db.collection('missions').doc(id);
+
+    // Prepara los datos actualizados
+    // (Reutilizamos la misma lógica de conversión de fechas que en tu POST)
+    const updatedMissionData = {
+      name,
+      description,
+      type,
+      targetValue: Number(targetValue),
+      unit,
+      reward: Number(reward),
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+      // No actualizamos 'createdAt' para que mantenga la fecha de creación original
+    };
+
+    // Usamos 'update' para modificar la misión sin sobrescribir el documento entero
+    await missionRef.update(updatedMissionData);
+
+    res.status(200).json({ message: 'Misión actualizada con éxito', id: id });
+
+  } catch (error) {
+    console.error('Error al actualizar misión:', error);
+    res.status(500).json({ error: 'Error interno del servidor al actualizar la misión' });
+  }
+});
+
+
+// --- DELETE (Eliminar Misión) ---
+// Ruta protegida, solo para admins
+app.delete('/missions/:id', verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const missionRef = db.collection('missions').doc(id);
+
+    // Elimina el documento
+    await missionRef.delete();
+
+    res.status(200).json({ message: 'Misión eliminada con éxito', id: id });
+
+  } catch (error) {
+    console.error('Error al eliminar misión:', error);
+    res.status(500).json({ error: 'Error interno del servidor al eliminar la misión' });
   }
 });
 //
@@ -168,18 +169,63 @@ app.get('/missions', async (req, res) => {
 });
 
 
-// app.use("/api", testRoutes);
-app.listen(PORT, () => {
-  console.log(`✅ SV corriendo en http://localhost:${PORT}`);
-});
 
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    // --- PASO 1: Crear el usuario en Firebase Authentication ---
+    // Esto crea el registro de email/contraseña
+    const userRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: name,
+    });
+
+    // --- PASO 2: Crear el documento en Firestore ---
+    // Aquí es donde defines el rol por defecto
+    const newUserDoc = {
+      email: userRecord.email,
+      name: userRecord.displayName || 'Sin Nombre',
+      role: 'user', // <--- ¡AQUÍ ESTÁ LA MAGIA!
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Usamos el UID del usuario de Auth como ID del documento en Firestore
+    await db.collection('users').doc(userRecord.uid).set(newUserDoc);
+    
+    // Enviamos una respuesta exitosa
+    res.status(201).send({ 
+      uid: userRecord.uid, 
+      email: userRecord.email, 
+      role: 'user' 
+    });
+
+  } catch (error) {
+    // Manejar errores comunes (ej. email ya existe)
+    if (error.code === 'auth/email-already-exists') {
+      return res.status(400).send('El correo electrónico ya está en uso.');
+    }
+    console.error("Error en el registro:", error);
+    res.status(500).send('Error al registrar el usuario.');
+  }
+});
 
 //API STRAVA
 
+app.get('/api/auth/me', verifyToken, (req, res) => {
+  // Gracias al middleware 'verifyToken', req.user ya tiene
+  // el uid, email y (lo más importante) el 'role'.
+  
+  if (!req.user) {
+    return res.status(404).send('Usuario no encontrado');
+  }
+  
+  // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
+  res.status(200).json(req.user);
+});
 
 
-
-
-
-
-
+app.listen(PORT, () => {
+  console.log(`✅ SV corriendo en http://localhost:${PORT}`);
+});

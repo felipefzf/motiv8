@@ -4,38 +4,38 @@ import React, { useState } from 'react';
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [isError, setIsError] = useState(false);
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
-    setIsError(false);
+    setError('');
 
     try {
-      // --- ESTA URL DEBE APUNTAR A TU BACKEND EN PUERTO 5000 ---
-      const response = await fetch('http://localhost:5000/register', {
+      // Llama a TU PROPIO backend
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, name }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage(`¡Usuario registrado con éxito! UID: ${data.uid}`);
-        setEmail('');
-        setPassword('');
-      } else {
-        setIsError(true);
-        setMessage(`Error al registrar usuario: ${data.error}`);
+      if (!response.ok) {
+        // Si el servidor envió un error (ej. "email ya existe")
+        const errorText = await response.text();
+        throw new Error(errorText);
       }
-    } catch (error) {
-      setIsError(true);
-      setMessage(`Error de conexión al servidor: ${error.message}`);
-      console.error('Error de red:', error);
+
+      const newUser = await response.json();
+      
+      // ¡Éxito! El usuario está creado en Auth Y en Firestore con role: 'user'
+      // Ahora puedes, por ejemplo, redirigirlo al login
+      console.log('Usuario registrado:', newUser);
+      // history.push('/login') o similar
+
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -51,6 +51,18 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
+          />
+        </div>
+        <div>
+          <label htmlFor="name" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nombre:</label>
+          <input
+            type="text"
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            placeholder="Tu nombre"
             style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}
           />
         </div>
@@ -81,7 +93,7 @@ export default function Register() {
           Registrar
         </button>
       </form>
-      {message && (
+      {/* {message && (
         <p style={{
           marginTop: '20px',
           padding: '10px',
@@ -92,7 +104,7 @@ export default function Register() {
         }}>
           {message}
         </p>
-      )}
+      )} */}
     </div>
   );
 }
