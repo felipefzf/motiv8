@@ -18,7 +18,7 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
+    <div className="login-container" style={{ color: '#fff', padding: '20px' }}>
       <h1 style={{alignItems:"upper",justifyContent:"left",display:"flex"}}>Inicia sesión</h1>
       <button 
         onClick={handleStravaLogin}
