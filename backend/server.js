@@ -6,7 +6,7 @@ import admin from 'firebase-admin';
 import { createRequire } from 'module'; // Importa createRequire
 
 const require = createRequire(import.meta.url);
-const serviceAccount = require('./config/motiv8-b965b-firebase-adminsdk-fbsvc-c5feec10a1.json');
+const serviceAccount = require('./config/motiv8-b965b-firebase-adminsdk-fbsvc-27d475c78e.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
