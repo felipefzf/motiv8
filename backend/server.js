@@ -24,6 +24,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 const PORT = 5000
 const STRAVA_CLIENT_ID = 179868;
 const STRAVA_CLIENT_SECRET = '093af90ac7d9f9c8bb34f06c32e9041a7f0f0593';
