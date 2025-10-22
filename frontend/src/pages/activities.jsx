@@ -32,44 +32,54 @@ export async function getComunaFromGeoapify(lat, lng) {
 //GEOAPIFY
 
 const Activities = () => {
+  const [enrichedActivities, setEnrichedActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState([]);
   const [cities, setCities] = useState({}); //GEOAPIFY
 
+
   useEffect(() => {
+
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-//
+    //
     const fetchAccessTokenAndActivities = async () => {
       try {
+        setLoading(true);
         const tokenResponse = await axios.post('http://localhost:5000/exchange_token', { code });
         const accessToken = tokenResponse.data.access_token;
 
         const activitiesResponse = await axios.get(`https://www.strava.com/api/v3/athlete/activities?access_token=${accessToken}`);
         const fetchedActivities = activitiesResponse.data;
-        setActivities(fetchedActivities);
 
-        // Obtener ciudades de inicio y término
-        const cityMap = {};
+        const enrichedList = [];
 
         for (const activity of fetchedActivities) {
-          const cityData = {};
+          const enriched = {
+            id: activity.id,
+            name: activity.name,
+            type: activity.type,
+            distance: formatDistance(activity),
+            rawDistance: activity.distance,
+            movingTime: formatMovingTime(activity),
+            rawMovingTime: activity.moving_time,
+            averageSpeed: activity.average_speed,
+            maxSpeed: activity.max_speed,
+            elevationGain: activity.total_elevation_gain,
+            startLatLng: activity.start_latlng,
+            endLatLng: activity.end_latlng,
+            comunaStart: activity.start_latlng ? await getComunaFromGeoapify(...activity.start_latlng) : "No disponible",
+            comunaEnd: activity.end_latlng ? await getComunaFromGeoapify(...activity.end_latlng) : "No disponible"
+          };
 
-          if (activity.start_latlng) {
-            const [lat, lng] = activity.start_latlng;
-            cityData.start = await getComunaFromGeoapify(lat, lng);
-          }
-
-          if (activity.end_latlng) {
-            const [lat, lng] = activity.end_latlng;
-            cityData.end = await getComunaFromGeoapify(lat, lng);
-          }
-
-          cityMap[activity.id] = cityData;
+          enrichedList.push(enriched);
         }
-
-        setCities(cityMap);
+        setEnrichedActivities(enrichedList);
+        setLoading(false);
+        // Obtener ciudades de inicio y término
       } catch (error) {
         console.error('Error fetching activities:', error);
+        setLoading(false);
       }
     };
 
@@ -77,32 +87,34 @@ const Activities = () => {
       fetchAccessTokenAndActivities();
     }
   }, []);
-//
+  //
   return (
     <div style={{ color: '#fff', padding: '20px' }}>
       <h2>Actividades de Strava</h2>
-      {activities.length === 0 ? (
-        <p>No hay actividades para mostrar.</p>
+
+      {loading ? (
+        <p>SUBIENDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
+        
+      ) : enrichedActivities.length === 0 ? (
+        <p>CARGANDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
       ) : (
         <ul>
-          {activities.map((activity) => (
+          {enrichedActivities.map((activity) => (
             <li key={activity.id}>
-              id: {activity.id} {} <br /> 
-              Nombre actividad: {activity.name} {'/ '} Deporte: {activity.type} {}
-              <br /> 
-              Distancia: {formatDistance(activity)} {activity.distance} {'/ '} Tiempo en movimiento: {formatMovingTime(activity)} {activity.moving_time} {} <br />
-              
-              Velocidad Promedio: {activity.average_speed} {'/ '} Velocidad punta: {activity.max_speed} {'/ '} total_elevation_gain: {activity.total_elevation_gain} {} <br />
-              Punto Inicio {activity.start_latlng} {'/ '} Punto de termino {activity.end_latlng} <br />
-              Comuna de inicio: {cities[activity.id]?.start || "Cargando..."} <br />
-              Comuna de término: {cities[activity.id]?.end || "Cargando..."} <br />
-
+              id: {activity.id} <br />
+              Nombre actividad: {activity.name} / Deporte: {activity.type} <br />
+              Distancia: {activity.distance} ({activity.rawDistance} m) / Tiempo en movimiento: {activity.movingTime} ({activity.rawMovingTime} s) <br />
+              Velocidad Promedio: {activity.averageSpeed} / Velocidad punta: {activity.maxSpeed} / Elevación: {activity.elevationGain} <br />
+              Punto Inicio: {activity.startLatLng?.join(', ')} / Punto de término: {activity.endLatLng?.join(', ')} <br />
+              Comuna de inicio: {activity.comunaStart} <br />
+              Comuna de término: {activity.comunaEnd} <br />
             </li>
           ))}
         </ul>
       )}
     </div>
   );
+
 };
 
 export default Activities;
