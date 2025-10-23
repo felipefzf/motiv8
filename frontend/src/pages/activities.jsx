@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { formatDistance, formatMovingTime } from "../utils/stravaUtils";
+import { translateActivityType } from "../utils/stravaUtils";
 
 //GEOAPIFY
 export async function getComunaFromGeoapify(lat, lng) {
@@ -60,7 +61,7 @@ const Activities = () => {
           const enriched = {
             id: activity.id,
             name: activity.name,
-            type: activity.type,
+            type: translateActivityType(activity),
             distance: formatDistance(activity),
             rawDistance: activity.distance,
             movingTime: formatMovingTime(activity),

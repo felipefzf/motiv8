@@ -25,3 +25,16 @@ export function formatMovingTime(activity) {
   }
 }
 
+
+export function translateActivityType(activity) {
+  const type = activity?.type?.trim().toLowerCase();
+
+  switch (type) {
+    case 'ride':
+      return 'Ciclismo';
+    case 'run':
+      return 'Correr';
+    default:
+      return activity.type;
+  }
+}
