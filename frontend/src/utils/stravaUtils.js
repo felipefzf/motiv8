@@ -1,4 +1,4 @@
-<<<<<<< Updated upstream
+
 // src/utils.js
 
 /**
@@ -26,19 +26,4 @@ export function formatMovingTime(activity) {
   }
 }
 
-=======
-// src/utils/stravaUtils.js
-export function formatDistance(activity) {
-  const km = (activity.distance || 0) / 1000;
-  return `${km.toFixed(1)} km`;
-}
 
-export function formatMovingTime(activity) {
-  const totalSeconds = activity.moving_time || 0;
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  return hours > 0
-    ? `${hours}h ${minutes.toString().padStart(2, "0")}min`
-    : `${minutes}min`;
-}
->>>>>>> Stashed changes
