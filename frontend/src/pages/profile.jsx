@@ -4,8 +4,56 @@ import bici from '../assets/bicicleta.png';
 import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
+import { useNavigate } from 'react-router-dom';
+
+const styles = {
+  container: {
+    padding: '20px',
+    maxWidth: '600px',
+    margin: '40px auto',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '8px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+  },
+  divider: {
+    margin: '20px 0',
+    border: 'none',
+    borderTop: '1px solid #eee'
+  },
+  logoutButton: {
+    padding: '10px 20px',
+    backgroundColor: '#dc3545', // Rojo
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '16px'
+  }
+};
 
 export default function Profile() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      // 1. Cierra la sesión en Firebase
+      await signOut(auth);
+      
+      // 2. Limpia los datos de sesión guardados
+      localStorage.removeItem('firebaseToken');
+      localStorage.removeItem('userRole');
+      
+      // 3. Redirige al login (con 'replace' para que no pueda volver)
+      navigate('/loginpage', { replace: true });
+
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
   return (
     <div style={{ padding: '20px', color: '#fff' }}>
       <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
@@ -45,6 +93,12 @@ export default function Profile() {
           <img src={medalla} alt="Medalla 2" width={60} height={60} />
           <img src={objetivo} alt="Medalla 3" width={60} height={60} />
           <img src={equipo} alt="Medalla 4" width={60} height={60} />
+          <button 
+            onClick={handleLogout} 
+            style={styles.logoutButton}
+          >
+            Cerrar Sesión
+          </button>
         </div>
       </div>
     </div>
