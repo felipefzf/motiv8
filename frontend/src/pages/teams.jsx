@@ -8,17 +8,17 @@ import equipo from '../assets/equipo.png';
 export default function Profile() {
   return (
     <div style={{ padding: '20px', color: '#fff' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>MOTIV8</h1>
       <h2 style={{ margin: '5px 0 10px 0' }}>Equipos</h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img
           src={team}
-          className=""
+          className="rounded-circle border  border-warning"
           alt="..."
-          width={300}
-          height={230}
-          style={{ marginBottom: '0px' }}
+          width={200}
+          height={200}
+          style={{ marginBottom: '10px' }}
         />
         <h4 style={{ margin: 0 }}>Shadow Crew  <span style={{ color: '#ffd000ff' }}>Nivel 23</span></h4>
         <p style={{ margin: 0 }}>Ubicación: <span style={{ color: '#ffd000ff' }}>Santiago, Chile</span></p>

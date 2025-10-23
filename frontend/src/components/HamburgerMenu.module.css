@@ -1,0 +1,61 @@
+/* Posiciona el contenedor del menú */
+.hamburgerContainer {
+  position: absolute; /* Lo fija en la pantalla */
+  top: 15px;
+  right: 20px;
+  z-index: 999; /* Asegura que esté encima de otros elementos */
+}
+
+/* Estilo del botón (icono) */
+.toggleButton {
+  background: none;
+  border: none;
+  color: #333; /* Color del icono */
+  font-size: 1.8rem; /* Tamaño del icono */
+  cursor: pointer;
+  z-index: 1002;
+  position: relative;
+}
+
+/* El menú desplegable (oculto por defecto) */
+.menu {
+  position: absolute;
+  top: 50px; /* Debajo del botón */
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden; /* Para los bordes redondeados */
+  
+  /* Animación: oculto por defecto */
+  transform: scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+/* Estilo del menú cuando está abierto */
+.menu.open {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu ul {
+  list-style: none;
+  padding: 10px 0;
+  margin: 0;
+}
+
+.navLink {
+  display: block;
+  padding: 12px 25px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  white-space: nowrap; /* Evita que el texto se parta */
+}
+
+.navLink:hover {
+  background-color: #f4f4f4;
+}
