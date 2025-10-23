@@ -1,5 +1,6 @@
 // frontend/src/App.jsx
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // Importa Link de React Router
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -10,7 +11,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
+    
     try {
       // Llama a TU PROPIO backend
       const response = await fetch('/api/auth/register', {
@@ -40,7 +41,7 @@ export default function Register() {
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0 0 0 / 10%)',color: '#fff', padding: '20px'  }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0 0 0 / 10%)',color: '#fff' }}>
       <h2>Registrar Nuevo Usuario</h2>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <div>
@@ -92,19 +93,23 @@ export default function Register() {
         >
           Registrar
         </button>
+        <Link to="/loginpage">
+          Volver a Login
+        </Link>
       </form>
-      {/* {message && (
+      {error && (
         <p style={{
           marginTop: '20px',
           padding: '10px',
           borderRadius: '4px',
-          backgroundColor: isError ? '#ffe0e0' : '#e0ffe0',
-          color: isError ? '#cc0000' : '#007200',
-          border: `1px solid ${isError ? '#cc0000' : '#007200'}`
+          backgroundColor: '#ffe0e0', // Fondo rojo claro (error)
+          color: '#cc0000', // Texto rojo oscuro
+          border: '1px solid #cc0000', // Borde rojo
+          fontWeight: 'bold'
         }}>
-          {message}
+          {error}
         </p>
-      )} */}
+      )}
     </div>
   );
 }

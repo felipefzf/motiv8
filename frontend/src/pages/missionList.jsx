@@ -35,7 +35,7 @@ function MissionList() {
   }
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',color: '#fff', padding: '20px' }}>
+    <div style={{ fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '50px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)',color: '#fff' }}>
       <h2>Misiones Disponibles</h2>
       {missions.length === 0 ? (
         <p>No hay misiones creadas aún.</p>

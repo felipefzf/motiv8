@@ -1,3 +1,4 @@
+
 // src/utils.js
 
 /**
@@ -24,4 +25,5 @@ export function formatMovingTime(activity) {
     return `${minutes}min`;
   }
 }
+
 

@@ -201,12 +201,19 @@ app.post('/api/auth/register', async (req, res) => {
       email: userRecord.email, 
       role: 'user' 
     });
+    
+    navigate('/login');
 
   } catch (error) {
     // Manejar errores comunes (ej. email ya existe)
     if (error.code === 'auth/email-already-exists') {
       return res.status(400).send('El correo electrónico ya está en uso.');
     }
+    // Manejar otros posibles errores
+    if (error.code === 'auth/invalid-password') {
+      return res.status(400).send('La contraseña es demasiado débil.');
+    }
+
     console.error("Error en el registro:", error);
     res.status(500).send('Error al registrar el usuario.');
   }
