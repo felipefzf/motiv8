@@ -14,11 +14,11 @@ export default function Profile() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img
           src={team}
-          className=""
+          className="rounded-circle border  border-warning"
           alt="..."
-          width={300}
-          height={230}
-          style={{ marginBottom: '0px' }}
+          width={200}
+          height={200}
+          style={{ marginBottom: '10px' }}
         />
         <h4 style={{ margin: 0 }}>Shadow Crew  <span style={{ color: '#ffd000ff' }}>Nivel 23</span></h4>
         <p style={{ margin: 0 }}>Ubicación: <span style={{ color: '#ffd000ff' }}>Santiago, Chile</span></p>
