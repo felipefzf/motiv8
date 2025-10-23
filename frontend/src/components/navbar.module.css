@@ -11,7 +11,8 @@
   position: fixed;      /* ✅ Cambia relative → fixed */
   bottom: 0;               /* ✅ Lo fija abajo */
   width: 100%;          /* ✅ Ocupar todo el ancho */
-  z-index: 1000;        /* ✅ Para que quede sobre otros elementos */
+  z-index: 1000;  
+  height: 60px; /* Altura fija para el navbar */
 }
 
 
