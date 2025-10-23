@@ -56,7 +56,7 @@ export default function Profile() {
 
   return (
     <div style={{ padding: '20px', color: '#fff' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>MOTIV8</h1>
       <h2 style={{ margin: '5px 0 10px 0' }}>Perfil</h2>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

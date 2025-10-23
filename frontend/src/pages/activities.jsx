@@ -12,8 +12,6 @@ export async function getComunaFromGeoapify(lat, lng) {
     const data = await response.json();
 
     const props = data.features[0]?.properties;
-
-    // Priorizar comuna (municipality), luego ciudad
     const comuna =
       props?.municipality ||
       props?.city ||
@@ -103,7 +101,7 @@ const Activities = () => {
   //
   return (
     <div style={{ padding: '20px', color: '#fff' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>MOTIV8</h1>
       <h3 style={{ margin: '5px 0 10px 0' }}>Actividades de Strava</h3>
 
       {/* filtros opcionales */}
@@ -116,7 +114,7 @@ const Activities = () => {
       />
       <input
         type="text"
-        placeholder="Filtrar por punto inicio..."
+        placeholder="Filtrar por comuna inicio..."
         value={startFilter}
         onChange={(e) => setStartFilter(e.target.value)}
         style={{ marginBottom: '20px', padding: '5px', borderRadius: '6px', width: '80%' }}
@@ -125,8 +123,10 @@ const Activities = () => {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {loading ? (
           <p>SUBIENDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
-        ) : filteredActivities.length === 0 ? (
+        ) : enrichedActivities.length === 0 ? (
           <p>CARGANDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
+        ) : filteredActivities.length === 0 ? (
+          <p>No hay actividades que coincidan con los filtros.</p> // ✅ mensaje actualizado
         ) : (
           <div>
             <ul>
