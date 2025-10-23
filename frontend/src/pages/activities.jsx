@@ -1,40 +1,29 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { formatDistance, formatMovingTime } from "../utils/stravaUtils";
-import { translateActivityType } from "../utils/stravaUtils";
+import { formatDistance, formatMovingTime, getComunaFromGeoapify, translateActivityType } from "../utils/stravaUtils";
+
 
 //GEOAPIFY
-export async function getComunaFromGeoapify(lat, lng) {
-  const apiKey = '8e6613c9028d433cb7b81f5622af46da';
-  const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${apiKey}`;
 
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const props = data.features[0]?.properties;
-
-    // Priorizar comuna (municipality), luego ciudad
-    const comuna =
-      props?.municipality ||
-      props?.city ||
-      props?.suburb ||
-      "Comuna desconocida";
-
-    return comuna;
-  } catch (error) {
-    console.error("Error al obtener comuna desde Geoapify:", error);
-    return "Error al obtener comuna";
-  }
-}
 
 //GEOAPIFY
 
 const Activities = () => {
   const [enrichedActivities, setEnrichedActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activities, setActivities] = useState([]);
-  const [cities, setCities] = useState({}); //GEOAPIFY
+  
+  
+  const saveActivitiesToFirebase = async () => {
+    try {
+      await axios.post('http://localhost:5000/activities', {
+        activities: enrichedActivities,
+        userId: "usuario_demo" // puedes usar el UID si tienes auth
+      });
+      console.log("Actividades guardadas en Firebase.");
+    } catch (error) {
+      console.error("Error al guardar actividades:", error);
+    }
+  };
 
   // filtros
   const [nameFilter, setNameFilter] = useState("");
@@ -78,6 +67,8 @@ const Activities = () => {
           enrichedList.push(enriched);
         }
         setEnrichedActivities(enrichedList);
+        console.log("Actividades enriquecidas:", enrichedActivities);
+        await saveActivitiesToFirebase();
         setLoading(false);
       } catch (error) {
         console.error('Error fetching activities:', error);
@@ -100,6 +91,10 @@ const Activities = () => {
       : true;
     return byName && byStart;
   });
+  
+  useEffect(() => {
+    console.log("Actividades enriquecidas actualizadas:", enrichedActivities);
+  }, [enrichedActivities]);
 
   //
   return (
@@ -133,7 +128,7 @@ const Activities = () => {
             <ul>
               {filteredActivities.map((activity) => (
                 <li key={activity.id}>
-                  ID: {activity.id} <span style={{ color: '#ffd000ff' }}>{activity.name}</span> <br />
+                  ID: {activity.id}<br />
                   Nombre actividad: <span style={{ color: '#ffd000ff' }}>{activity.name}</span> / Deporte: <span style={{ color: '#ffd000ff' }}>{activity.type}</span><br />
                   Distancia: <span style={{ color: '#ffd000ff' }}>{activity.distance}</span> / Tiempo en movimiento: <span style={{ color: '#ffd000ff' }}>{activity.movingTime}</span> <br />
                   Velocidad Promedio: <span style={{ color: '#ffd000ff' }}>{activity.averageSpeed}</span> / Velocidad punta: <span style={{ color: '#ffd000ff' }}>{activity.maxSpeed}</span> / Elevación: <span style={{ color: '#ffd000ff' }}>{activity.elevationGain}</span> <br />

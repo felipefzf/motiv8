@@ -38,3 +38,27 @@ export function translateActivityType(activity) {
       return activity.type;
   }
 }
+
+export async function getComunaFromGeoapify(lat, lng) {
+  const apiKey = '8e6613c9028d433cb7b81f5622af46da';
+  const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${apiKey}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const props = data.features[0]?.properties;
+
+    // Priorizar comuna (municipality), luego ciudad
+    const comuna =
+      props?.municipality ||
+      props?.city ||
+      props?.suburb ||
+      "Comuna desconocida";
+
+    return comuna;
+  } catch (error) {
+    console.error("Error al obtener comuna desde Geoapify:", error);
+    return "Error al obtener comuna";
+  }
+}

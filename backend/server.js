@@ -211,6 +211,37 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(500).send('Error al registrar el usuario.');
   }
 });
+//API FIREBASE
+
+app.post('/activities', async (req, res) => {
+  const { activities, userId } = req.body;
+  console.log("Actividades recibidas en backend:", activities);
+  if (!activities || !Array.isArray(activities)) {
+    return res.status(400).json({ error: 'Formato de actividades inválido.' });
+  }
+
+  try {
+    const batch = db.batch();
+    activities.forEach(activity => {
+      const docRef = db.collection('activities').doc(); // crea un nuevo documento
+      batch.set(docRef, {
+        ...activity,
+        userId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    await batch.commit();
+    res.status(201).json({ message: 'Actividades guardadas exitosamente.' });
+  } catch (error) {
+    console.error('Error al guardar actividades:', error);
+    res.status(500).json({ error: 'Error interno al guardar actividades.' });
+  }
+  
+});
+
+
+//API FIREBASE
 
 //API STRAVA
 
