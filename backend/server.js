@@ -214,7 +214,7 @@ app.post('/api/auth/register', async (req, res) => {
 //API FIREBASE
 
 app.post('/activities', async (req, res) => {
-  const { activities, userId } = req.body;
+  const { activities } = req.body;
   console.log("Actividades recibidas en backend:", activities);
   if (!activities || !Array.isArray(activities)) {
     return res.status(400).json({ error: 'Formato de actividades inválido.' });
@@ -223,15 +223,17 @@ app.post('/activities', async (req, res) => {
   try {
     const batch = db.batch();
     activities.forEach(activity => {
+      console.log("Preparando documento:", activity);
       const docRef = db.collection('activities').doc(); // crea un nuevo documento
       batch.set(docRef, {
         ...activity,
-        userId,
+        
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     });
 
     await batch.commit();
+    console.log("Batch commit ejecutado correctamente");
     res.status(201).json({ message: 'Actividades guardadas exitosamente.' });
   } catch (error) {
     console.error('Error al guardar actividades:', error);

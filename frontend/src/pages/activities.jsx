@@ -68,7 +68,6 @@ const Activities = () => {
         }
         setEnrichedActivities(enrichedList);
         console.log("Actividades enriquecidas:", enrichedActivities);
-        await saveActivitiesToFirebase();
         setLoading(false);
       } catch (error) {
         console.error('Error fetching activities:', error);
@@ -94,6 +93,12 @@ const Activities = () => {
   
   useEffect(() => {
     console.log("Actividades enriquecidas actualizadas:", enrichedActivities);
+  }, [enrichedActivities]);
+  
+  useEffect(() => {
+    if (enrichedActivities.length > 0) {
+      saveActivitiesToFirebase();
+    }
   }, [enrichedActivities]);
 
   //
