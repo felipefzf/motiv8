@@ -24,7 +24,7 @@ export function formatMovingTime(activity) {
     return `${minutes}min`;
   }
 }
-
+ 
 
 export function translateActivityType(activity) {
   const type = activity?.type?.trim().toLowerCase();
