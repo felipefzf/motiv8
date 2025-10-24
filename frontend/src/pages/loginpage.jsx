@@ -1,7 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseconfig'; // Importa tu servicio de auth
+import { auth } from '../firebaseConfig'; // Importa tu servicio de auth
+import { Link } from 'react-router-dom'; // Importa Link de React Router
+
+// 1. Define estilos para el botón de registro
+const styles = {
+  registerButton: {
+    display: 'inline-block',
+    padding: '10px 20px',
+    margin: '10px 0',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    textDecoration: 'none',
+    borderRadius: '5px',
+    transition: 'background-color 0.3s ease',
+  },
+};
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -74,6 +89,15 @@ function LoginPage() {
           required 
         />
         <button type="submit">Entrar</button>
+        
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <p>¿No tienes una cuenta?</p>
+        
+        {/* 2. Añade el componente <Link> apuntando a tu ruta de registro */}
+        <Link to="/register" style={styles.registerButton}>
+          Regístrate Aquí
+        </Link>
+      </div>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
