@@ -38,7 +38,7 @@ function App() {
             <Route path="/teams" element={<Teams/>} />
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
-            <Route path="/missionList" element={<MissionList/>} />
+            
             <Route path="/createTeam" element={<CreateTeam/>} />
             <Route path="/joinTeam" element={<JoinTeam/>} />
             {/* Rutas protegidas para administradores */}

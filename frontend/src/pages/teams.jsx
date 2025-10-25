@@ -9,14 +9,8 @@ import { Link } from 'react-router-dom';
 
 
 export default function Teams() {
-
-
-
-
   return (
 
-    
-    
     <div className="teams-container">
       <h1 className="teams-title">MOTIV8</h1>
       <h2 className="teams-subtitle">Equipos</h2>
@@ -43,7 +37,7 @@ export default function Teams() {
               </div>
             </div>
             
-            <div className="card">
+            
             <div className="card-team">
               <div className="card-body">
                 <p>Tiempo: <span className="highlight">240 hrs</span></p>
@@ -59,7 +53,7 @@ export default function Teams() {
                 <p>Insignias: <span className="highlight">9 Obtenidas</span></p>
               </div>
             </div>
-          </div>
+          
         </div>
 
         <h3 className="section-title">Miembros</h3>
@@ -123,6 +117,6 @@ export default function Teams() {
       </div>
       
     </div>
-    
+    </div>
   );
 }
