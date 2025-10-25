@@ -174,7 +174,7 @@ app.get('/missions', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    
+
     // --- PASO 1: Crear el usuario en Firebase Authentication ---
     // Esto crea el registro de email/contraseña
     const userRecord = await admin.auth().createUser({
@@ -194,14 +194,14 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Usamos el UID del usuario de Auth como ID del documento en Firestore
     await db.collection('users').doc(userRecord.uid).set(newUserDoc);
-    
+
     // Enviamos una respuesta exitosa
-    res.status(201).send({ 
-      uid: userRecord.uid, 
-      email: userRecord.email, 
-      role: 'user' 
+    res.status(201).send({
+      uid: userRecord.uid,
+      email: userRecord.email,
+      role: 'user'
     });
-    
+
     navigate('/login');
 
   } catch (error) {
@@ -234,7 +234,7 @@ app.post('/activities', async (req, res) => {
       const docRef = db.collection('activities').doc(); // crea un nuevo documento
       batch.set(docRef, {
         ...activity,
-        
+
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
     });
@@ -246,7 +246,7 @@ app.post('/activities', async (req, res) => {
     console.error('Error al guardar actividades:', error);
     res.status(500).json({ error: 'Error interno al guardar actividades.' });
   }
-  
+
 });
 
 
@@ -257,15 +257,159 @@ app.post('/activities', async (req, res) => {
 app.get('/api/auth/me', verifyToken, (req, res) => {
   // Gracias al middleware 'verifyToken', req.user ya tiene
   // el uid, email y (lo más importante) el 'role'.
-  
+
   if (!req.user) {
     return res.status(404).send('Usuario no encontrado');
   }
-  
+
   // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
   res.status(200).json(req.user);
 });
+// FUNCIONES TEAMS
+app.post('/teams', async (req, res) => {
+  const { nombreEquipo, tipoDeporte, descripcion, creadoPor } = req.body;
 
+  if (!nombreEquipo || !tipoDeporte || !descripcion || !creadoPor) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios.' });
+  }
+
+  try {
+    const teamsRef = db.collection('teams');
+    const snapshot = await teamsRef.get();
+
+    const newTeam = {
+      nombreEquipo,
+      tipoDeporte,
+      descripcion,
+      creadoPor, // 👈 Guardamos el UID directamente
+      insignias: 0,
+      distanciaClub: 0,
+      tiempoEnRuta: 0,
+      usuarios: 1,
+      misionesCompletadas: 0,
+      miembros: [creadoPor],
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    const docRef = await teamsRef.add(newTeam);
+    res.status(201).json({ message: 'Equipo creado con éxito', id: docRef.id });
+  } catch (error) {
+    console.error('Error al crear equipo:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+
+app.get('/teams', async (req, res) => {
+  try {
+    const snapshot = await db.collection('teams').get();
+    const teams = [];
+
+    snapshot.forEach(doc => {
+      teams.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(teams);
+  } catch (error) {
+    console.error('Error al obtener equipos:', error);
+    res.status(500).json({ error: 'Error al obtener equipos' });
+  }
+});
+
+app.post('/teams/:id/join', async (req, res) => {
+  const { uid } = req.body;
+  const teamId = req.params.id;
+
+  if (!uid) {
+    return res.status(400).json({ error: 'Falta el UID del usuario.' });
+  }
+
+  try {
+    const teamRef = db.collection('teams').doc(teamId);
+    const teamDoc = await teamRef.get();
+
+    if (!teamDoc.exists) {
+      return res.status(404).json({ error: 'Equipo no encontrado.' });
+    }
+
+    const teamData = teamDoc.data();
+    const miembros = teamData.miembros || [];
+
+    if (miembros.includes(uid)) {
+      return res.status(400).json({ error: 'Ya eres parte del equipo.' });
+    }
+
+    miembros.push(uid);
+
+
+    await teamRef.update({
+      miembros,
+      usuarios: miembros.length
+    });
+
+
+    res.status(200).json({ message: 'Te uniste al equipo con éxito.' });
+  } catch (error) {
+    console.error('Error al unirse al equipo:', error);
+    res.status(500).json({ error: 'Error interno al unirse al equipo.' });
+  }
+});
+
+
+app.get('/teams/user/:uid', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const snapshot = await db.collection('teams')
+      .where('miembros', 'array-contains', uid)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: 'No estás en ningún equipo.' });
+    }
+
+    const teams = [];
+    snapshot.forEach(doc => {
+      teams.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(teams[0]); // Asumimos que el usuario está en un solo equipo
+  } catch (error) {
+    console.error('Error al obtener equipo del usuario:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+
+app.post('/teams/members', async (req, res) => {
+  const { uids } = req.body;
+
+  if (!uids || !Array.isArray(uids)) {
+    return res.status(400).json({ error: 'Lista de UIDs inválida.' });
+  }
+
+  try {
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.where(admin.firestore.FieldPath.documentId(), 'in', uids).get();
+
+    const members = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      members.push({
+        uid: doc.id,
+        name: data.name || 'Sin nombre',
+        email: data.email || ''
+      });
+    });
+
+    res.status(200).json(members);
+  } catch (error) {
+    console.error('Error al obtener miembros:', error);
+    res.status(500).json({ error: 'Error interno al obtener miembros.' });
+  }
+});
+
+//FUNCIONES TEAMS
 
 app.listen(PORT, () => {
   console.log(`✅ SV corriendo en http://localhost:${PORT}`);
