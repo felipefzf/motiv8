@@ -1,0 +1,131 @@
+/* Contenedor general */
+.act-container {
+  color: #fff;
+  padding: 20px;
+}
+
+/* Títulos principales */
+.act-title {
+  margin: 0;
+  color: #ffd000ff;
+}
+
+.act-subtitle {
+  margin: 5px 0 10px 0;
+}
+
+/* Botones generales */
+.btn {
+  margin-top: 20px;
+  display: block;
+}
+
+/* Formulario */
+.activity-form,
+.form-container {
+  background-color: #242424;
+  color: #fff;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;           
+  max-width: 500px;        /* Máximo ancho en desktop */
+  margin: 20px auto;
+  box-sizing: border-box; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 4px 15px rgba(255, 208, 0, 0.3);
+}
+
+/* Título del formulario */
+.form-title,
+.activity-form h2 {
+  text-align: center;
+  color: #ffd000;
+  margin-bottom: 15px;
+}
+
+/* Grupos de inputs */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+/* Inputs y selects */
+.activity-form input,
+.activity-form select,
+.form-container input,
+.form-container select {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #333;
+  color: #fff;
+  width: 100%;            /* Ocupa todo el ancho del contenedor */
+  box-sizing: border-box; /* Incluye padding en el ancho */
+  font-size: 15px;
+}
+
+.activity-form input:focus,
+.activity-form select:focus,
+.form-container input:focus,
+.form-container select:focus {
+  outline: 2px solid #ffd000ff;
+}
+
+/* Evita que nombres largos de comunas rompan el layout */
+.activity-form select option,
+.form-container select option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Botón de submit */
+.activity-form button,
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #ffd000;
+  color: #000;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.activity-form button:hover,
+.submit-btn:hover {
+  background-color: #ffde33;
+}
+
+/* Media query para móviles muy pequeños */
+@media screen and (max-width: 400px) {
+  .activity-form,
+  .form-container {
+    padding: 15px;
+    width: 95%;
+    margin: 10px auto;
+  }
+
+  .activity-form input,
+  .activity-form select,
+  .activity-form button,
+  .form-container input,
+  .form-container select,
+  .submit-btn {
+    font-size: 14px;
+  }
+}
+.alerta{
+    color: #242424;
+}

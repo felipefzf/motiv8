@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/adminDashboard";
 import PublicRoute from "./components/publicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/mainLayout";
+import ActivityCreator from "./pages/activityCreator";
 
 
 
@@ -40,6 +41,8 @@ function App() {
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
             <Route path="/missionList" element={<MissionList/>} />
+            <Route path="/activityCreator" element={<ActivityCreator/>} />
+
             {/* Rutas protegidas para administradores */}
             <Route element={<AdminRoute />}>
               <Route path="/admindashboard" element={<AdminDashboard />} />

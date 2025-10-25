@@ -28,28 +28,28 @@ export default function Profile() {
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
           <div className="row row-cols-2">
-            <div className="card">
+            <div className="card-profile">
               <div className="card-body">
                 <p>
                   Distancia: <span className="highlight">270 km</span>
                 </p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-profile">
               <div className="card-body">
                 <p>
                   Tiempo: <span className="highlight">120 hrs</span>
                 </p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-profile">
               <div className="card-body">
                 <p>
                   Misiones: <span className="highlight">45 Completadas</span>
                 </p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-profile">
               <div className="card-body">
                 <p>
                   Insignias: <span className="highlight">8 Obtenidas</span>

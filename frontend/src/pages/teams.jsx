@@ -4,6 +4,7 @@ import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Teams.css';
+import { Link } from 'react-router-dom';
 
 export default function Teams() {
   return (
@@ -27,22 +28,22 @@ export default function Teams() {
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
           <div className="row row-cols-2">
-            <div className="card">
+            <div className="card-team">
               <div className="card-body">
                 <p>Distancia: <span className="highlight">1358 km</span></p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-team">
               <div className="card-body">
                 <p>Tiempo: <span className="highlight">240 hrs</span></p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-team">
               <div className="card-body">
                 <p>Misiones: <span className="highlight">90 Completadas</span></p>
               </div>
             </div>
-            <div className="card">
+            <div className="card-team">
               <div className="card-body">
                 <p>Insignias: <span className="highlight">9 Obtenidas</span></p>
               </div>
@@ -61,6 +62,25 @@ export default function Teams() {
           <img src={medalla} alt="Medalla 2" />
           <img src={objetivo} alt="Medalla 3" />
           <img src={equipo} alt="Medalla 4" />
+        </div>
+        <br />
+        <button type="button" className="btn btn-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+        Abandonar Equipo
+      </button>
+      </div>
+      
+      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="staticBackdropLabel">Quieres abandonar al Equipo?</h1>            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close"><Link to="/" className="btn btn-danger">
+          Abandonar Equipo
+        </Link></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
