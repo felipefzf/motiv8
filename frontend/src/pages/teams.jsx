@@ -5,9 +5,18 @@ import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Teams.css';
 import { Link } from 'react-router-dom';
+ 
+
 
 export default function Teams() {
+
+
+
+
   return (
+
+    
+    
     <div className="teams-container">
       <h1 className="teams-title">MOTIV8</h1>
       <h2 className="teams-subtitle">Equipos</h2>
@@ -33,6 +42,8 @@ export default function Teams() {
                 <p>Distancia: <span className="highlight">1358 km</span></p>
               </div>
             </div>
+            
+            <div className="card">
             <div className="card-team">
               <div className="card-body">
                 <p>Tiempo: <span className="highlight">240 hrs</span></p>
@@ -62,6 +73,33 @@ export default function Teams() {
           <img src={medalla} alt="Medalla 2" />
           <img src={objetivo} alt="Medalla 3" />
           <img src={equipo} alt="Medalla 4" />
+          
+        </div>
+        {/* Boton crear equipo */}
+
+        <div className="container text-center">
+          <div className="row row-cols-2">
+            <button
+              
+              style={{
+
+              }}
+            >
+              <Link to="/createTeam">
+                Crear Equipo
+              </Link>
+            </button>
+            <button
+              
+              style={{
+
+              }}
+            >
+              <Link to="/joinTeam">
+                Unirse a un Equipo
+              </Link>
+            </button>
+          </div>
         </div>
         <br />
         <button type="button" className="btn btn-danger" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
@@ -83,6 +121,8 @@ export default function Teams() {
           </div>
         </div>
       </div>
+      
     </div>
+    
   );
 }
