@@ -38,7 +38,6 @@ function App() {
             <Route path="/teams" element={<Teams/>} />
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
-            <Route path="/missionList" element={<MissionList/>} />
             <Route path="/activityCreator" element={<ActivityCreator/>} />
 
             {/* Rutas protegidas para administradores */}
