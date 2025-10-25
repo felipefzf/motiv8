@@ -10,7 +10,7 @@ const MainLayout = () => {
       <Navbar /> 
       <HamburgerMenu />
       {/* 2. El resto de la página (ej. Dashboard) se renderiza aquí */}
-      <main>
+      <main style={{paddingBottom: '80px'}}>
         <Outlet />
       </main>
     </>
