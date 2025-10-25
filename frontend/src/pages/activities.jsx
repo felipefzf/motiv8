@@ -101,7 +101,7 @@ const Activities = () => {
   //
   return (
     <div style={{ padding: '20px', color: '#fff' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>MOTIV8</h1>
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
       <h3 style={{ margin: '5px 0 10px 0' }}>Actividades de Strava</h3>
 
       {/* filtros opcionales */}

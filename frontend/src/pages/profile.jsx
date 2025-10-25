@@ -4,9 +4,35 @@ import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Profile.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
+// import { useNavigate } from 'react-router-dom';
+
+
 
 export default function Profile() {
+
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+      try {
+        // 1. Cierra la sesión en Firebase
+        await signOut(auth);
+        
+        // 2. Limpia los datos de sesión guardados
+        localStorage.removeItem('firebaseToken');
+        localStorage.removeItem('userRole');
+        
+        // 3. Redirige al login (con 'replace' para que no pueda volver)
+        navigate('/login', { replace: true });
+
+      } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+      }
+    };
+
+
   return (
     <div className="profile-container">
       <h1 className="profile-title">MOTIV8</h1>
@@ -67,9 +93,9 @@ export default function Profile() {
           <img src={equipo} alt="Medalla 4" />
         </div>
         <br />
-        <Link to="/" className="btn btn-danger">
+        <button onClick={handleLogout} className="btn btn-danger">
           Cerrar Sesión
-        </Link>
+        </button>
       </div>
     </div>
   );
