@@ -4,6 +4,7 @@ import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Profile.css';
+import { Link } from 'react-router-dom';
 
 export default function Profile() {
   return (
@@ -20,8 +21,9 @@ export default function Profile() {
         <h4 className="profile-name">
           tms.pz <span className="profile-level">Nivel 7</span>
         </h4>
-        <p>Ubicación: Puente Alto, Chile</p>
-        <p>Deporte Principal: Ciclismo</p>
+        <br />
+        <p>Ubicación: <span className="profile-level">Ñuñoa, Chile</span></p>
+        <p>Deporte Principal: <span className="profile-level">Ciclismo</span></p>
 
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
@@ -64,6 +66,10 @@ export default function Profile() {
           <img src={objetivo} alt="Medalla 3" />
           <img src={equipo} alt="Medalla 4" />
         </div>
+        <br />
+        <Link to="/" className="btn btn-danger">
+          Cerrar Sesión
+        </Link>
       </div>
     </div>
   );
