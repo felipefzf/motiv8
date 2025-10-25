@@ -1,0 +1,173 @@
+/* src/pages/MissionList.module.css */
+
+.container {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #ffffff;
+    /* Cambiado de #fff para mejor legibilidad */
+    padding-bottom: 80px;
+    /* Espacio para el navbar fijo */
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.listItem {
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.missionInfo p {
+    margin: 0 0 5px 0;
+}
+
+.missionInfo h3 {
+    margin: 0 0 5px 0;
+}
+
+.listItemButtons {
+    display: flex;
+    flex-direction: column;
+    /* Apila botones en móvil */
+    gap: 10px;
+}
+
+/* --- Estilos de Botones --- */
+.button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.createButton {
+    background-color: #007bff;
+    color: white;
+}
+
+.updateButton {
+    background-color: #28a745;
+    color: white;
+}
+
+.editButton {
+    background-color: #ffc107;
+    color: #333;
+}
+
+.deleteButton {
+    background-color: #dc3545;
+    color: white;
+}
+
+.cancelButton {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* --- Estilos del Modal (Ventana Flotante) --- */
+.modalBackdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    /* Encima de todo */
+}
+
+.modalContent {
+    color: #505050;
+    /* Cambiado de #fff para mejor legibilidad */
+
+    background: #ebebeb;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 600px;
+    z-index: 2001;
+    max-height: 90vh;
+    /* Permite scroll si es muy alto */
+    overflow-y: auto;
+    /* Añade scroll si el form es largo */
+}
+
+.modalContent h3 {
+    margin-top: 0;
+}
+
+.inputGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.inputGroupFull {
+    grid-column: span 2;
+}
+
+/* Estilos de inputs del formulario */
+.modalContent input[type="text"],
+.modalContent input[type="number"],
+.modalContent input[type="date"],
+.modalContent select,
+.modalContent textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    /* Importante para el padding */
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.modalContent label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
+    background-color: #ffe0e0;
+    border: 1px solid #cc0000;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}

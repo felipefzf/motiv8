@@ -18,6 +18,14 @@ function MissionCreator() {
     setMessage('');
     setIsError(false);
 
+    // Validar que el token esté presente
+    const token = localStorage.getItem('firebaseToken');
+    if (!token) {
+      setIsError(true);
+      setMessage('No se ha encontrado un token de autenticación. Por favor, inicia sesión.');
+      return;
+    }
+
     const missionData = {
       name,
       description,
@@ -34,6 +42,7 @@ function MissionCreator() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Incluir el token en el encabezado
         },
         body: JSON.stringify(missionData),
       });

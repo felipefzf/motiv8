@@ -1,50 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+// 1. Importa el archivo de estilos de CSS Modules
+import styles from './AdminDashboard.module.css';
 
-// Estilos básicos para el componente (puedes moverlos a un .css)
-const styles = {
-  container: { padding: '20px', maxWidth: '1000px', margin: '0 auto' },
-  form: { 
-    background: '#f4f4f4', 
-    padding: '20px', 
-    borderRadius: '8px', 
-    marginBottom: '30px', 
-    display: 'flex', 
-    flexWrap: 'wrap', 
-    gap: '10px'
-  },
-  inputGroup: { flex: '1 1 300px', display: 'flex', flexDirection: 'column' },
-  input: { padding: '8px', borderRadius: '4px', border: '1px solid #ccc' },
-  button: { 
-    padding: '10px 15px', 
-    border: 'none', 
-    borderRadius: '4px', 
-    cursor: 'pointer', 
-    fontSize: '16px', 
-    fontWeight: 'bold',
-    alignSelf: 'flex-end'
-  },
-  createButton: { backgroundColor: '#007bff', color: 'white' },
-  updateButton: { backgroundColor: '#28a745', color: 'white' },
-  cancelButton: { backgroundColor: '#6c757d', color: 'white' },
-  list: { listStyle: 'none', padding: 0 },
-  listItem: { 
-    background: '#fff', 
-    border: '1px solid #ddd', 
-    padding: '15px', 
-    marginBottom: '10px', 
-    borderRadius: '8px', 
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
-  },
-  listItemButtons: { display: 'flex', gap: '10px' },
-  editButton: { backgroundColor: '#ffc107' },
-  deleteButton: { backgroundColor: '#dc3545', color: 'white' },
-  error: { color: 'red', fontWeight: 'bold' }
-};
+// 2. El objeto 'styles' ya no existe aquí
+// ...
 
-// Estado inicial vacío para el formulario
+// Estado inicial vacío para el formulario (esto se queda igual)
 const initialState = {
   name: '',
   description: '',
@@ -59,16 +21,19 @@ const initialState = {
 function AdminDashboard() {
   const [missions, setMissions] = useState([]);
   const [formData, setFormData] = useState(initialState);
-  const [editingId, setEditingId] = useState(null); // null = creando, 'id' = editando
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // --- TODA TU LÓGICA (getToken, fetchMissions, handleSubmit, etc.) ---
+  // --- NO CAMBIA NADA AQUÍ. Cópiala y pégala tal cual ---
+  // ... (toda la lógica de funciones va aquí) ...
 
   // --- 1. FUNCIÓN AUXILIAR PARA OBTENER EL TOKEN ---
   const getToken = () => {
     const token = localStorage.getItem('firebaseToken');
     if (!token) {
-      // Si no hay token, redirige al login
       navigate('/login');
     }
     return token;
@@ -81,7 +46,7 @@ function AdminDashboard() {
     if (!token) return;
 
     try {
-      const response = await fetch('/api/missions', { // Asumiendo proxy
+      const response = await fetch('/api/missions', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -100,7 +65,6 @@ function AdminDashboard() {
     }
   };
 
-  // Carga las misiones al iniciar el componente
   useEffect(() => {
     fetchMissions();
   }, []);
@@ -112,7 +76,6 @@ function AdminDashboard() {
     const token = getToken();
     if (!token) return;
 
-    // Decide si es CREATE (POST) o UPDATE (PUT)
     const isUpdating = editingId !== null;
     const url = isUpdating ? `/api/missions/${editingId}` : '/api/missions';
     const method = isUpdating ? 'PUT' : 'POST';
@@ -135,10 +98,9 @@ function AdminDashboard() {
         throw new Error(errData.error || `Error al ${isUpdating ? 'actualizar' : 'crear'} la misión.`);
       }
       
-      // Éxito: Limpia el formulario y recarga la lista
       setFormData(initialState);
       setEditingId(null);
-      fetchMissions(); // Recarga la lista de misiones
+      fetchMissions(); 
 
     } catch (err) {
       setError(err.message);
@@ -147,7 +109,6 @@ function AdminDashboard() {
 
   // --- 4. DELETE (ELIMINAR) ---
   const handleDelete = async (id) => {
-    // Simple confirmación
     if (!window.confirm('¿Estás seguro de que quieres eliminar esta misión?')) {
       return;
     }
@@ -167,7 +128,6 @@ function AdminDashboard() {
       }
       if (!response.ok) throw new Error('Error al eliminar la misión.');
 
-      // Éxito: Recarga la lista
       fetchMissions(); 
       
     } catch (err) {
@@ -184,105 +144,107 @@ function AdminDashboard() {
     }));
   };
 
-  // Prepara el formulario para editar una misión
   const handleEditClick = (mission) => {
     setEditingId(mission.id);
-    // Firestore devuelve fechas como ISO strings, el input[type=date] las maneja bien si cortamos la hora
     const formattedMission = {
       ...mission,
       startDate: mission.startDate ? mission.startDate.split('T')[0] : '',
       endDate: mission.endDate ? mission.endDate.split('T')[0] : ''
     };
     setFormData(formattedMission);
-    window.scrollTo(0, 0); // Sube al inicio de la página para ver el form
+    window.scrollTo(0, 0); 
   };
 
-  // Cancela la edición
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData(initialState);
     setError(null);
   };
 
-  // --- 6. RENDERIZADO DEL COMPONENTE ---
+
+  // --- 6. RENDERIZADO DEL COMPONENTE (con 'className' en lugar de 'style') ---
   return (
-    <div style={styles.container}>
+    <div className={styles.container}>
       <h1>Panel de Administrador de Misiones</h1>
 
       {/* --- FORMULARIO DE CREAR / EDITAR --- */}
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} className={styles.form}>
         <h3>{editingId ? 'Actualizar Misión' : 'Crear Nueva Misión'}</h3>
         
-        <div style={{...styles.inputGroup, flexBasis: '100%'}}>
+        {/* Usamos clases de utilidad para los estilos 'dinámicos' */}
+        <div className={`${styles.inputGroup} ${styles.flex100}`}>
           <label>Nombre</label>
-          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required style={styles.input} />
+          <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className={styles.input} />
         </div>
-        <div style={{...styles.inputGroup, flexBasis: '100%'}}>
+        <div className={`${styles.inputGroup} ${styles.flex100}`}>
           <label>Descripción</label>
-          <textarea name="description" value={formData.description} onChange={handleInputChange} style={styles.input} />
+          <textarea name="description" value={formData.description} onChange={handleInputChange} className={styles.input} />
         </div>
         
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Tipo</label>
-          <select name="type" value={formData.type} onChange={handleInputChange} style={styles.input}>
+          <select name="type" value={formData.type} onChange={handleInputChange} className={styles.input}>
             <option value="distance">Distancia</option>
             <option value="time">Tiempo</option>
             <option value="calories">Calorías</option>
           </select>
         </div>
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Objetivo (Valor)</label>
-          <input type="number" name="targetValue" value={formData.targetValue} onChange={handleInputChange} required style={styles.input} />
+          <input type="number" name="targetValue" value={formData.targetValue} onChange={handleInputChange} required className={styles.input} />
         </div>
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Unidad (ej: km, min, kcal)</label>
-          <input type="text" name="unit" value={formData.unit} onChange={handleInputChange} required style={styles.input} />
+          <input type="text" name="unit" value={formData.unit} onChange={handleInputChange} required className={styles.input} />
         </div>
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Recompensa (Puntos)</label>
-          <input type="number" name="reward" value={formData.reward} onChange={handleInputChange} required style={styles.input} />
+          <input type="number" name="reward" value={formData.reward} onChange={handleInputChange} required className={styles.input} />
         </div>
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Fecha de Inicio</label>
-          <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} style={styles.input} />
+          <input type="date" name="startDate" value={formData.startDate} onChange={handleInputChange} className={styles.input} />
         </div>
-        <div style={styles.inputGroup}>
+        <div className={styles.inputGroup}>
           <label>Fecha de Fin</label>
-          <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} style={styles.input} />
+          <input type="date" name="endDate" value={formData.endDate} onChange={handleInputChange} className={styles.input} />
         </div>
 
-        <div style={{...styles.inputGroup, flexBasis: '100%', alignItems: 'flex-end', gap: '10px', flexDirection: 'row'}}>
+        {/* Para clases combinadas, usamos un template literal. 
+          `${styles.baseClass} ${styles.modifierClass}` 
+        */}
+        <div className={`${styles.inputGroup} ${styles.flex100} ${styles.formActions}`}>
           {editingId && (
-            <button type="button" onClick={handleCancelEdit} style={{...styles.button, ...styles.cancelButton}}>
+            <button type="button" onClick={handleCancelEdit} className={`${styles.button} ${styles.cancelButton}`}>
               Cancelar
             </button>
           )}
-          <button type="submit" style={{...styles.button, ...(editingId ? styles.updateButton : styles.createButton)}}>
+          <button type="submit" className={`${styles.button} ${editingId ? styles.updateButton : styles.createButton}`}>
             {editingId ? 'Actualizar Misión' : 'Crear Misión'}
           </button>
         </div>
       </form>
 
-      {error && <p style={styles.error}>{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
 
       {/* --- LISTA DE MISIONES --- */}
       <h2>Misiones Activas</h2>
       {loading ? (
         <p>Cargando misiones...</p>
       ) : (
-        <ul style={styles.list}>
+        <ul className={styles.list}>
           {missions.map(mission => (
-            <li key={mission.id} style={styles.listItem}>
+            <li key={mission.id} className={styles.listItem}>
               <div>
                 <strong>{mission.name}</strong> ({mission.type})
                 <p>{mission.description}</p>
                 <small>Recompensa: {mission.reward} puntos | Fin: {mission.endDate || 'N/A'}</small>
               </div>
-              <div style={styles.listItemButtons}>
-                <button onClick={() => handleEditClick(mission)} style={{...styles.button, ...styles.editButton}}>
+              <div className={styles.listItemButtons}>
+                <button onClick={() => handleEditClick(mission)} className={`${styles.button} ${styles.editButton}`}>
                   Editar
                 </button>
-                <button onClick={() => handleDelete(mission.id)} style={{...styles.button, ...styles.deleteButton}}>
+                <button onClick={() => handleDelete(mission.id)} className={`${styles.button} ${styles.deleteButton}`}>
                   Eliminar
                 </button>
               </div>

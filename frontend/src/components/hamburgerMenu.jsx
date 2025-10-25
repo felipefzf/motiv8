@@ -49,16 +49,16 @@ function HamburgerMenu() {
               className={styles.navLink} 
               onClick={closeMenu}
             >
-              Admin Dashboard
+              Usuarios
             </NavLink>
           </li>
           <li>
             <NavLink 
-              to="/missionCreator" 
+              to="/missionDashboard" 
               className={styles.navLink} 
               onClick={closeMenu}
             >
-              Crear Misión
+              Administrar Misiones
             </NavLink>
           </li>
           {/* Añade aquí más rutas de admin si las necesitas */}
