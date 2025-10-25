@@ -26,8 +26,6 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: #242424
 }
 
@@ -66,12 +64,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
-div{
-  display: grid;
-  min-height: 100dvh;
-  grid-template-rows: auto 1fr auto;
-  width: 100%;
-  
-
 }
