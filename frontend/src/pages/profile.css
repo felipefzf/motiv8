@@ -1,0 +1,58 @@
+.profile-container {
+    padding: 20px;
+    color: #fff;
+    text-align: center;
+}
+
+.profile-title {
+    margin: 0;
+    color: #ffd000ff;
+    text-align: start;
+}
+
+.profile-subtitle {
+    margin: 5px 0 10px 0;
+    text-align: start;
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-image {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 10px;
+}
+
+.profile-name {
+    margin: 0;
+}
+
+.profile-level {
+    color: #ffd000ff;
+}
+
+.section-title {
+    color: #ffd000ff;
+    margin-top: 20px;
+}
+
+.highlight {
+    color: #ffd000ff;
+}
+
+.achievements {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.achievements img {
+    width: 60px;
+    height: 60px;
+}

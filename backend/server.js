@@ -201,16 +201,56 @@ app.post('/api/auth/register', async (req, res) => {
       email: userRecord.email, 
       role: 'user' 
     });
+    
+    navigate('/login');
 
   } catch (error) {
     // Manejar errores comunes (ej. email ya existe)
     if (error.code === 'auth/email-already-exists') {
       return res.status(400).send('El correo electrónico ya está en uso.');
     }
+    // Manejar otros posibles errores
+    if (error.code === 'auth/invalid-password') {
+      return res.status(400).send('La contraseña es demasiado débil.');
+    }
+
     console.error("Error en el registro:", error);
     res.status(500).send('Error al registrar el usuario.');
   }
 });
+//API FIREBASE
+
+app.post('/activities', async (req, res) => {
+  const { activities } = req.body;
+  console.log("Actividades recibidas en backend:", activities);
+  if (!activities || !Array.isArray(activities)) {
+    return res.status(400).json({ error: 'Formato de actividades inválido.' });
+  }
+
+  try {
+    const batch = db.batch();
+    activities.forEach(activity => {
+      console.log("Preparando documento:", activity);
+      const docRef = db.collection('activities').doc(); // crea un nuevo documento
+      batch.set(docRef, {
+        ...activity,
+        
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    });
+
+    await batch.commit();
+    console.log("Batch commit ejecutado correctamente");
+    res.status(201).json({ message: 'Actividades guardadas exitosamente.' });
+  } catch (error) {
+    console.error('Error al guardar actividades:', error);
+    res.status(500).json({ error: 'Error interno al guardar actividades.' });
+  }
+  
+});
+
+
+//API FIREBASE
 
 //API STRAVA
 

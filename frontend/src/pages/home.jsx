@@ -12,8 +12,9 @@ export default function Home() {
 
   return (
     <div style={{ color: '#fff', padding: '20px' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
+      <h1 style={{ margin: 0, color: '#ffd000ff' }}>MOTIV8</h1>
+      <h3 style={{ margin: '5px 0 10px 0' }}>Home</h3>
       <p style={{alignItems:"center",justifyContent:"center",display:"flex"}}>Backend dice: {mensaje}</p>
-    </div>
+    </div >
   );
 }

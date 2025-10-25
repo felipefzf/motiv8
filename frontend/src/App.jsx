@@ -10,9 +10,12 @@ import Activities from "./pages/activities";
 import Register from "./pages/register";
 import MissionCreator from "./pages/missionCreator";
 import MissionList from "./pages/missionList";
-import LoginPage from "./pages/loginpage";
-import AdminRoute from "./components/adminroute";
-import AdminDashboard from "./pages/admindashboard";
+import LoginPage from "./pages/loginPage";
+import AdminRoute from "./components/adminRoute";
+import AdminDashboard from "./pages/adminDashboard";
+import PublicRoute from "./components/publicRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
+import MainLayout from "./components/mainLayout";
 
 
 
@@ -20,23 +23,32 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/teams" element={<Teams/>} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/activities" element={<Activities/>} />
-        <Route path="/*" element={<Navigate to="/" />} />
-        <Route path="/register" element={<Register/>} />
-        <Route path="/missionList" element={<MissionList/>} />
-        <Route path="/loginpage" element={<LoginPage/>} />
-
-        <Route element={<AdminRoute />}>
-          <Route path="/admindashboard" element={<AdminDashboard />} />
-          <Route path="/missionCreator" element={<MissionCreator/>} />
+        {/* Rutas públicas(acceso a usuarios no logueados) */}
+        <Route element={<PublicRoute />}>
+          <Route path="/loginpage" element={<LoginPage />} />
+          <Route path="/register" element={<Register />} />
         </Route>
+
+        {/* Rutas protegidas(acceso a usuarios logueados) */}
+        <Route element={<ProtectedRoute />}>
+          {/* Layout de navBar para rutas protegidas */}
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/teams" element={<Teams/>} />
+            <Route path="/login" element={<Login/>} />
+            <Route path="/activities" element={<Activities/>} />
+            <Route path="/missionList" element={<MissionList/>} />
+            {/* Rutas protegidas para administradores */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admindashboard" element={<AdminDashboard />} />
+              <Route path="/missionCreator" element={<MissionCreator/>} />
+            </Route>
+          </Route>
+        </Route>
+
       </Routes>
-      <Navbar />
     </BrowserRouter>
   );
 }
