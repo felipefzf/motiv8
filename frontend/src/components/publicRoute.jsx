@@ -9,7 +9,7 @@ const PublicRoute = () => {
   const role = localStorage.getItem('userRole');
   
   // 3. Decide a dónde redirigir si el usuario YA está logueado
-  const redirectPath = role === 'admin' ? '/admin-dashboard' : '/';
+  const redirectPath = role === 'admin' ? '/' : '/';
 
   // Si hay un token, redirige al usuario fuera del login.
   // Si NO hay token, muestra la ruta (Outlet), es decir, el Login.

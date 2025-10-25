@@ -1,0 +1,121 @@
+/* src/pages/AdminDashboard.module.css */
+
+.container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 80px; /* Añade espacio para el navbar fijo de abajo */
+}
+
+.form {
+  background: #f4f4f4;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.inputGroup {
+  flex: 1 1 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input {
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%; /* Asegura que ocupe el espacio */
+  box-sizing: border-box; /* Incluye padding en el ancho */
+}
+
+/* Selector para <textarea> dentro de .inputGroup */
+.inputGroup textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit; /* Hereda la fuente */
+}
+
+.button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.createButton {
+  background-color: #007bff;
+  color: white;
+}
+
+.updateButton {
+  background-color: #28a745;
+  color: white;
+}
+
+.cancelButton {
+  background-color: #6c757d;
+  color: white;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+}
+
+.listItem {
+  background: #fff;
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap; /* Para mejor responsividad en móvil */
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px; /* Espacio entre el texto y los botones */
+}
+
+.listItemButtons {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0; /* Evita que los botones se encojan */
+}
+
+.editButton {
+  background-color: #ffc107;
+}
+
+.deleteButton {
+  background-color: #dc3545;
+  color: white;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+  background-color: #ffe0e0;
+  border: 1px solid #cc0000;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+/* --- Clases de utilidad que añadimos --- */
+
+.flex100 {
+  flex-basis: 100%;
+}
+
+.formActions {
+  flex-basis: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-direction: row;
+}

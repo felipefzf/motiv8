@@ -93,7 +93,7 @@ export default function Register() {
         >
           Registrar
         </button>
-        <Link to="/loginpage">
+        <Link to="/login">  
           Volver a Login
         </Link>
       </form>

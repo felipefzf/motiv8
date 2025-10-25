@@ -4,23 +4,26 @@
   top: 15px;
   right: 20px;
   z-index: 999; /* Asegura que esté encima de otros elementos */
+  border: 2px solid #817d7d;
+  border-radius: 200px;
 }
 
 /* Estilo del botón (icono) */
 .toggleButton {
   background: none;
   border: none;
-  color: #333; /* Color del icono */
-  font-size: 1.8rem; /* Tamaño del icono */
+  color: #ffd000ff; /* Color del icono */
+  font-size: 1.5rem; /* Tamaño del icono */
   cursor: pointer;
   z-index: 1002;
   position: relative;
+  bottom: 3px;
 }
 
 /* El menú desplegable (oculto por defecto) */
 .menu {
   position: absolute;
-  top: 50px; /* Debajo del botón */
+  top: 70px; /* Debajo del botón */
   right: 0;
   background-color: white;
   border-radius: 8px;
