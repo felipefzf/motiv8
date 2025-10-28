@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { auth } from '../firebaseConfig';
 import './Teams.css';
+import { Link } from 'react-router-dom';
+
 
 export default function JoinTeam() {
   const [teams, setTeams] = useState([]);
@@ -49,15 +51,27 @@ export default function JoinTeam() {
 
   return (
     <div className="container mt-5">
+      <div className="container text-center">
+            <div className="row row-cols-2">
+              <button
+                style={{
+                }}
+              >
+                <Link to="/createTeam">
+                  Crear Equipo
+                </Link>
+              </button>
+            </div>
+          </div>
       <h2>Unirse a un equipo</h2>
       {loading ? (
         <p>Cargando equipos...</p>
       ) : teams.length === 0 ? (
         <p>No hay equipos disponibles.</p>
       ) : (
-        <div className="row">
+        <div>
           {teams.map((team) => (
-            <div key={team.id} className="col-md-4 mb-4">
+            <div key={team.id}>
               <div className="card">
                 <div className="card-body">
                   <h5 className="card-title">{team.nombreEquipo}</h5>
