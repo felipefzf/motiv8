@@ -38,7 +38,7 @@ function MissionCreator() {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/missions', { // URL a tu backend
+      const response = await fetch('http://localhost:5000/api/missions', { // URL a tu backend
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

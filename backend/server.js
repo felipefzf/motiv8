@@ -31,146 +31,8 @@ const STRAVA_CLIENT_SECRET = '093af90ac7d9f9c8bb34f06c32e9041a7f0f0593';
 
 app.use("/api", testRoutes);
 
-app.post('/exchange_token', async (req, res) => {
-  const { code } = req.body;
-
-  try {
-    const response = await axios.post('https://www.strava.com/oauth/token', null, {
-      params: {
-        client_id: STRAVA_CLIENT_ID,
-        client_secret: STRAVA_CLIENT_SECRET,
-        code,
-        grant_type: 'authorization_code',
-      },
-    });
-
-    const { access_token, refresh_token } = response.data;
-    res.json({ access_token, refresh_token });
-  } catch (error) {
-    console.error('Error exchanging token:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to exchange token' });
-  }
-});
-
-//CAMBIAR PARA GUARDAR LOS DATOS DE LAS ACTIVIDADES 
-app.post('/missions', verifyToken, isAdmin, async (req, res) => {
-  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
-
-  // Validación básica (puedes añadir más validaciones)
-  if (!name || !description || !type || !targetValue || !unit || !reward) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
-  }
-
-  try {
-    const newMission = {
-      name,
-      description,
-      type,
-      targetValue: Number(targetValue), // Asegurarse de que sea un número
-      unit,
-      reward,
-      status: 'active', // Estado inicial
-      startDate: startDate ? new Date(startDate) : null, // Convertir a objeto Date o null
-      endDate: endDate ? new Date(endDate) : null,     // Convertir a objeto Date o null
-      createdAt: admin.firestore.FieldValue.serverTimestamp()
-    };
-
-    const docRef = await db.collection('missions').add(newMission);
-    res.status(201).json({ message: 'Misión creada con éxito', id: docRef.id });
-
-  } catch (error) {
-    console.error('Error al crear misión:', error);
-    res.status(500).json({ error: error.message || 'Error interno del servidor' });
-  }
-});
-
-app.put('/missions/:id', verifyToken, isAdmin, async (req, res) => {
-  const { id } = req.params;
-  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
-
-  // Validación básica (igual que en tu POST)
-  if (!name || !description || !type || !targetValue || !unit || !reward) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
-  }
-
-  try {
-    const missionRef = db.collection('missions').doc(id);
-
-    // Prepara los datos actualizados
-    // (Reutilizamos la misma lógica de conversión de fechas que en tu POST)
-    const updatedMissionData = {
-      name,
-      description,
-      type,
-      targetValue: Number(targetValue),
-      unit,
-      reward: Number(reward),
-      startDate: startDate ? new Date(startDate) : null,
-      endDate: endDate ? new Date(endDate) : null,
-      // No actualizamos 'createdAt' para que mantenga la fecha de creación original
-    };
-
-    // Usamos 'update' para modificar la misión sin sobrescribir el documento entero
-    await missionRef.update(updatedMissionData);
-
-    res.status(200).json({ message: 'Misión actualizada con éxito', id: id });
-
-  } catch (error) {
-    console.error('Error al actualizar misión:', error);
-    res.status(500).json({ error: 'Error interno del servidor al actualizar la misión' });
-  }
-});
-
-
-// --- DELETE (Eliminar Misión) ---
-// Ruta protegida, solo para admins
-app.delete('/missions/:id', verifyToken, isAdmin, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const missionRef = db.collection('missions').doc(id);
-
-    // Elimina el documento
-    await missionRef.delete();
-
-    res.status(200).json({ message: 'Misión eliminada con éxito', id: id });
-
-  } catch (error) {
-    console.error('Error al eliminar misión:', error);
-    res.status(500).json({ error: 'Error interno del servidor al eliminar la misión' });
-  }
-});
-//
-app.get('/missions', async (req, res) => {
-  try {
-    const missionsRef = db.collection('missions');
-    const snapshot = await missionsRef.get();
-
-    const missions = [];
-    snapshot.forEach(doc => {
-      // Convertir Timestamp de Firestore a formato ISO String o similar si es necesario
-      const data = doc.data();
-      if (data.createdAt && data.createdAt.toDate) {
-        data.createdAt = data.createdAt.toDate().toISOString();
-      }
-      if (data.startDate && data.startDate.toDate) {
-        data.startDate = data.startDate.toDate().toISOString().split('T')[0]; // Solo la fecha
-      }
-      if (data.endDate && data.endDate.toDate) {
-        data.endDate = data.endDate.toDate().toISOString().split('T')[0]; // Solo la fecha
-      }
-      missions.push({ id: doc.id, ...data });
-    });
-
-    res.status(200).json(missions);
-  } catch (error) {
-    console.error('Error al obtener misiones:', error);
-    res.status(500).json({ error: 'Error interno del servidor al obtener misiones' });
-  }
-});
-
-
-
+// FUNCIONES login y register usuarios
+// Register: Registrar un nuevo usuario
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
@@ -221,9 +83,138 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(500).send('Error al registrar el usuario.');
   }
 });
-//API FIREBASE
+// Login: Obtener información del usuario autenticado
+app.get('/api/auth/me', verifyToken, (req, res) => {
+  // Gracias al middleware 'verifyToken', req.user ya tiene
+  // el uid, email y (lo más importante) el 'role'.
 
-app.post('/activities', async (req, res) => {
+  if (!req.user) {
+    return res.status(404).send('Usuario no encontrado');
+  }
+
+  // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
+  res.status(200).json(req.user);
+});
+
+// CRUD Misiones
+// CREATE: Crear Misión
+app.post('/api/missions', verifyToken, isAdmin, async (req, res) => {
+  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
+
+  // Validación básica (puedes añadir más validaciones)
+  if (!name || !description || !type || !targetValue || !unit || !reward) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
+  }
+
+  try {
+    const newMission = {
+      name,
+      description,
+      type,
+      targetValue: Number(targetValue), // Asegurarse de que sea un número
+      unit,
+      reward,
+      status: 'active', // Estado inicial
+      startDate: startDate ? new Date(startDate) : null, // Convertir a objeto Date o null
+      endDate: endDate ? new Date(endDate) : null,     // Convertir a objeto Date o null
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    const docRef = await db.collection('missions').add(newMission);
+    res.status(201).json({ message: 'Misión creada con éxito', id: docRef.id });
+
+  } catch (error) {
+    console.error('Error al crear misión:', error);
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
+  }
+});
+// READ: Obtener todas las Misiones
+app.get('/api/missions', async (req, res) => {
+  try {
+    const missionsRef = db.collection('missions');
+    const snapshot = await missionsRef.get();
+
+    const missions = [];
+    snapshot.forEach(doc => {
+      // Convertir Timestamp de Firestore a formato ISO String o similar si es necesario
+      const data = doc.data();
+      if (data.createdAt && data.createdAt.toDate) {
+        data.createdAt = data.createdAt.toDate().toISOString();
+      }
+      if (data.startDate && data.startDate.toDate) {
+        data.startDate = data.startDate.toDate().toISOString().split('T')[0]; // Solo la fecha
+      }
+      if (data.endDate && data.endDate.toDate) {
+        data.endDate = data.endDate.toDate().toISOString().split('T')[0]; // Solo la fecha
+      }
+      missions.push({ id: doc.id, ...data });
+    });
+
+    res.status(200).json(missions);
+  } catch (error) {
+    console.error('Error al obtener misiones:', error);
+    res.status(500).json({ error: 'Error interno del servidor al obtener misiones' });
+  }
+});
+// UPDATE: Actualizar Misión
+app.put('/api/missions/:id', verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { name, description, type, targetValue, unit, reward, startDate, endDate } = req.body;
+
+  // Validación básica (igual que en tu POST)
+  if (!name || !description || !type || !targetValue || !unit || !reward) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios para la misión.' });
+  }
+
+  try {
+    const missionRef = db.collection('missions').doc(id);
+
+    // Prepara los datos actualizados
+    // (Reutilizamos la misma lógica de conversión de fechas que en tu POST)
+    const updatedMissionData = {
+      name,
+      description,
+      type,
+      targetValue: Number(targetValue),
+      unit,
+      reward: Number(reward),
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
+      // No actualizamos 'createdAt' para que mantenga la fecha de creación original
+    };
+
+    // Usamos 'update' para modificar la misión sin sobrescribir el documento entero
+    await missionRef.update(updatedMissionData);
+
+    res.status(200).json({ message: 'Misión actualizada con éxito', id: id });
+
+  } catch (error) {
+    console.error('Error al actualizar misión:', error);
+    res.status(500).json({ error: 'Error interno del servidor al actualizar la misión' });
+  }
+});
+// DELETE: Eliminar Misión
+app.delete('/api/missions/:id', verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const missionRef = db.collection('missions').doc(id);
+
+    // Elimina el documento
+    await missionRef.delete();
+
+    res.status(200).json({ message: 'Misión eliminada con éxito', id: id });
+
+  } catch (error) {
+    console.error('Error al eliminar misión:', error);
+    res.status(500).json({ error: 'Error interno del servidor al eliminar la misión' });
+  }
+});
+
+
+// FUNCIONES Actividades
+// Crear actividad (sólo admin)
+app.post('/api/activities', verifyToken, isAdmin, async (req, res) => {
   const { activities } = req.body;
   console.log("Actividades recibidas en backend:", activities);
   if (!activities || !Array.isArray(activities)) {
@@ -253,25 +244,11 @@ app.post('/activities', async (req, res) => {
 });
 
 
-//API FIREBASE
-
-//API STRAVA
-
-app.get('/api/auth/me', verifyToken, (req, res) => {
-  // Gracias al middleware 'verifyToken', req.user ya tiene
-  // el uid, email y (lo más importante) el 'role'.
-
-  if (!req.user) {
-    return res.status(404).send('Usuario no encontrado');
-  }
-
-  // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
-  res.status(200).json(req.user);
-});
 
 
-// FUNCIONES TEAMS
-app.post('/teams', async (req, res) => {
+// FUNCIONES Equipos
+// Crear Equipo
+app.post('/api/teams', async (req, res) => {
   const { nombreEquipo, tipoDeporte, descripcion, creadoPor } = req.body;
 
   if (!nombreEquipo || !tipoDeporte || !descripcion || !creadoPor) {
@@ -304,8 +281,8 @@ app.post('/teams', async (req, res) => {
   }
 });
 
-
-app.get('/teams', async (req, res) => {
+// Leer todos los equipos
+app.get('/api/teams', async (req, res) => {
   try {
     const snapshot = await db.collection('teams').get();
     const teams = [];
@@ -321,7 +298,8 @@ app.get('/teams', async (req, res) => {
   }
 });
 
-app.post('/teams/:id/join', async (req, res) => {
+// Unirte a un equipo
+app.post('/api/teams/:id/join', async (req, res) => {
   const { uid } = req.body;
   const teamId = req.params.id;
 
@@ -360,8 +338,8 @@ app.post('/teams/:id/join', async (req, res) => {
   }
 });
 
-
-app.get('/teams/user/:uid', async (req, res) => {
+// Obtener equipo por UID de usuario
+app.get('/api/teams/user/:uid', async (req, res) => {
   const { uid } = req.params;
 
   try {
@@ -385,7 +363,8 @@ app.get('/teams/user/:uid', async (req, res) => {
   }
 });
 
-app.post('/teams/:id/leave', async (req, res) => {
+// Funcion para dejar un equipo
+app.post('/api/teams/:id/leave', async (req, res) => {
   const { uid } = req.body;
   const teamId = req.params.id;
 
@@ -425,8 +404,8 @@ app.post('/teams/:id/leave', async (req, res) => {
   }
 });
 
-
-app.post('/teams/members', async (req, res) => {
+// Obtener información de miembros por UID
+app.post('/api/teams/members', async (req, res) => {
   const { uids } = req.body;
 
   if (!uids || !Array.isArray(uids)) {
@@ -454,8 +433,8 @@ app.post('/teams/members', async (req, res) => {
   }
 });
 
-//FUNCIONES TEAMS
 
+// --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`✅ SV corriendo en http://localhost:${PORT}`);
 });
