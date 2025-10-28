@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { NavLink } from 'react-router-dom';
 import styles from './HamburgerMenu.module.css';
 // Necesitarás react-icons para los iconos
@@ -7,15 +8,7 @@ import { FaBars, FaTimes } from 'react-icons/fa';
 
 function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  // 1. Revisa el rol del usuario cuando el componente se carga
-  useEffect(() => {
-    const userRole = localStorage.getItem('userRole');
-    if (userRole === 'admin') {
-      setIsAdmin(true);
-    }
-  }, []);
+  const { user } = useAuth();
 
   // 2. Función para abrir/cerrar el menú
   const toggleMenu = () => {
@@ -28,7 +21,7 @@ function HamburgerMenu() {
   };
 
   // 4. Si el usuario no es admin, no renderiza nada.
-  if (!isAdmin) {
+  if (user?.role !== 'admin') {
     return null;
   }
 
