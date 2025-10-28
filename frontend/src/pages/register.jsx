@@ -34,7 +34,9 @@ export default function Register() {
       // Ahora puedes, por ejemplo, redirigirlo al login
       console.log('Usuario registrado:', newUser);
       // history.push('/login') o similar
-
+      alert('Registro exitoso. Puedes iniciar sesión ahora.');
+      window.location.href = '/login';
+      
     } catch (err) {
       setError(err.message);
     }

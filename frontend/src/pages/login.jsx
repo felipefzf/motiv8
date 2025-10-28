@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebaseConfig'; // Importa tu servicio de auth
-import { Link } from 'react-router-dom'; // Importa Link de React Router
+import { auth } from '../firebaseConfig';
+import { useAuth } from '../context/AuthContext'; // 1. Importa el hook useAuth
 
-// 1. Define estilos para el botón de registro
+// (Tus estilos se quedan igual)
 const styles = {
   registerButton: {
     display: 'inline-block',
@@ -23,46 +23,51 @@ function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { login } = useAuth(); // 2. Obtén la función 'login' del contexto
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
-      // 1. Inicia sesión con el servicio de Auth de Firebase
+      // Inicia sesión con Firebase (esto no cambia)
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // 2. Obtiene el ID Token (la credencial de sesión)
+      // Obtiene el token (esto no cambia)
       const token = await userCredential.user.getIdToken();
 
-      // 3. Guarda el token en localStorage para usarlo en toda la app
-      localStorage.setItem('firebaseToken', token);
-      
+      // --- CAMBIOS AQUÍ ---
+      // Ya NO guardamos el token en localStorage directamente.
+
+      // Busca los datos del usuario (name, role, etc.) desde tu backend
       const response = await fetch('/api/auth/me', {
-      headers: {
-        'Authorization': `Bearer ${token}`
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('No se pudieron obtener los datos del usuario.');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error('No se pudieron obtener los datos del usuario.');
-    }
+      const userData = await response.json(); // Objeto con { uid, email, role, etc. }
+      
+      // Ya NO guardamos el rol en localStorage directamente.
 
-    const userData = await response.json(); // Esto tendrá { uid, email, role }
-    
-    // 4. Guarda el rol en localStorage
-    localStorage.setItem('userRole', userData.role); 
-    // --- FIN DEL PASO NUEVO ---
+      // 3. Llama a la función 'login' del Contexto.
+      // Esta función se encarga de:
+      //   - Guardar el token en localStorage (si así lo configuraste en el context)
+      //   - Actualizar el estado 'token' del contexto
+      //   - Actualizar el estado 'user' del contexto con userData
+      login(token, userData); 
+      // --- FIN DE LOS CAMBIOS ---
 
-    // 5. Redirige al usuario
-    // Si es admin, llévalo al dashboard de admin, si no, al dashboard normal
-    if (userData.role === 'admin') {
-      navigate('/');
-    } else {
-      navigate('/'); // O a tu página de inicio para usuarios
-    }
-      // 4. Redirige al usuario (ej. a un dashboard)
-      // navigate('/dashboard'); 
+      // Redirige según el rol (esto no cambia)
+      if (userData.role === 'admin') {
+        navigate('/'); // O '/admin-dashboard' si prefieres
+      } else {
+        navigate('/'); // Al dashboard principal
+      }
 
     } catch (err) {
       setError('Correo o contraseña incorrectos.');
@@ -91,13 +96,11 @@ function LoginPage() {
         <button type="submit">Entrar</button>
         
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <p>¿No tienes una cuenta?</p>
-        
-        {/* 2. Añade el componente <Link> apuntando a tu ruta de registro */}
-        <Link to="/register" style={styles.registerButton}>
-          Regístrate Aquí
-        </Link>
-      </div>
+          <p>¿No tienes una cuenta?</p>
+          <Link to="/register" style={styles.registerButton}>
+            Regístrate Aquí
+          </Link>
+        </div>
       </form>
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>

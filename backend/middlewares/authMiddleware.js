@@ -30,7 +30,8 @@ export const verifyToken = async (req, res, next) => {
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      role: userDoc.data().role // <-- ¡AQUÍ ESTÁ EL ROL!
+      role: userDoc.data().role,
+      teamMember: userDoc.data().teamMember
     };
 
     next(); // El usuario está verificado, puede continuar

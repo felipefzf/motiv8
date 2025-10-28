@@ -28,9 +28,13 @@ export default function CreateTeam() {
         descripcion,
         creadoPor: uid // 👈 Enviamos el UID directamente
       });
+      
+      
 
       alert('Equipo creado con éxito');
       console.log(response.data);
+      // Redirigir a la página de dashboard del administrador
+      window.location.href = '/teams';
     } catch (error) {
       console.error('Error al crear el equipo:', error);
       alert('Hubo un error al crear el equipo');

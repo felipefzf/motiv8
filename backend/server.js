@@ -189,6 +189,7 @@ app.post('/api/auth/register', async (req, res) => {
       email: userRecord.email,
       name: userRecord.displayName || 'Sin Nombre',
       role: 'user', // <--- ¡AQUÍ ESTÁ LA MAGIA!
+      teamMember: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
@@ -199,10 +200,12 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(201).send({
       uid: userRecord.uid,
       email: userRecord.email,
-      role: 'user'
+      role: 'user',
+      teamMember: false
     });
 
-    navigate('/login');
+
+    // navigate('/login');
 
   } catch (error) {
     // Manejar errores comunes (ej. email ya existe)
@@ -265,6 +268,8 @@ app.get('/api/auth/me', verifyToken, (req, res) => {
   // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
   res.status(200).json(req.user);
 });
+
+
 // FUNCIONES TEAMS
 app.post('/teams', async (req, res) => {
   const { nombreEquipo, tipoDeporte, descripcion, creadoPor } = req.body;
