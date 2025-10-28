@@ -41,6 +41,7 @@ export default function JoinTeam() {
 
       alert('Te has unido al equipo con éxito.');
       await fetchTeams();
+      window.location.href = "/";
     } catch (error) {
       console.error('Error al unirse al equipo:', error);
       alert(error.response?.data?.error || 'Error al unirse al equipo.');

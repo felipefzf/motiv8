@@ -385,6 +385,46 @@ app.get('/teams/user/:uid', async (req, res) => {
   }
 });
 
+app.post('/teams/:id/leave', async (req, res) => {
+  const { uid } = req.body;
+  const teamId = req.params.id;
+
+  if (!uid) {
+    return res.status(400).json({ error: 'Falta el UID del usuario.' });
+  }
+
+  try {
+    const teamRef = db.collection('teams').doc(teamId);
+    const teamDoc = await teamRef.get();
+
+    if (!teamDoc.exists) {
+      return res.status(404).json({ error: 'Equipo no encontrado.' });
+    }
+
+    const teamData = teamDoc.data();
+    let miembros = teamData.miembros || [];
+
+    // Verificar si el usuario está en el equipo
+    if (!miembros.includes(uid)) {
+      return res.status(400).json({ error: 'No perteneces a este equipo.' });
+    }
+
+    // Eliminar al usuario del array
+    miembros = miembros.filter(id => id !== uid);
+
+    // Actualizar el equipo
+    await teamRef.update({
+      miembros,
+      usuarios: miembros.length // Actualiza el contador
+    });
+
+    res.status(200).json({ message: 'Has dejado el equipo.' });
+  } catch (error) {
+    console.error('Error al dejar el equipo:', error);
+    res.status(500).json({ error: 'Error interno al dejar el equipo.' });
+  }
+});
+
 
 app.post('/teams/members', async (req, res) => {
   const { uids } = req.body;
