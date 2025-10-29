@@ -15,7 +15,6 @@ import MainLayout from "./components/mainLayout";
 import ActivityCreator from "./pages/activityCreator";
 
 
-
 function App() {
   return (
     <BrowserRouter>
@@ -24,8 +23,7 @@ function App() {
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/*" element={<Home/>} />
-
+          <Route path="/*" element={<Login/>} />
         </Route>
 
         {/* Rutas protegidas(acceso a usuarios logueados) */}
@@ -39,10 +37,8 @@ function App() {
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
             <Route path="/activityCreator" element={<ActivityCreator/>} />
-
             {/* Rutas protegidas para administradores */}
             <Route element={<AdminRoute />}>
-              {/* <Route path="/missionList" element={<MissionList/>} /> */}
               <Route path="/admindashboard" element={<AdminDashboard />} />
               <Route path="/missionDashboard" element={<MissionDashboard/>} />
               <Route path="/*" element={<Home/>} />

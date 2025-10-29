@@ -46,7 +46,7 @@ function MissionDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/missions', {
+      const response = await fetch('http://localhost:5000/api/missions', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) {

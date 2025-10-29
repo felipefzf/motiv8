@@ -1,0 +1,50 @@
+/* src/pages/Teams.module.css */
+.teams-container {
+    padding: 20px;
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+}
+
+
+.teams-title {
+    margin: 0;
+    color: #ffd000ff;
+    text-align: start;
+}
+
+.teams-subtitle {
+    margin: 5px 0 10px 0;
+    text-align: start;
+}
+
+.container {
+  max-width: 900px; /* Adjust width as needed */
+  margin: 40px auto; /* Center the container with space above/below */
+  padding: 20px;
+  padding-bottom: 80px; /* Space for the fixed bottom navbar */
+  /* background-color: #ffffff; /* Optional: light background */
+  /* border-radius: 8px; */
+  /* box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
+}
+
+.container h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333; /* Darker heading color */
+}
+
+/* Styles for loading and error messages */
+.loading, .error {
+  text-align: center;
+  padding: 30px;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.error {
+  color: #D8000C; /* Error red color */
+  background-color: #FFD2D2; /* Light red background */
+  border: 1px solid #D8000C;
+  border-radius: 4px;
+}
