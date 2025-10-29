@@ -1,0 +1,100 @@
+/* Contenedor principal centrado */
+.register-container {
+  background-color: #2a2a2a;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #ffd000ff;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+
+  /* 👇 Estas son las claves para centrar */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+}
+/* Título principal */
+.register-title {
+    color: #ffd000ff;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Subtítulo */
+.register-subtitle {
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* Formulario */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Grupo de campos */
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.form-group input::placeholder {
+  color: #ffffff;
+}
+
+/* Botón principal */
+.register-button {
+  padding: 12px 20px;
+  background-color: #ffd000ff;
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.register-button:hover {
+  background-color: #0069d9;
+  transform: scale(1.03);
+}
+
+/* Link de regreso */
+.back-link {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: none;
+  color: #ffd000;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: #ffea00;
+}
+
+/* Mensaje de error */
+.error-message {
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #ffe0e0;
+  color: #cc0000;
+  border: 1px solid #cc0000;
+  font-weight: bold;
+}

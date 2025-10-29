@@ -1,0 +1,93 @@
+/* Hace que el contenedor ocupe toda la pantalla y se centre */
+.login-container {
+  background-color: #2a2a2a;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #ffd000ff;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+
+  /* 👇 Estas son las claves para centrar */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+/* Título principal */
+.login-title {
+    color: #ffd000ff;
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Subtítulo */
+.login-subtitle {
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* Formulario */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Campos de entrada */
+.login-input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+.login-input::placeholder {
+    color: #ffffff;
+}
+
+/* Botón principal */
+.login-button {
+    padding: 10px 20px;
+    background-color: #ffd000ff;
+    color: #000000ff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.login-button:hover {
+    background-color: #e0bb00;
+    transform: scale(1.03);
+}
+
+/* Sección de registro */
+.register-section {
+    margin-top: 20px;
+    color: #ffffff;
+}
+
+.register-link {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 10px;
+    background-color: #ffd000ff;
+    color: #000000ff;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.register-link:hover {
+    background-color: #e0bb00;
+}
+
+/* Mensaje de error */
+.error-message {
+    color: red;
+    margin-top: 15px;
+}
