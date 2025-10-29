@@ -263,6 +263,12 @@ app.post('/api/teams', verifyToken, async (req, res) => {
       owner_uid: user.uid,
       members: [user.uid], // Creator is the first member
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      sport_type: req.body.sport_type,
+      description: req.body.description,
+      created_by: user.uid,
+      insignia: [],
+      team_distance: 0,
+      activity_time: 0,
     });
 
     await db.collection('users').doc(user.uid).update({
@@ -370,7 +376,30 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
             // Verify the user is still listed as a member in the team document for consistency
             const teamData = teamDoc.data();
             if (teamData.members && teamData.members.includes(user.uid)) {
-                return res.status(200).json({ id: teamDoc.id, ...teamData });
+                const memberDetails = [];
+                if (teamData.members && teamData.members.length > 0) {
+                  // Create an array of promises to fetch each user document
+                  const memberPromises = teamData.members.map(memberId =>
+                    db.collection('users').doc(memberId).get()
+                  );
+                  // Wait for all fetches to complete
+                  const memberDocs = await Promise.all(memberPromises);
+
+                  // Extract the data we need (id and name)
+                  memberDocs.forEach(memberDoc => {
+                    if (memberDoc.exists) {
+                      // Get the 'name' field from the user document
+                      memberDetails.push({
+                        uid: memberDoc.id, 
+                        name: memberDoc.data().name || 'Usuario sin nombre' // Use the 'name' field
+                      });
+                    } else {
+                      // Handle case where a member document might be missing
+                      memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
+                    }
+                  });
+                }
+                return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
             } else {
                  // Data inconsistency: User thinks they are in a team, but team doesn't list them. Fix user doc.
                  await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
@@ -392,10 +421,31 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
             await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
             return res.status(404).send('Could not find your team (data corrected). Try joining again.');
         }
+
         const teamDoc = querySnapshot.docs[0];
-         // Optionally update the user doc with the found teamId now
+        const teamData = teamDoc.data();
+
+        const memberDetails = [];
+        if (teamData.members && teamData.members.length > 0) {
+          const memberPromises = teamData.members.map(memberId =>
+            db.collection('users').doc(memberId).get()
+          );
+          const memberDocs = await Promise.all(memberPromises);
+          memberDocs.forEach(memberDoc => {
+            if (memberDoc.exists) {
+              memberDetails.push({
+                uid: memberDoc.id,
+                name: memberDoc.data().name || 'Usuario sin nombre'
+              });
+            } else {
+              memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
+            }
+          });
+        }
+
+        // Optionally update the user doc with the found teamId now
          await db.collection('users').doc(user.uid).update({ id_team: teamDoc.id });
-        return res.status(200).json({ id: teamDoc.id, ...teamDoc.data() });
+        return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
     }
 
   } catch (error) {

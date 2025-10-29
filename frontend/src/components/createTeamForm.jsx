@@ -27,8 +27,11 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
     const teamData = {
       team_name,
       sport_type, // Send the new field name
-      description
-      // 'owner_uid' will be taken from the token by the backend middleware
+      description,
+      insignia: [],
+      team_distance: 0,
+      activity_time: 0, // 👈 Enviamos el tiempo de actividad en minutos
+      // // 'owner_uid' will be taken from the token by the backend middleware
     };
 
     try {
@@ -89,8 +92,8 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
           disabled={isLoading}
         >
           <option value="">Selecciona un deporte</option>
-          <option value="Correr">Correr</option>
-          <option value="Ciclismo">Ciclismo</option>
+          <option value="Running">Running</option>
+          <option value="Cycling">Cycling</option>
           {/* Add other sports if needed */}
         </select>
       </div>

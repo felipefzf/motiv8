@@ -113,10 +113,11 @@ function MyTeamInfo() {
       
       <h3>Miembros:</h3>
       <ul className={styles.memberList}>
-        {teamData.members?.map(memberId => (
-          <li key={memberId}>
-            {memberId} {memberId === user.uid ? <span className={styles.you}>(Tú)</span> : ''}
+        {teamData.members?.map(member => (
+          <li key={member.uid}>
+            {/* {member.uid} {member.uid === user.uid ? <span className={styles.you}>(Tú)</span> : ''} */}
             {/* Para mostrar nombres, necesitarías obtenerlos */}
+            <li key={member.uid}>{member.name}</li>
           </li>
         ))}
       </ul>
