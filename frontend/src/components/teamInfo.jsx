@@ -1,89 +1,129 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext'; // Para obtener el UID del usuario
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/authContext'; // Para obtener el UID
+import styles from './teamInfo.module.css'; // Crearemos este archivo CSS
 
 function MyTeamInfo() {
-  const { user } = useAuth(); // Obtiene el usuario logueado
+  const { user, refreshUser } = useAuth();
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [leaveError, setLeaveError] = useState(null);
 
   useEffect(() => {
-    // Función para obtener los datos del equipo del usuario
     const fetchMyTeam = async () => {
-      if (!user) return; // Si no hay usuario, no hacer nada
+      if (!user) return; // Salir si no hay usuario
 
-      const token = localStorage.getItem('firebaseToken'); // Necesario para la API
+      const token = localStorage.getItem('firebaseToken');
       if (!token) {
         setError("No autenticado.");
         setLoading(false);
         return;
       }
 
+      setLoading(true);
+      setError(null);
+
       try {
-        // --- LLAMADA A TU BACKEND ---
-        // Necesitarás un endpoint como GET /api/teams/my-team
-        // que use el token para encontrar el equipo del usuario
-        const response = await fetch('/api/teams/my-team', { 
+        const response = await fetch('/api/teams/my-team', { // Llama a la ruta /api
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
           if (response.status === 404) {
-             throw new Error("No se encontró información de tu equipo. ¿Aún eres miembro?");
+             throw new Error("Parece que no perteneces a ningún equipo.");
           }
-          throw new Error(`Error del servidor: ${response.status}`);
+          throw new Error(`Error del servidor: ${response.statusText}`);
         }
         
         const data = await response.json();
-        setTeamData(data); // Guarda los datos del equipo (nombre, miembros, etc.)
+        setTeamData(data);
         
       } catch (e) {
-        setError("Error al cargar la información del equipo: " + e.message);
+        setError(e.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchMyTeam();
-  }, [user]); // Vuelve a ejecutar si el usuario cambia
+  }, [user]); // Ejecutar cuando 'user' cambie
 
-  // --- Renderizado ---
-  if (loading) {
-    return <p>Cargando información de tu equipo...</p>;
-  }
+  // --- Lógica para Salir del Equipo (Necesita Backend) ---
+  const handleLeaveTeam = async () => {
+    setLeaveError(null); // Clear previous leave errors
+    if (!teamData || !user) {
+        setLeaveError("Cannot leave team: User or team data missing.");
+        return;
+    };
 
-  if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
-  }
+    // Confirmation dialog, with extra warning for the owner
+    let confirmationMessage = `Are you sure you want to leave "${teamData.team_name}"?`;
+    if (user.uid === teamData.owner_uid) {
+      confirmationMessage = `You are the owner of "${teamData.team_name}". If you leave, the team will be permanently deleted for everyone! Are you absolutely sure?`;
+    }
 
-  if (!teamData) {
-    return <p>No se encontró información del equipo.</p>;
-  }
+    if (!window.confirm(confirmationMessage)) {
+      return; // Stop if the user cancels
+    }
+
+    const token = localStorage.getItem('firebaseToken');
+    if (!token) {
+      setLeaveError("Authentication error. Please log in again.");
+      return;
+    }
+
+    try {
+      // Make the DELETE request to the backend endpoint
+      const response = await fetch('/api/teams/leave', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        // Get error message from backend response
+        const errText = await response.text();
+        throw new Error(errText || 'Failed to leave the team.');
+      }
+
+      // --- Success ---
+      alert("You have successfully left the team.");
+      // Call refreshUser from the AuthContext to update the user's state
+      // This will trigger a re-render in Teams.jsx and show JoinTeamView
+      refreshUser();
+
+    } catch (err) {
+      setLeaveError(err.message); // Show error to the user
+      console.error("Error leaving team:", err);
+    }
+  };
+
+  // --- Render Logic ---
+  if (loading) return <p className={styles.loading}>Loading your team info...</p>;
+  // Show general fetch error first if it exists
+  if (error) return <p className={styles.error}>{error}</p>;
+  // If not loading and no team data (could happen after leaving or inconsistency)
+  if (!teamData) return <p>You are not currently part of a team.</p>;
 
   return (
-    <div>
-      <h2>Mi Equipo: {teamData.team_name}</h2>
-      {/* Muestra aquí más detalles del equipo */}
-      <p>ID del Equipo: {teamData.id}</p>
+    <div className={styles.container}>
+      <h2>Mi Equipo: <span className={styles.teamName}>{teamData.team_name}</span></h2>
+      <p>ID: {teamData.id}</p>
       
       <h3>Miembros:</h3>
-      <ul>
-        {/* Asumiendo que teamData.members es un array de UIDs
-            Necesitarás hacer otra llamada o modificar tu backend
-            para obtener los nombres de los miembros a partir de los UIDs.
-            Por ahora, solo mostramos los UIDs:
-        */}
-        {teamData.members && teamData.members.map(memberId => (
+      <ul className={styles.memberList}>
+        {teamData.members?.map(memberId => (
           <li key={memberId}>
-            {memberId} {memberId === user.uid ? '(Tú)' : ''} 
-            {/* Aquí podrías mostrar el nombre si lo tienes */}
+            {memberId} {memberId === user.uid ? <span className={styles.you}>(Tú)</span> : ''}
+            {/* Para mostrar nombres, necesitarías obtenerlos */}
           </li>
         ))}
       </ul>
 
-      {/* Aquí podrías añadir un botón para "Salir del Equipo" */}
-      <button style={{marginTop: '20px', background: 'red', color: 'white'}}>Salir del Equipo</button>
+      <button onClick={handleLeaveTeam} className={`${styles.button} ${styles.leaveButton}`}>
+        Salir del Equipo
+      </button>
     </div>
   );
 }

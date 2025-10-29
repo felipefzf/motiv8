@@ -44,6 +44,13 @@ export function AuthProvider({ children }) {
     }
   }, [logout]); // <-- Depende de 'logout'
 
+  const refreshUser = useCallback(async () => {
+    const currentToken = localStorage.getItem('firebaseToken');
+    if (currentToken) {
+      await fetchUserData(currentToken); // Llama a fetchUserData para actualizar
+    }
+  }, [fetchUserData]);
+
   // 5. useEffect (ahora con dependencias correctas)
   useEffect(() => {
     if (token) {
@@ -61,6 +68,7 @@ export function AuthProvider({ children }) {
     user,
     token,
     isLoading,
+    refreshUser, // Añade la función para refrescar el usuario
     login: (token, userData) => { // Función para usar en LoginPage
       localStorage.setItem('firebaseToken', token);
       setToken(token);

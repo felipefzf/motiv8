@@ -12,8 +12,6 @@ import AdminDashboard from "./pages/adminDashboard";
 import PublicRoute from "./components/publicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/mainLayout";
-import CreateTeam from "./pages/createTeam";
-import JoinTeam from "./pages/joinTeam"
 import ActivityCreator from "./pages/activityCreator";
 
 
@@ -39,8 +37,6 @@ function App() {
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
             <Route path="/activityCreator" element={<ActivityCreator/>} />
-            <Route path="/createTeam" element={<CreateTeam/>} />
-            <Route path="/joinTeam" element={<JoinTeam/>} />
             {/* Rutas protegidas para administradores */}
             <Route element={<AdminRoute />}>
               <Route path="/admindashboard" element={<AdminDashboard />} />

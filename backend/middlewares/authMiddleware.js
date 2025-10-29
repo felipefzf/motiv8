@@ -31,7 +31,8 @@ export const verifyToken = async (req, res, next) => {
       uid: decodedToken.uid,
       email: decodedToken.email,
       role: userDoc.data().role,
-      teamMember: userDoc.data().teamMember
+      team_member: userDoc.data().team_member,
+      id_team: userDoc.data().id_team || null,
     };
 
     next(); // El usuario está verificado, puede continuar

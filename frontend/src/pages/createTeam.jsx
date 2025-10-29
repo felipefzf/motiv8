@@ -1,5 +1,5 @@
 
-import './Teams.css';
+// import './Teams.css';
 
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -22,7 +22,7 @@ export default function CreateTeam() {
     const uid = user.uid;
 
     try {
-      const response = await axios.post('http://localhost:5000/teams', {
+      const response = await axios.post('http://localhost:5000/api/teams', {
         nombreEquipo,
         tipoDeporte,
         descripcion,
