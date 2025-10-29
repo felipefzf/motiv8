@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/authContext';
-import Modal from './modal'; // <-- 1. Import Modal
-import CreateTeamForm from './createTeamForm'; // <-- 2. Import CreateTeamForm
+import Modal from './modal';
+import CreateTeamForm from './createTeamForm';
+import TeamDetailModal from './teamDetailModal'; // <-- 1. Import Detail Modal
 import styles from './JoinTeam.module.css';
 
 function JoinTeamView() {
@@ -10,12 +11,13 @@ function JoinTeamView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionError, setActionError] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false); // <-- 3. State for modal
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null); // <-- 2. State for detail view
 
-  // ... (useEffect for fetchAvailableTeams remains the same) ...
   useEffect(() => {
-    // ... fetchAvailableTeams logic ...
-    const fetchAvailableTeams = async () => {
+    // ... fetchAvailableTeams logic remains the same ...
+    // Make sure it fetches description and members now
+        const fetchAvailableTeams = async () => {
         const token = localStorage.getItem('firebaseToken');
         if (!token) {
           setError("No autenticado.");
@@ -36,7 +38,7 @@ function JoinTeamView() {
           }
 
           const data = await response.json();
-          setAvailableTeams(data);
+          setAvailableTeams(data); // Includes description and members now
 
         } catch (e) {
           setError("Error al cargar equipos: " + e.message);
@@ -47,18 +49,19 @@ function JoinTeamView() {
       fetchAvailableTeams();
   }, []);
 
-  // ... (handleJoinTeam remains the same) ...
-    const handleJoinTeam = async (teamId, teamName) => {
-    setActionError(null);
+  const handleJoinTeam = async (teamId, teamName) => {
+    // ... handleJoinTeam logic remains the same ...
+        setActionError(null);
     const token = localStorage.getItem('firebaseToken');
     if (!token || !user) {
       setActionError("No autenticado.");
       return;
     }
 
-    if (!window.confirm(`¿Seguro que quieres unirte a "${teamName}"?`)) {
-        return;
-    }
+    // Confirmation now happens inside the detail modal or before opening it
+    // if (!window.confirm(`¿Seguro que quieres unirte a "${teamName}"?`)) {
+    //     return;
+    // }
 
     try {
       const response = await fetch(`/api/teams/${teamId}/join`, {
@@ -68,37 +71,40 @@ function JoinTeamView() {
         },
       });
 
-      if (!response.ok) {
+       if (!response.ok) {
         const errData = await response.text();
         throw new Error(errData || `Error al unirse al equipo.`);
       }
 
       alert(`¡Te has unido a "${teamName}"!`);
-      // Ideal: refresh user data in AuthContext instead of reload
+      closeDetailModal(); // Close detail modal on success
       refreshUser();
 
     } catch (e) {
+      // Show error inside the detail modal if it's open
       setActionError("Error al unirse: " + e.message);
+      // Or set it generally if needed
+      // setError("Error al unirse: " + e.message);
     }
   };
 
-  // --- 4. Functions to handle the modal ---
-  const openCreateModal = () => {
-    setIsCreateModalOpen(true);
-  };
-
-  const closeCreateModal = () => {
-    setIsCreateModalOpen(false);
-  };
-
-  // Callback when a team is successfully created
+  // --- Modal Handlers ---
+  const openCreateModal = () => setIsCreateModalOpen(true);
+  const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleTeamCreated = (newTeamData) => {
-    // We need to refresh the user's data to update `user.team_member` to true
-    // Simplest (but not ideal) way is to reload the page
-     alert(`Equipo "${newTeamData.team_name}" creado. Refrescando...`);
+     alert(`Equipo "${newTeamData.team_name}" creado.`);
      refreshUser();
-     // A better way would be to call a function from AuthContext to refetch user data
-     // e.g., refreshUser();
+     closeCreateModal();
+  };
+
+  // --- Detail Modal Handlers ---
+  const openDetailModal = (team) => {
+      setActionError(null); // Clear previous errors when opening a new detail
+      setSelectedTeam(team);
+  };
+  const closeDetailModal = () => {
+      setSelectedTeam(null);
+      setActionError(null); // Clear error on close
   };
 
 
@@ -109,43 +115,62 @@ function JoinTeamView() {
     <div className={styles.container}>
       <h2>Únete a un Equipo</h2>
 
-      {actionError && <p className={styles.error}>{actionError}</p>}
+      {actionError && !selectedTeam && <p className={styles.error}>{actionError}</p>}
 
-      {/* ... (List of available teams remains the same) ... */}
-            {availableTeams.length === 0 ? (
-        <p>No hay equipos disponibles para unirse en este momento.</p>
+      {availableTeams.length === 0 ? (
+        <p>No hay equipos disponibles para unirse.</p>
       ) : (
         <ul className={styles.teamList}>
           {availableTeams.map(team => (
-            <li key={team.id} className={styles.teamItem}>
-              <span className={styles.teamName}>{team.team_name}</span>
-              <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
-              <button
-                onClick={() => handleJoinTeam(team.id, team.team_name)}
-                className={`${styles.button} ${styles.joinButton}`}
-              >
-                Unirse
-              </button>
+            // --- 3. Make the LI clickable ---
+            <li
+                key={team.id}
+                className={styles.teamItemClickable} // Use a new style for clickable item
+                onClick={() => openDetailModal(team)} // Open detail modal on click
+            >
+              <div> {/* Wrap text content */}
+                <span className={styles.teamName}>{team.team_name}</span>
+                <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
+              </div>
+              {/* Optional: Add a small visual indicator like an arrow */}
+              <span>&rarr;</span>
+              {/* --- 4. Remove the join button here ---
+               <button
+                 onClick={(e) => { e.stopPropagation(); handleJoinTeam(team.id, team.team_name); }} // Stop propagation needed if button is inside LI
+                 className={`${styles.button} ${styles.joinButton}`}
+               >
+                 Unirse
+               </button>
+              */}
             </li>
           ))}
         </ul>
       )}
 
-
       <hr className={styles.divider} />
 
       <div>
         <h3>¿No encuentras tu equipo?</h3>
-        {/* --- 5. Button now opens the modal --- */}
         <button onClick={openCreateModal} className={`${styles.button} ${styles.createButton}`}>
           Crear Nuevo Equipo
         </button>
       </div>
 
-      {/* --- 6. Render the Modal conditionally --- */}
+      {/* --- Render Modals --- */}
       <Modal isOpen={isCreateModalOpen} onClose={closeCreateModal}>
         <CreateTeamForm onClose={closeCreateModal} onTeamCreated={handleTeamCreated} />
       </Modal>
+
+      {/* --- 5. Render Detail Modal --- */}
+      <TeamDetailModal
+        team={selectedTeam}
+        onClose={closeDetailModal}
+        onJoin={handleJoinTeam} // Pass the join handler
+      />
+      {/* Show join error inside the detail modal */}
+       {selectedTeam && actionError && <p className={styles.modalError}>{actionError}</p>}
+
+
     </div>
   );
 }

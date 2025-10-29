@@ -1,0 +1,72 @@
+.container {
+  padding: 10px; /* Add some padding inside the modal */
+  color: #333;
+}
+
+.container h2 {
+  margin-top: 0;
+  color: #0056b3;
+  text-align: center;
+}
+.container h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #444;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.sportType {
+    font-style: italic;
+    color: #555;
+    text-align: center;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+.description {
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.memberList {
+  list-style: disc;
+  padding-left: 20px;
+  max-height: 150px; /* Limit height and add scroll if many members */
+  overflow-y: auto;
+  border: 1px solid #eee;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-radius: 4px;
+}
+
+.memberList li {
+  padding: 3px 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+}
+
+.button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancelButton {
+  background-color: #6c757d;
+  color: white;
+}
+
+.joinButton {
+  background-color: #28a745;
+  color: white;
+}

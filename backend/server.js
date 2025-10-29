@@ -331,6 +331,8 @@ app.post('/api/teams/:teamId/join', verifyToken, async (req, res) => {
 });
 
 // Obtener Equipos Disponibles (Equipos a los que el usuario no pertenece)
+// In server.js
+
 app.get('/api/teams/available', verifyToken, async (req, res) => {
   const userId = req.user.uid;
 
@@ -339,14 +341,28 @@ app.get('/api/teams/available', verifyToken, async (req, res) => {
     const snapshot = await teamsRef.get();
 
     const availableTeams = [];
+    // We might need member names later, so let's fetch all users once
+    const allUsersSnapshot = await db.collection('users').get();
+    const usersMap = new Map();
+    allUsersSnapshot.forEach(doc => usersMap.set(doc.id, doc.data().name || 'Usuario sin nombre'));
+
     snapshot.forEach(doc => {
       const teamData = doc.data();
       // Only include teams where the current user is NOT a member
       if (teamData.members && !teamData.members.includes(userId)) {
+        // Map member UIDs to names
+        const memberDetails = teamData.members.map(uid => ({
+            uid: uid,
+            name: usersMap.get(uid) || 'Usuario desconocido'
+        }));
+
         availableTeams.push({
           id: doc.id,
           team_name: teamData.team_name,
-          member_count: teamData.members.length
+          description: teamData.description || 'Sin descripción', // Add description
+          sport_type: teamData.sport_type || 'No especificado', // Add sport_type
+          member_count: teamData.members.length,
+          members: memberDetails // Add member details array
         });
       }
     });
@@ -354,8 +370,8 @@ app.get('/api/teams/available', verifyToken, async (req, res) => {
     res.status(200).json(availableTeams);
 
   } catch (error) {
-    console.error("Error fetching available teams:", error);
-    res.status(500).send('Internal server error while fetching teams.');
+    console.error("Error al obtener equipos disponibles:", error);
+    res.status(500).send('Error interno al buscar equipos.');
   }
 });
 
