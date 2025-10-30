@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/authContext'; 
 import MyTeamInfo from '../components/teamInfo';
 import JoinTeamView from '../components/joinTeam';
-import styles from './Teams.module.css';
+import styles from './teams.module.css';
 
 function Teams() {
   const { user, isLoading } = useAuth();
@@ -16,10 +16,10 @@ function Teams() {
   }
 
   return (
-    <div className="teams-container">
-      <h1 className="teams-title">MOTIV8</h1>
-      <h2 className="teams-subtitle">Equipos</h2>
-      
+    <div className="teams-container" style={{padding: '20px'}}>
+      <h1 style={{color:'#ffd000ff'}}>MOTIV8</h1>
+      <h2 style={{color:'#ffff'}}>Equipos</h2>
+
       {/* Condicional basado en el campo 'teamMember' del usuario */}
       {user.team_member === true ? (
         <MyTeamInfo /> 

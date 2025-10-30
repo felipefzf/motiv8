@@ -1,26 +1,28 @@
 .container {
   padding: 10px; /* Add some padding inside the modal */
-  color: #333;
+  color: #ffff;
+  background-color: #2a2a2a;
 }
+
 
 .container h2 {
   margin-top: 0;
-  color: #0056b3;
+  color: #ffd000ff;
   text-align: center;
 }
 .container h3 {
     margin-top: 20px;
     margin-bottom: 10px;
-    color: #444;
+    color: #ffff;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
 }
 
 .sportType {
     font-style: italic;
-    color: #555;
+    color: #ffff;
     text-align: center;
-    margin-top: -10px;
+    margin-top: 10px;
     margin-bottom: 15px;
 }
 
@@ -34,7 +36,7 @@
   padding-left: 20px;
   max-height: 150px; /* Limit height and add scroll if many members */
   overflow-y: auto;
-  border: 1px solid #eee;
+
   padding-top: 10px;
   padding-bottom: 10px;
   border-radius: 4px;
@@ -67,6 +69,6 @@
 }
 
 .joinButton {
-  background-color: #28a745;
-  color: white;
+  background-color: #ffd000ff;
+  color: #2a2a2a;
 }

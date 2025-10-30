@@ -6,7 +6,7 @@ function TeamDetailModal({ team, onClose, onJoin }) {
   if (!team) return null;
 
   return (
-    <Modal isOpen={!!team} onClose={onClose}>
+    <Modal className isOpen={!!team} onClose={onClose}>
       <div className={styles.container}>
         <h2>{team.team_name}</h2>
         <p className={styles.sportType}>Deporte: {team.sport_type}</p>
