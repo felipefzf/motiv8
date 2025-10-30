@@ -481,6 +481,132 @@ app.delete('/api/teams/leave', verifyToken, async (req, res) => {
   }
 });
 
+// ASIGNAR MISIONES
+// Ruta para asignar 2 misiones aleatorias al usuario
+app.post('/api/user-missions/assign', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+
+  try {
+    const userMissionRef = db.collection('user_missions').doc(userId);
+    const doc = await userMissionRef.get();
+
+    const currentMissions = doc.exists ? doc.data().missions : [];
+    const currentIds = currentMissions.map(m => m.id);
+
+    // ✅ Limitar a 3 misiones activas
+    if (currentMissions.length >= 3) {
+      return res.status(400).send("Ya tienes 3 misiones activas.");
+    }
+
+    const snapshot = await db.collection('missions').get();
+    const allMissions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    const available = allMissions.filter(m => !currentIds.includes(m.id));
+
+    if (available.length === 0) {
+      return res.status(400).send("No hay misiones nuevas disponibles.");
+    }
+
+    const nueva = available[Math.floor(Math.random() * available.length)];
+    const updatedMissions = [...currentMissions, nueva];
+
+    await userMissionRef.set({
+      missions: updatedMissions,
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(201).json({ missions: updatedMissions });
+  } catch (error) {
+    console.error("Error asignando nueva misión:", error);
+    res.status(500).send("Error interno al asignar misión.");
+  }
+});
+
+
+
+
+
+
+app.get('/api/user-missions', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+
+  try {
+    const doc = await db.collection('user_missions').doc(userId).get();
+
+    if (!doc.exists) {
+      return res.status(404).send("No hay misiones asignadas.");
+    }
+
+    res.status(200).json(doc.data().missions);
+  } catch (error) {
+    console.error("Error obteniendo misiones:", error);
+    res.status(500).send("Error interno al obtener misiones.");
+  }
+});
+
+
+app.post('/api/user-missions/complete', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId } = req.body;
+
+  try {
+    const userMissionRef = db.collection('user_missions').doc(userId);
+    const doc = await userMissionRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send("No hay misiones asignadas.");
+    }
+
+    const data = doc.data();
+    const updatedMissions = data.missions.filter(m => m.id !== missionId);
+
+    await userMissionRef.set({
+      ...data,
+      missions: updatedMissions,
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(200).json({ missions: updatedMissions });
+  } catch (error) {
+    console.error("Error completando misión:", error);
+    res.status(500).send("Error interno al completar misión.");
+  }
+});
+
+app.post('/api/user-missions/assign-3', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+
+  try {
+    const snapshot = await db.collection('missions').get();
+    const allMissions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    if (allMissions.length < 3) {
+      return res.status(400).send("No hay suficientes misiones disponibles.");
+    }
+
+    const shuffled = allMissions.sort(() => 0.5 - Math.random());
+    const nuevas = shuffled.slice(0, 3);
+
+    await db.collection('user_missions').doc(userId).set({
+      missions: nuevas,
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(201).json({ missions: nuevas });
+  } catch (error) {
+    console.error("Error asignando 3 misiones:", error);
+    res.status(500).send("Error interno al asignar misiones.");
+  }
+});
+
+
+// ASIGNAR MISIONES
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
