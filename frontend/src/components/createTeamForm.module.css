@@ -2,13 +2,15 @@
   display: flex;
   flex-direction: column;
   gap: 15px; /* Space between elements */
+  background-color: #2a2a2a;
+
 }
 
 .title {
   margin-top: 0;
   margin-bottom: 20px;
   text-align: center;
-  color: #333;
+  color: #ffff;
 }
 
 .inputGroup {
@@ -19,7 +21,7 @@
 .inputGroup label {
   margin-bottom: 5px;
   font-weight: bold;
-  color: #555;
+  color: #ffff;
 }
 
 .inputGroup input,
@@ -61,8 +63,8 @@
 }
 
 .submitButton {
-  background-color: #007bff; /* Blue */
-  color: white;
+  background-color: #ffd000ff; /* Yellow */
+  color: #2a2a2a;
 }
 
 .submitButton:disabled {

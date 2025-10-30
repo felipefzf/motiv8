@@ -112,6 +112,7 @@ function MyTeamInfo() {
       <p>ID: {teamData.id}</p>
       
       <h3>Miembros:</h3>
+      
       <ul className={styles.memberList}>
         {teamData.members?.map(member => (
           <li key={member.uid}>
@@ -122,7 +123,7 @@ function MyTeamInfo() {
         ))}
       </ul>
 
-      <button onClick={handleLeaveTeam} className={`${styles.button} ${styles.leaveButton}`}>
+      <button onClick={handleLeaveTeam} className={styles.leavebutton}>
         Salir del Equipo
       </button>
     </div>

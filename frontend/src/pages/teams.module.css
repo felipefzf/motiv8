@@ -1,16 +1,16 @@
 /* src/pages/Teams.module.css */
 .teams-container {
-    padding: 20px;
-    color: #fff;
-    text-align: center;
-    overflow: hidden;
+  padding: 20px;
+  color: #ffffff;
+  text-align: center;
+  overflow: hidden;
 }
 
 
 .teams-title {
-    margin: 0;
-    color: #ffd000ff;
-    text-align: start;
+  margin: 0;
+  color: #ffd000ff;
+  text-align: start;
 }
 
 .teams-subtitle {

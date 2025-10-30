@@ -1,9 +1,19 @@
 .container {
   /* Similar a MyTeamInfo, puedes ajustar */
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #eee;
+  background-color: #2a2a2a;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px #ffd000ff;
+  width: 100%;
+  max-width: 400px;
+
+
+  /* 👇 Estas son las claves para centrar */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
 }
 
 .teamList {
@@ -26,6 +36,7 @@
 
 .teamName {
   font-weight: bold;
+  color: #ffd000ff;
 }
 
 .memberCount {
@@ -41,6 +52,11 @@
   cursor: pointer;
   font-weight: bold;
   white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.leavebutton {
+  background-color: #9e1b28;
+  color: white;
 }
 
 .joinButton {

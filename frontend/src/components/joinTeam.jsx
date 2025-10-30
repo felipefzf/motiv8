@@ -17,41 +17,41 @@ function JoinTeamView() {
   useEffect(() => {
     // ... fetchAvailableTeams logic remains the same ...
     // Make sure it fetches description and members now
-        const fetchAvailableTeams = async () => {
-        const token = localStorage.getItem('firebaseToken');
-        if (!token) {
-          setError("No autenticado.");
-          setLoading(false);
-          return;
+    const fetchAvailableTeams = async () => {
+      const token = localStorage.getItem('firebaseToken');
+      if (!token) {
+        setError("No autenticado.");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await fetch('/api/teams/available', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error del servidor: ${response.statusText}`);
         }
 
-        setLoading(true);
-        setError(null);
+        const data = await response.json();
+        setAvailableTeams(data); // Includes description and members now
 
-        try {
-          const response = await fetch('/api/teams/available', {
-             headers: { 'Authorization': `Bearer ${token}` }
-          });
-
-          if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.statusText}`);
-          }
-
-          const data = await response.json();
-          setAvailableTeams(data); // Includes description and members now
-
-        } catch (e) {
-          setError("Error al cargar equipos: " + e.message);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchAvailableTeams();
+      } catch (e) {
+        setError("Error al cargar equipos: " + e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAvailableTeams();
   }, []);
 
   const handleJoinTeam = async (teamId, teamName) => {
     // ... handleJoinTeam logic remains the same ...
-        setActionError(null);
+    setActionError(null);
     const token = localStorage.getItem('firebaseToken');
     if (!token || !user) {
       setActionError("No autenticado.");
@@ -71,7 +71,7 @@ function JoinTeamView() {
         },
       });
 
-       if (!response.ok) {
+      if (!response.ok) {
         const errData = await response.text();
         throw new Error(errData || `Error al unirse al equipo.`);
       }
@@ -92,19 +92,19 @@ function JoinTeamView() {
   const openCreateModal = () => setIsCreateModalOpen(true);
   const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleTeamCreated = (newTeamData) => {
-     alert(`Equipo "${newTeamData.team_name}" creado.`);
-     refreshUser();
-     closeCreateModal();
+    alert(`Equipo "${newTeamData.team_name}" creado.`);
+    refreshUser();
+    closeCreateModal();
   };
 
   // --- Detail Modal Handlers ---
   const openDetailModal = (team) => {
-      setActionError(null); // Clear previous errors when opening a new detail
-      setSelectedTeam(team);
+    setActionError(null); // Clear previous errors when opening a new detail
+    setSelectedTeam(team);
   };
   const closeDetailModal = () => {
-      setSelectedTeam(null);
-      setActionError(null); // Clear error on close
+    setSelectedTeam(null);
+    setActionError(null); // Clear error on close
   };
 
 
@@ -124,16 +124,18 @@ function JoinTeamView() {
           {availableTeams.map(team => (
             // --- 3. Make the LI clickable ---
             <li
-                key={team.id}
-                className={styles.teamItemClickable} // Use a new style for clickable item
-                onClick={() => openDetailModal(team)} // Open detail modal on click
+              key={team.id}
+              className={styles.teamItemClickable} // Use a new style for clickable item
+              onClick={() => openDetailModal(team)} // Open detail modal on click
             >
-              <div> {/* Wrap text content */}
-                <span className={styles.teamName}>{team.team_name}</span>
-                <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
+              <div className={styles.jointeam}> {/* Wrap text content */}
+                <div className={styles.jointeambody}>
+                  <span className={styles.teamName}>{team.team_name}</span>
+                  <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
+                </div>
               </div>
+
               {/* Optional: Add a small visual indicator like an arrow */}
-              <span>&rarr;</span>
               {/* --- 4. Remove the join button here ---
                <button
                  onClick={(e) => { e.stopPropagation(); handleJoinTeam(team.id, team.team_name); }} // Stop propagation needed if button is inside LI
@@ -168,7 +170,7 @@ function JoinTeamView() {
         onJoin={handleJoinTeam} // Pass the join handler
       />
       {/* Show join error inside the detail modal */}
-       {selectedTeam && actionError && <p className={styles.modalError}>{actionError}</p>}
+      {selectedTeam && actionError && <p className={styles.modalError}>{actionError}</p>}
 
 
     </div>

@@ -12,10 +12,10 @@
 }
 
 .modalContent {
-  background: white;
+  background: #2a2a2a;
   padding: 25px 30px; /* More padding */
   border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  box-shadow: 0 5px 15px #ffd000ff;
   width: 90%;
   max-width: 500px; /* Adjust as needed */
   position: relative; /* Needed for the close button */
@@ -26,8 +26,8 @@
 
 .closeButton {
   position: absolute;
-  top: 10px;
-  right: 15px;
+  top: 0px;
+  right: 0px;
   background: none;
   border: none;
   font-size: 1.8rem;
