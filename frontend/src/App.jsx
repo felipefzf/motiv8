@@ -13,6 +13,7 @@ import PublicRoute from "./components/publicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/mainLayout";
 import ActivityCreator from "./pages/activityCreator";
+import ActivityTracker from "./pages/activityTracker";
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             <Route path="/login" element={<Login/>} />
             <Route path="/activities" element={<Activities/>} />
             <Route path="/activityCreator" element={<ActivityCreator/>} />
+            <Route path="/activityTracker" element={<ActivityTracker/>} />
             {/* Rutas protegidas para administradores */}
             <Route element={<AdminRoute />}>
               <Route path="/admindashboard" element={<AdminDashboard />} />

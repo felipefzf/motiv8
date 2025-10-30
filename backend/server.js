@@ -214,33 +214,38 @@ app.delete('/api/missions/:id', verifyToken, isAdmin, async (req, res) => {
 
 // FUNCIONES Actividades
 // Crear actividad (sólo admin)
-app.post('/api/activities', verifyToken, isAdmin, async (req, res) => {
-  const { activities } = req.body;
-  console.log("Actividades recibidas en backend:", activities);
-  if (!activities || !Array.isArray(activities)) {
-    return res.status(400).json({ error: 'Formato de actividades inválido.' });
-  }
-
+app.post('/api/activities', verifyToken, async (req, res) => {
   try {
-    const batch = db.batch();
-    activities.forEach(activity => {
-      console.log("Preparando documento:", activity);
-      const docRef = db.collection('activities').doc(); // crea un nuevo documento
-      batch.set(docRef, {
-        ...activity,
+    const userId = req.user.uid; // Obtenido del verifyToken
+    
+    // 1. Extrae los datos calculados del frontend
+    const { path, distance, time, avg_speed, max_speed } = req.body;
 
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-    });
+    // 2. Validación básica
+    if (!path || distance == null || time == null || avg_speed == null || max_speed == null) {
+      return res.status(400).send('Faltan datos de la actividad.');
+    }
 
-    await batch.commit();
-    console.log("Batch commit ejecutado correctamente");
-    res.status(201).json({ message: 'Actividades guardadas exitosamente.' });
+    // 3. Prepara el documento para Firestore
+    const newActivity = {
+      id_user: userId,
+      path: path,         // Array de { lat, lng }
+      distance: distance, // km
+      time: time,         // segundos
+      avg_speed: avg_speed,   // km/h
+      max_speed: max_speed,   // km/h
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // 4. Guarda en una nueva colección 'activities'
+    const docRef = await db.collection('activities').add(newActivity);
+
+    res.status(201).json({ id: docRef.id, ...newActivity });
+
   } catch (error) {
-    console.error('Error al guardar actividades:', error);
-    res.status(500).json({ error: 'Error interno al guardar actividades.' });
+    console.error("Error al guardar actividad:", error);
+    res.status(500).send('Error interno al guardar la actividad.');
   }
-
 });
 
 
