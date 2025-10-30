@@ -58,10 +58,6 @@
   white-space: nowrap; /* Evita que el texto se rompa */
 }
 
-.joinButton {
-  background-color: #28a745;
-  color: white;
-}
 
 .createButton {
   background-color: #ffd000ff;
@@ -88,3 +84,14 @@
   border-radius: 4px;
   margin-bottom: 15px; /* Para separar del contenido */
 }
+
+.jointeam {
+  margin-bottom: 10px;
+}
+
+.jointeambody {
+  padding: 10px;
+  background-color: #ffd000ff;
+  color: #2a2a2a;
+  border-radius: 5px;
+} 

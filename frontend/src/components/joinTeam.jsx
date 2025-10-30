@@ -128,14 +128,13 @@ function JoinTeamView() {
               className={styles.teamItemClickable} // Use a new style for clickable item
               onClick={() => openDetailModal(team)} // Open detail modal on click
             >
-              <div className='jointeam'> {/* Wrap text content */}
-                <div className="card">
-                  <div className="card-body">
-                    <span className={styles.teamName}>{team.team_name}</span>
-                    <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
-                  </div>
+              <div className={styles.jointeam}> {/* Wrap text content */}
+                <div className={styles.jointeambody}>
+                  <span className={styles.teamName}>{team.team_name}</span>
+                  <span className={styles.memberCount}>({team.member_count} miembro/s)</span>
                 </div>
               </div>
+
               {/* Optional: Add a small visual indicator like an arrow */}
               {/* --- 4. Remove the join button here ---
                <button
