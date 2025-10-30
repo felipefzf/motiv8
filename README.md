@@ -21,12 +21,14 @@ FRONTEND:
     react-router-dom: 7.9.3
     axios: 1.12.2
     firebase 12.4.0
+    leaflet: 1.9.4
+    react-leaflet: 5.0.0
 
 Código instalación:
 
 ```cmd
 cd frontend
-npm install react@19.2.0 react-dom@19.2.0 react-router-dom@7.9.3 axios@1.12.2 firebase@12.4.0
+npm install react@19.2.0 react-dom@19.2.0 react-router-dom@7.9.3 axios@1.12.2 firebase@12.4.0 leaflet@1.9.4 react-leaflet@5.0.0
 cd..
 ```
 
