@@ -109,7 +109,7 @@ function MyTeamInfo() {
   return (
     <div className={styles.container}>
       <h2>Mi Equipo: <span className={styles.teamName}>{teamData.team_name}</span></h2>
-      <p>ID: {teamData.id}</p>
+      <p>Descripción: {teamData.description}</p>
       
       <h3>Miembros:</h3>
       
@@ -121,7 +121,11 @@ function MyTeamInfo() {
             <li key={member.uid}>{member.name}</li>
           </li>
         ))}
-      </ul>
+      </ul><br />
+      
+      <h3>Insignias y Logros:</h3>
+      <br /><br /><br />
+
 
       <button onClick={handleLeaveTeam} className={styles.leavebutton}>
         Salir del Equipo
