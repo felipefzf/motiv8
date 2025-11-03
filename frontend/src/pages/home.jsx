@@ -75,6 +75,7 @@ export default function Home() {
 
       <div className="missions-section">
         <h3 className="missions-title">Misiones asignadas</h3>
+        <br />
         <div className="container text-center">
           <div className="row row-cols-2">
             {misiones.map((mision, index) => (
@@ -87,17 +88,16 @@ export default function Home() {
                     {mision.unit}
                   </p>
                   <p>Recompensa: {mision.reward}pts</p>
-                  <button className="btn btn-primary">
+                  <button className="btn-solo ">
                     HACER EN SOLITARIO
                   </button>
-                  <button className="btn btn-secondary">EMPAREJAR</button>
+                  <button className="btn-emparejar">EMPAREJAR</button>
                   <button
-                    className="btn btn-success"
+                    className="btn-completar"
                     onClick={() => completarMision(mision.id)}
                   >
                     COMPLETAR
                   </button>
-                 
                 </div>
               </div>
             ))}
