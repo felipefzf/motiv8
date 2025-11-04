@@ -96,7 +96,7 @@ export default function Home() {
                     className="btn-completar"
                     onClick={() => completarMision(mision.id)}
                   >
-                    COMPLETAR
+                    COMPLETADO
                   </button>
                 </div>
               </div>

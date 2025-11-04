@@ -2,24 +2,46 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Register.css'; // 👈 Importamos los estilos externos
+import { regionesYcomunas } from "../utils/funcionUtils"
 
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [region, setRegion] = useState(''); 
+  const [comuna, setComuna] = useState('');
+
+
+
+  const handleRegionChange = (e) => {
+    const selectedRegion = e.target.value;
+    setRegion(selectedRegion);
+    // 💡 Resetear la comuna cuando cambia la región
+    setComuna(''); 
+  };
+  const handleComunaChange = (e) => {
+    setComuna(e.target.value);
+  };
+
+  const comunasDeRegion = region 
+    ? regionesYcomunas.find(r => r.region === region)?.comunas || []
+    : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+    if (!region || !comuna) {
+        setError('Por favor, selecciona una Región y una Comuna.');
+        return;
+    }
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, region, comuna}),
       });
 
       if (!response.ok) {
@@ -73,6 +95,46 @@ export default function Register() {
             required
             placeholder="Contraseña"
           />
+        </div>
+
+        <div className="form-group">
+          <select
+            id="region"
+            value={region}
+            onChange={handleRegionChange}
+            required
+            // Asegúrate de definir esta clase en Register.css
+            className='register-select' 
+          >
+            <option value="">Selecciona una Región</option>
+            {/* Mapeamos las opciones usando tu array regionesYcomunas */}
+            {regionesYcomunas.map((r) => (
+              <option key={r.region} value={r.region}>
+                {r.region}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* --- SELECTOR DE COMUNA --- */}
+        <div className="form-group">
+          <select
+            id="comuna"
+            value={comuna}
+            onChange={handleComunaChange}
+            required
+            // Deshabilitado si no hay región seleccionada
+            disabled={!region} 
+            className='register-select'
+          >
+            <option value="">Selecciona una Comuna</option>
+            {/* Mapeamos las comunas filtradas */}
+            {comunasDeRegion.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
 
         <button type="submit" className="register-button">
