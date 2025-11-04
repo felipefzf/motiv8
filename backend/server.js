@@ -35,7 +35,7 @@ app.use("/api", testRoutes);
 // Register: Registrar un nuevo usuario
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, region, comuna } = req.body;
 
     // --- PASO 1: Crear el usuario en Firebase Authentication ---
     // Esto crea el registro de email/contraseña
@@ -53,17 +53,24 @@ app.post('/api/auth/register', async (req, res) => {
       role: 'user', // <--- ¡AQUÍ ESTÁ LA MAGIA!
       team_member: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      region: region, 
+      comuna: comuna,
     };
 
     // Usamos el UID del usuario de Auth como ID del documento en Firestore
     await db.collection('users').doc(userRecord.uid).set(newUserDoc);
 
+    // 🌟 --- PASO 3: Inicializar la Colección de Estadísticas (Colección 'userStats' separada) ---
+    
+    
     // Enviamos una respuesta exitosa
     res.status(201).send({
       uid: userRecord.uid,
       email: userRecord.email,
       role: 'user',
-      team_member: false
+      team_member: false,
+      region: region, 
+      comuna: comuna,
     });
 
 
@@ -676,8 +683,48 @@ app.post('/api/user-missions/assign-3', verifyToken, async (req, res) => {
   }
 });
 
-
 // ASIGNAR MISIONES
+
+app.get('/api/users/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      return res.status(404).send('Usuario no encontrado');
+    }
+
+    res.status(200).json(userDoc.data());
+  } catch (error) {
+    console.error('Error obteniendo usuario:', error);
+    res.status(500).send('Error interno al obtener usuario.');
+  }
+});
+
+
+app.post('/api/user/initStats', async (req, res) => {
+  const { uid } = req.body;
+
+  const initialStats = {
+    distanciaTotalKm: 0,
+    velocidadMaximaKmh: 0,
+    velocidadPromedioKmh: 0,
+    tiempoTotalRecorridoMin: 0,
+    misionesCompletas: 0,
+    insigniasGanadas: 0,
+    userId: uid,
+    ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  try {
+    await db.collection('userStats').doc(uid).set(initialStats);
+    res.status(201).send({ message: 'Estadísticas inicializadas correctamente.' });
+  } catch (error) {
+    console.error('Error creando estadísticas:', error);
+    res.status(500).send({ error: 'No se pudieron crear las estadísticas.' });
+  }
+});
+
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {

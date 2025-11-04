@@ -55,11 +55,15 @@ export default function Profile() {
           alt="Perfil"
         />
         <h4 className="profile-name">
-          tms.pz <span className="profile-level">Nivel 7</span>
+          {user.name} <span className="profile-level">Nivel 7</span>
         </h4>
         <br />
-        <p>Ubicación: <span className="profile-level">Ñuñoa, Chile</span></p>
-        <p>Deporte Principal: <span className="profile-level">Ciclismo</span></p>
+        <p>
+          Ubicación: <span className="profile-level">{user.comuna}, {user.region}</span>
+        </p>
+        <p>
+          Deporte Principal: <span className="profile-level">Ciclismo</span>
+        </p>
 
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
