@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Register.css'; // 👈 Importamos los estilos externos
 import { regionesYcomunas } from "../utils/funcionUtils"
+import axios from 'axios';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -51,6 +52,7 @@ export default function Register() {
 
       const newUser = await response.json();
       console.log('Usuario registrado:', newUser);
+      await axios.post('/api/user/initStats', { uid: newUser.uid });
       alert('Registro exitoso. Puedes iniciar sesión ahora.');
       window.location.href = '/login';
       
