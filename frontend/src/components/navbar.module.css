@@ -1,73 +1,89 @@
-/* src/components/Navbar/Navbar.module.css */
+/* === Variables globales === */
+:root {
+  /* Tema claro */
+  --navbar-bg: #0066cc;
+  --navbar-shadow: rgba(0, 0, 0, 0.1);
+  --nav-icon-glow: #fefefe;
+  --nav-bubble: #fefefe;
+  --nav-filter: brightness(0);
+}
 
+/* Tema oscuro */
+[data-theme="dark"] {
+  --navbar-bg: #ffd000ff;
+  --navbar-shadow: rgba(255, 255, 255, 0.1);
+  --nav-icon-glow: #fefefe;
+  --nav-bubble: #fefefe;
+  --nav-filter: brightness(1.5);
+}
+
+/* === Navbar principal === */
 .navbar {
   padding: 12px;
-  background: #f7f7f7;
+  background: var(--navbar-bg);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  position: fixed;      /* ✅ Cambia relative → fixed */
-  bottom: 0;               /* ✅ Lo fija abajo */
-  width: 100%;          /* ✅ Ocupar todo el ancho */
-  z-index: 1000;  
-  height: 60px; /* Altura fija para el navbar */
+  box-shadow: 0 2px 5px var(--navbar-shadow);
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+  height: 60px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
+/* === Burbuja animada === */
 .bubble {
   position: absolute;
   z-index: 1;
-  background-color: #ffd000ff;
-  opacity: 0.3; /* Le quitamos la opacidad de React, la controlamos aquí */
+  background-color: var(--nav-bubble);
+  opacity: 0.3;
   border-radius: 16px;
 
-  /* --- ARREGLO DEFINITIVO DE ALTURA Y CENTRADO --- */
-  
-  /* 1. Altura: La altura de la imagen (38px) + el padding del link (4px * 2) */
-  height: 46px; /* (38px + 4px + 4px) */
-  
-  /* 2. Centrado: Lo centramos verticalmente en el 'navbar' */
+  /* Altura y centrado */
+  height: 46px;
   top: 50%;
   transform: translateY(-50%);
 
-  /* 3. Transición: Solo animamos 'left', 'width' y 'opacity' */
-  transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              opacity 0.2s ease-in-out;
+  transition:
+    left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.2s ease-in-out;
 }
 
+/* === Enlaces === */
 .navLink {
   position: relative;
   z-index: 2;
   display: inline-block;
-  /* Este padding es el que suma a la altura de la burbuja */
-  padding: 4px 10px; 
+  padding: 4px 10px;
+  vertical-align: middle;
   transition: none;
-  vertical-align: middle; 
 }
 
+/* === Imágenes de íconos === */
 .navImage {
   width: 38px;
   height: 38px;
   border-radius: 10px;
   cursor: pointer;
-  display: block; 
-  
-  /* ... (tus transform y filter de la imagen se quedan igual) ... */
+  display: block;
   transform: scale(1) translateY(0) rotate(0deg);
-  filter: drop-shadow(0 0 0 transparent);
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-              filter 0.3s ease-in-out;
+  filter: var(--nav-filter);
+  transition:
+    transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    filter 0.3s ease-in-out,
+    drop-shadow 0.3s ease-in-out;
 }
 
-/* ... (El resto de tus estilos .activeLink y :hover se quedan igual) ... */
+/* === Estados === */
 .navLink:not(.activeLink):hover .navImage {
   transform: scale(1.15) rotate(3deg);
 }
 
 .navLink.activeLink .navImage {
   transform: scale(1.2) translateY(-4px);
-  filter: drop-shadow(0 0 8px #ffd000ff);
+  filter: drop-shadow(0 0 8px var(--nav-icon-glow));
 }

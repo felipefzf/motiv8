@@ -1,86 +1,57 @@
-import tomy from "../assets/tomy.png";
-import bici from "../assets/bicicleta.png";
-import medalla from "../assets/medalla.png";
-import objetivo from "../assets/objetivo.png";
-import equipo from "../assets/equipo.png";
-import "./Profile.css";
-import { Link, useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
-// import { useNavigate } from 'react-router-dom';
-
-import { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from 'react';
+import tomy from '../assets/tomy.png';
+import bici from '../assets/bicicleta.png';
+import medalla from '../assets/medalla.png';
+import objetivo from '../assets/objetivo.png';
+import equipo from '../assets/equipo.png';
+import './Profile.css';
+import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [error, setError] = useState("");
-  
+  const [theme, setTheme] = useState('dark');
+
+  // Leer el tema guardado o usar "dark" por defecto
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+  }, []);
+
+  // Cambiar tema y guardarlo
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
   const handleLogout = async () => {
     try {
-      // 1. Cierra la sesión en Firebase
       await signOut(auth);
-
-      // 2. Limpia los datos de sesión guardados
-      localStorage.removeItem("firebaseToken");
-      localStorage.removeItem("userRole");
-
-      // 3. Redirige al login (con 'replace' para que no pueda volver)
-      navigate("/login", { replace: true });
+      localStorage.removeItem('firebaseToken');
+      localStorage.removeItem('userRole');
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
 
-  
-useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('firebaseToken');
-        const response = await axios.get('http://localhost:5000/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const basicUser = response.data;
-
-        // 🔍 Segunda llamada para traer nombre, región y comuna desde Firestore
-        const userDetailsResponse = await axios.get(`http://localhost:5000/api/users/${basicUser.uid}`);
-        
-        // **ACTUALIZACIÓN CLAVE AQUÍ:**
-        // Accedemos a los datos de la respuesta para obtener los campos de ubicación
-        const userDetails = userDetailsResponse.data;
-        
-        setUser({ 
-            ...basicUser, 
-            name: userDetails.name, 
-            region: userDetails.region, // <--- Guardamos la región
-            comuna: userDetails.comuna  // <--- Guardamos la comuna
-        });
-
-      } catch (err) {
-        console.error('Error al obtener datos del usuario:', err);
-        setError('No se pudo cargar la información del usuario.');
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-
-  if (error) return <p>{error}</p>;
-  if (!user) return <p>Cargando perfil...</p>;
-
   return (
     <div className="profile-container">
+      <button onClick={toggleTheme} className="theme-toggle-btn">
+        {theme === 'dark' ? '☀️ Tema Claro' : '🌙 Tema Oscuro'}
+      </button>
+
       <h1 className="profile-title">MOTIV8</h1>
       <h2 className="profile-subtitle">Perfil</h2>
 
       <div className="profile-content">
         <img
           src={tomy}
-          className="profile-image rounded-circle border border-warning"
+          className="profile-image rounded-circle border"
           alt="Perfil"
         />
         <h4 className="profile-name">
@@ -99,30 +70,22 @@ useEffect(() => {
           <div className="row row-cols-2">
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Distancia: <span className="highlight">270 km</span>
-                </p>
+                <p>Distancia: <span className="highlight">270 km</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Tiempo: <span className="highlight">120 hrs</span>
-                </p>
+                <p>Tiempo: <span className="highlight">120 hrs</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Misiones: <span className="highlight">45 Completadas</span>
-                </p>
+                <p>Misiones: <span className="highlight">45 Completadas</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Insignias: <span className="highlight">8 Obtenidas</span>
-                </p>
+                <p>Insignias: <span className="highlight">8 Obtenidas</span></p>
               </div>
             </div>
           </div>
@@ -135,6 +98,7 @@ useEffect(() => {
           <img src={objetivo} alt="Medalla 3" />
           <img src={equipo} alt="Medalla 4" />
         </div>
+
         <br />
         <button onClick={handleLogout} className="btn btn-danger">
           Cerrar Sesión

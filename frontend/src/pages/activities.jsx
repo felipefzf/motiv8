@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { formatDistance, formatMovingTime } from "../utils/stravaUtils";
+import './Activities.css'; // Importar el CSS externo
 
-//GEOAPIFY
+// GEOAPIFY
 export async function getComunaFromGeoapify(lat, lng) {
   const apiKey = '8e6613c9028d433cb7b81f5622af46da';
   const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${apiKey}`;
@@ -24,14 +25,13 @@ export async function getComunaFromGeoapify(lat, lng) {
     return "Error al obtener comuna";
   }
 }
-
-//GEOAPIFY
+// GEOAPIFY
 
 const Activities = () => {
   const [enrichedActivities, setEnrichedActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState([]);
-  const [cities, setCities] = useState({}); //GEOAPIFY
+  const [cities, setCities] = useState({}); // GEOAPIFY
 
   // filtros
   const [nameFilter, setNameFilter] = useState("");
@@ -98,51 +98,46 @@ const Activities = () => {
     return byName && byStart;
   });
 
-  //
   return (
-    <div style={{ padding: '20px', color: '#fff' }}>
-      <h1 style={{ margin: 0, color: '#ffd000ff' }}>Motiv8</h1>
-      <h3 style={{ margin: '5px 0 10px 0' }}>Actividades de Strava</h3>
-
+    <div className="activities-container">
+      <h1 className="activities-title">MOTIV8</h1>
+      <h3 className="activities-subtitle">Actividades de Strava</h3>
+      <br />
       {/* filtros opcionales */}
       <input
         type="text"
         placeholder="Filtrar por nombre..."
         value={nameFilter}
         onChange={(e) => setNameFilter(e.target.value)}
-        style={{ marginBottom: '10px', padding: '5px', borderRadius: '6px', width: '80%' }}
       />
       <input
         type="text"
         placeholder="Filtrar por comuna inicio..."
         value={startFilter}
         onChange={(e) => setStartFilter(e.target.value)}
-        style={{ marginBottom: '20px', padding: '5px', borderRadius: '6px', width: '80%' }}
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="activities-list-container">
         {loading ? (
           <p>SUBIENDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
         ) : enrichedActivities.length === 0 ? (
           <p>CARGANDO INFORMACIÓN DE LAS ACTIVIDADES...</p>
         ) : filteredActivities.length === 0 ? (
-          <p>No hay actividades que coincidan con los filtros.</p> // ✅ mensaje actualizado
+          <p>No hay actividades que coincidan con los filtros.</p>
         ) : (
-          <div>
-            <ul>
-              {filteredActivities.map((activity) => (
-                <li key={activity.id}>
-                  ID: {activity.id} <span style={{ color: '#ffd000ff' }}>{activity.name}</span> <br />
-                  Nombre actividad: <span style={{ color: '#ffd000ff' }}>{activity.name}</span> / Deporte: <span style={{ color: '#ffd000ff' }}>{activity.type}</span><br />
-                  Distancia: <span style={{ color: '#ffd000ff' }}>{activity.distance}</span> / Tiempo en movimiento: <span style={{ color: '#ffd000ff' }}>{activity.movingTime}</span> <br />
-                  Velocidad Promedio: <span style={{ color: '#ffd000ff' }}>{activity.averageSpeed}</span> / Velocidad punta: <span style={{ color: '#ffd000ff' }}>{activity.maxSpeed}</span> / Elevación: <span style={{ color: '#ffd000ff' }}>{activity.elevationGain}</span> <br />
-                  Punto Inicio: <span style={{ color: '#ffd000ff' }}>{activity.comunaStart}</span> <br />
-                  Punto de término: <span style={{ color: '#ffd000ff' }}>{activity.comunaEnd}</span> <br />
-                  <br />
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul>
+            {filteredActivities.map((activity) => (
+              <li key={activity.id}>
+                ID: {activity.id} <span>{activity.name}</span> <br />
+                Nombre actividad: <span>{activity.name}</span> / Deporte: <span>{activity.type}</span><br />
+                Distancia: <span>{activity.distance}</span> / Tiempo en movimiento: <span>{activity.movingTime}</span> <br />
+                Velocidad Promedio: <span>{activity.averageSpeed}</span> / Velocidad punta: <span>{activity.maxSpeed}</span> / Elevación: <span>{activity.elevationGain}</span> <br />
+                Punto Inicio: <span>{activity.comunaStart}</span> <br />
+                Punto de término: <span>{activity.comunaEnd}</span> <br />
+                <br />
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </div>
