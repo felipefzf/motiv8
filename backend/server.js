@@ -60,6 +60,9 @@ app.post('/api/auth/register', async (req, res) => {
     // Usamos el UID del usuario de Auth como ID del documento en Firestore
     await db.collection('users').doc(userRecord.uid).set(newUserDoc);
 
+    // 🌟 --- PASO 3: Inicializar la Colección de Estadísticas (Colección 'userStats' separada) ---
+    
+    
     // Enviamos una respuesta exitosa
     res.status(201).send({
       uid: userRecord.uid,
@@ -697,6 +700,31 @@ app.get('/api/users/:uid', async (req, res) => {
     res.status(500).send('Error interno al obtener usuario.');
   }
 });
+
+
+app.post('/api/user/initStats', async (req, res) => {
+  const { uid } = req.body;
+
+  const initialStats = {
+    distanciaTotalKm: 0,
+    velocidadMaximaKmh: 0,
+    velocidadPromedioKmh: 0,
+    tiempoTotalRecorridoMin: 0,
+    misionesCompletas: 0,
+    insigniasGanadas: 0,
+    userId: uid,
+    ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  try {
+    await db.collection('userStats').doc(uid).set(initialStats);
+    res.status(201).send({ message: 'Estadísticas inicializadas correctamente.' });
+  } catch (error) {
+    console.error('Error creando estadísticas:', error);
+    res.status(500).send({ error: 'No se pudieron crear las estadísticas.' });
+  }
+});
+
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
