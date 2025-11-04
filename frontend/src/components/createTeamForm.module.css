@@ -1,16 +1,51 @@
+/* === Variables globales === */
+:root {
+  /* Tema claro (por defecto) */
+  --bg-color: #f9f9f9;
+  --text-color: #1e1e1e;
+  --accent-color: #0066cc;
+  --card-bg: #f9f9f9;
+  --border-color: #ddd;
+  --shadow-color: #0066cc;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-solo-bg: #444;
+  --btn-emparejar-bg: #0066cc;
+  --btn-completar-bg: #28a745;
+}
+
+/* Tema oscuro */
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #fff;
+  --accent-color: #ffd000ff;
+  --card-bg: #1e1e1e;
+  --border-color: #333;
+  --shadow-color: #ffd000ff;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-solo-bg: #444;
+  --btn-emparejar-bg: #0066cc;
+  --btn-completar-bg: #28a745;
+}
+
+/* === Estilos del formulario === */
 .form {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Space between elements */
-  background-color: #2a2a2a;
-
+  gap: 15px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px var(--shadow-color);
 }
 
 .title {
   margin-top: 0;
   margin-bottom: 20px;
   text-align: center;
-  color: #ffff;
+  color: var(--text-color);
 }
 
 .inputGroup {
@@ -21,7 +56,7 @@
 .inputGroup label {
   margin-bottom: 5px;
   font-weight: bold;
-  color: #ffff;
+  color: var(--text-color);
 }
 
 .inputGroup input,
@@ -29,10 +64,21 @@
 .inputGroup textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  box-sizing: border-box; /* Include padding in width */
+  box-sizing: border-box;
   font-size: 1rem;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.inputGroup input:focus,
+.inputGroup select:focus,
+.inputGroup textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 5px var(--shadow-color);
 }
 
 .inputGroup textarea {
@@ -42,8 +88,8 @@
 
 .buttonContainer {
   display: flex;
-  justify-content: flex-end; /* Align buttons to the right */
-  gap: 10px; /* Space between buttons */
+  justify-content: flex-end;
+  gap: 10px;
   margin-top: 20px;
 }
 
@@ -55,26 +101,37 @@
   cursor: pointer;
   font-size: 1rem;
   font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .cancelButton {
-  background-color: #6c757d; /* Gray */
-  color: white;
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.cancelButton:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
 }
 
 .submitButton {
-  background-color: #ffd000ff; /* Yellow */
-  color: #2a2a2a;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.submitButton:hover {
+  background-color: var(--shadow-color);
+  transform: scale(1.05);
 }
 
 .submitButton:disabled {
-  background-color: #a0cfff; /* Lighter blue when disabled */
+  background-color: #a0cfff;
   cursor: not-allowed;
 }
 
 .error {
-  color: #D8000C; /* Error red */
-  background-color: #FFD2D2; /* Light red background */
+  color: #D8000C;
+  background-color: #FFD2D2;
   border: 1px solid #D8000C;
   padding: 10px;
   border-radius: 4px;

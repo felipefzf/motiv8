@@ -1,50 +1,70 @@
-/* src/pages/Teams.module.css */
-.teams-container {
+/* === Teams.module.css con soporte de modo claro/oscuro === */
+
+.teamsContainer {
   padding: 20px;
-  color: #ffffff;
+  color: var(--text-color);
   text-align: center;
   overflow: hidden;
+  background-color: var(--bg-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-
-.teams-title {
+/* === Títulos === */
+.teamsTitle {
   margin: 0;
-  color: #ffd000ff;
+  color: var(--accent-color);
   text-align: start;
+  transition: color 0.3s ease;
 }
 
-.teams-subtitle {
-    margin: 5px 0 10px 0;
-    text-align: start;
+.teamsSubtitle {
+  margin: 5px 0 10px 0;
+  text-align: start;
+  color: var(--text-color);
+  opacity: 0.85;
+  transition: color 0.3s ease;
 }
 
+/* === Contenedor principal === */
 .container {
-  max-width: 900px; /* Adjust width as needed */
-  margin: 40px auto; /* Center the container with space above/below */
+  max-width: 900px;
+  margin: 40px auto;
   padding: 20px;
-  padding-bottom: 80px; /* Space for the fixed bottom navbar */
-  /* background-color: #ffffff; /* Optional: light background */
-  /* border-radius: 8px; */
-  /* box-shadow: 0 1px 3px rgba(0,0,0,0.1); */
+  padding-bottom: 80px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 0 15px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .container h1 {
   text-align: center;
   margin-bottom: 30px;
-  color: #333; /* Darker heading color */
+  color: var(--text-color);
+  font-weight: 700;
+  transition: color 0.3s ease;
 }
 
-/* Styles for loading and error messages */
-.loading, .error {
+/* === Estados === */
+.loading,
+.error {
   text-align: center;
   padding: 30px;
   font-weight: bold;
   font-size: 1.1em;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
 }
 
+/* Estado de carga */
+.loading {
+  color: var(--accent-color);
+}
+
+/* Estado de error */
 .error {
-  color: #D8000C; /* Error red color */
-  background-color: #FFD2D2; /* Light red background */
-  border: 1px solid #D8000C;
-  border-radius: 4px;
+  color: #ff4d4d;
+  background-color: rgba(255, 77, 77, 0.15);
+  border: 1px solid #ff4d4d;
 }

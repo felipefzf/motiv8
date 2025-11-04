@@ -107,7 +107,7 @@ export default function Home() {
       <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
         AGREGAR 3 MISIONES
       </button>
-      <Link to="/activityCreator" className="btn btn-warning">
+      <Link to="/activityCreator" className="btn-registrar">
         Registrar Actividad
       </Link>
     </div>

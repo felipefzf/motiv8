@@ -1,13 +1,13 @@
 /* Contenedor general */
 .act-container {
-  color: #fff;
+  color: var(--text-color);
   padding: 20px;
 }
 
 /* Títulos principales */
 .act-title {
   margin: 0;
-  color: #ffd000ff;
+  color: var(--accent-color);
 }
 
 .act-subtitle {
@@ -23,8 +23,8 @@
 /* Formulario */
 .activity-form,
 .form-container {
-  background-color: #242424;
-  color: #fff;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   border-radius: 15px;
   padding: 20px;
   width: 100%;           
@@ -34,14 +34,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: 0 4px 15px rgba(255, 208, 0, 0.3);
+  box-shadow: 0 4px 15px var(--shadow-color);
 }
 
 /* Título del formulario */
 .form-title,
 .activity-form h2 {
   text-align: center;
-  color: #ffd000;
+  color: var(--accent-color);
   margin-bottom: 15px;
 }
 
@@ -65,10 +65,10 @@ label {
   padding: 10px;
   border-radius: 8px;
   border: none;
-  background-color: #333;
-  color: #fff;
-  width: 100%;            /* Ocupa todo el ancho del contenedor */
-  box-sizing: border-box; /* Incluye padding en el ancho */
+  background-color: var(--border-color);
+  color: var(--text-color);
+  width: 100%;            
+  box-sizing: border-box; 
   font-size: 15px;
 }
 
@@ -76,7 +76,7 @@ label {
 .activity-form select:focus,
 .form-container input:focus,
 .form-container select:focus {
-  outline: 2px solid #ffd000ff;
+  outline: 2px solid var(--accent-color);
 }
 
 /* Evita que nombres largos de comunas rompan el layout */
@@ -85,8 +85,8 @@ label {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  background-color: #333;
-  color: #fff;
+  background-color: var(--border-color);
+  color: var(--text-color);
 }
 
 /* Botón de submit */
@@ -94,8 +94,8 @@ label {
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background-color: #ffd000;
-  color: #000;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
   font-weight: bold;
   border: none;
   border-radius: 10px;
@@ -105,7 +105,7 @@ label {
 
 .activity-form button:hover,
 .submit-btn:hover {
-  background-color: #ffde33;
+  background-color: var(--btn-hover);
 }
 
 /* Media query para móviles muy pequeños */
@@ -126,6 +126,7 @@ label {
     font-size: 14px;
   }
 }
-.alerta{
-    color: #242424;
+
+.alerta {
+    color: var(--text-color);
 }

@@ -1,3 +1,42 @@
+/* === Variables globales === */
+:root {
+  /* Tema claro (por defecto) */
+  --bg-color: #f9f9f9;
+  --text-color: #1e1e1e;
+  --accent-color: #0066cc;
+  --card-bg: #ffffff;
+  --border-color: #ddd;
+  --shadow-color: #0066cc;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-hover: #005bb5;
+  --text-team: #f9f9f9;
+}
+
+/* Tema oscuro */
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --accent-color: #ffd000ff;
+  --card-bg: #2a2a2a;
+  --border-color: #333;
+  --shadow-color: #ffd000ff;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-hover: #e0bb00;
+  --text-team: #2a2a2a;
+}
+
+/* === Reglas generales === */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -5,19 +44,20 @@
   text-align: center;
 }
 
+/* === Logo === */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  transition: filter 300ms, transform 0.3s ease;
 }
 
+.logo:hover {
+  filter: drop-shadow(0 0 2em var(--shadow-color));
+  transform: scale(1.05);
+}
+
+/* === Animación del logo === */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -33,23 +73,63 @@
   }
 }
 
+/* === Tarjetas === */
 .card {
   padding: 2em;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 0 15px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+.card:hover {
+  box-shadow: 0 0 25px var(--accent-color);
+}
+
+/* === Texto auxiliar === */
 .read-the-docs {
-  color: #888;
+  color: var(--border-color);
 }
 
-/* En src/index.css (o tu CSS global) */
+/* === Botones === */
+button {
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease, background-color 0.3s ease;
+}
 
+button:hover {
+  background-color: var(--btn-hover);
+  transform: scale(1.03);
+}
+
+button:disabled {
+  background-color: #777;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+/* === Enlaces === */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+a:hover {
+  color: var(--btn-hover);
+  text-decoration: underline;
+}
+
+/* === Reset === */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-body, html {
-  margin: 0;
-  padding: 0;
 }

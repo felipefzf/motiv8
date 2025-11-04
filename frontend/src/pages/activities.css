@@ -1,0 +1,82 @@
+/* Contenedor principal */
+.activities-container {
+  padding: 20px;
+  color: var(--text-color);
+  text-align: center;
+}
+.activities-title {
+  margin: 0;
+  color: var(--accent-color);
+  text-align: start;
+}
+.activities-subtitle {
+  margin: 5px 0 10px 0;
+  text-align: start;
+}
+
+/* Título principal */
+.activities-container h1 {
+  margin: 0;
+  color: var(--accent-color);
+}
+
+/* Subtítulo */
+.activities-container h3 {
+  margin: 5px 0 10px 0;
+}
+
+/* Inputs de filtros */
+.activities-container input[type="text"] {
+  margin-bottom: 10px;
+  padding: 5px;
+  border-radius: 6px;
+  width: 80%;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.activities-container input[type="text"]:focus {
+  outline: 2px solid var(--accent-color);
+}
+
+/* Contenedor de lista de actividades */
+.activities-list-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Lista de actividades */
+.activities-list-container ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.activities-list-container li {
+  margin-bottom: 15px;
+}
+
+/* Detalles de la actividad */
+.activities-list-container li span {
+  color: var(--accent-color);
+}
+
+/* Mensajes de carga o sin resultados */
+.activities-list-container p {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+/* Media query para móviles muy pequeños */
+@media screen and (max-width: 400px) {
+  .activities-container {
+    padding: 15px;
+  }
+
+  .activities-container input[type="text"] {
+    width: 95%;
+    font-size: 14px;
+  }
+}

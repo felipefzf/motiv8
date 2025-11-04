@@ -1,58 +1,79 @@
+/* === TeamDetailModal.module.css con soporte de modo claro/oscuro === */
+
 .container {
-  padding: 10px; /* Add some padding inside the modal */
-  color: #ffff;
-  background-color: #2a2a2a;
+  padding: 10px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 8px;
+
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-
+/* === Títulos === */
 .container h2 {
   margin-top: 0;
-  color: #ffd000ff;
+  color: var(--accent-color);
   text-align: center;
-}
-.container h3 {
-    margin-top: 20px;
-    margin-bottom: 10px;
-    color: #ffff;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
+  font-weight: bold;
+  transition: color 0.3s ease;
 }
 
+.container h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 5px;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+/* === Detalles === */
 .sportType {
-    font-style: italic;
-    color: #ffff;
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 15px;
+  font-style: italic;
+  color: var(--text-color);
+  text-align: center;
+  opacity: 0.9;
+  margin-top: 10px;
+  margin-bottom: 15px;
+  transition: color 0.3s ease;
 }
 
 .description {
   margin-bottom: 20px;
   line-height: 1.5;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
+/* === Lista de miembros === */
 .memberList {
   list-style: disc;
   padding-left: 20px;
-  max-height: 150px; /* Limit height and add scroll if many members */
+  max-height: 150px;
   overflow-y: auto;
-
   padding-top: 10px;
   padding-bottom: 10px;
   border-radius: 4px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .memberList li {
   padding: 3px 0;
+  color: var(--text-color);
+  transition: color 0.3s ease;
 }
 
+/* === Botones y acciones === */
 .actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 25px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
   padding-top: 15px;
+  transition: border-color 0.3s ease;
 }
 
 .button {
@@ -61,14 +82,25 @@
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
 }
 
+.button:hover {
+  transform: scale(1.03);
+}
+
+/* === Botón Cancelar === */
 .cancelButton {
-  background-color: #6c757d;
-  color: white;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
 }
 
+.cancelButton:hover {
+  background-color: var(--btn-hover);
+}
+
+/* === Botón Unirse === */
 .joinButton {
-  background-color: #ffd000ff;
-  color: #2a2a2a;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
 }

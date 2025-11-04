@@ -1,47 +1,57 @@
+import React, { useEffect, useState } from 'react';
 import tomy from '../assets/tomy.png';
 import bici from '../assets/bicicleta.png';
 import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Profile.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-// import { useNavigate } from 'react-router-dom';
-
-
 
 export default function Profile() {
+  const navigate = useNavigate();
+  const [theme, setTheme] = useState('dark');
 
-    const navigate = useNavigate();
+  // Leer el tema guardado o usar "dark" por defecto
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+    document.body.setAttribute('data-theme', savedTheme);
+  }, []);
 
-    const handleLogout = async () => {
-      try {
-        // 1. Cierra la sesión en Firebase
-        await signOut(auth);
-        
-        // 2. Limpia los datos de sesión guardados
-        localStorage.removeItem('firebaseToken');
-        localStorage.removeItem('userRole');
-        
-        // 3. Redirige al login (con 'replace' para que no pueda volver)
-        navigate('/login', { replace: true });
+  // Cambiar tema y guardarlo
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
 
-      } catch (error) {
-        console.error("Error al cerrar sesión:", error);
-      }
-    };
-
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem('firebaseToken');
+      localStorage.removeItem('userRole');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
   return (
     <div className="profile-container">
+      <button onClick={toggleTheme} className="theme-toggle-btn">
+        {theme === 'dark' ? '☀️ Tema Claro' : '🌙 Tema Oscuro'}
+      </button>
+
       <h1 className="profile-title">MOTIV8</h1>
       <h2 className="profile-subtitle">Perfil</h2>
 
       <div className="profile-content">
         <img
           src={tomy}
-          className="profile-image rounded-circle border border-warning"
+          className="profile-image rounded-circle border"
           alt="Perfil"
         />
         <h4 className="profile-name">
@@ -56,30 +66,22 @@ export default function Profile() {
           <div className="row row-cols-2">
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Distancia: <span className="highlight">270 km</span>
-                </p>
+                <p>Distancia: <span className="highlight">270 km</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Tiempo: <span className="highlight">120 hrs</span>
-                </p>
+                <p>Tiempo: <span className="highlight">120 hrs</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Misiones: <span className="highlight">45 Completadas</span>
-                </p>
+                <p>Misiones: <span className="highlight">45 Completadas</span></p>
               </div>
             </div>
             <div className="card-profile">
               <div className="card-body">
-                <p>
-                  Insignias: <span className="highlight">8 Obtenidas</span>
-                </p>
+                <p>Insignias: <span className="highlight">8 Obtenidas</span></p>
               </div>
             </div>
           </div>
@@ -92,6 +94,7 @@ export default function Profile() {
           <img src={objetivo} alt="Medalla 3" />
           <img src={equipo} alt="Medalla 4" />
         </div>
+
         <br />
         <button onClick={handleLogout} className="btn btn-danger">
           Cerrar Sesión
