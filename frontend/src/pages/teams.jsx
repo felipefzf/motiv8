@@ -28,6 +28,10 @@ function Teams() {
     </div>
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+    </div>
+>>>>>>> Stashed changes
 =======
     </div>
 >>>>>>> Stashed changes
