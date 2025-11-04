@@ -26,10 +26,6 @@ function Teams() {
         <JoinTeamView />
       )}
     </div>
-<<<<<<< Updated upstream
-=======
-    </div>
->>>>>>> Stashed changes
   );
 }
 
