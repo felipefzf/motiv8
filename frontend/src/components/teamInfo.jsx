@@ -110,7 +110,7 @@ function MyTeamInfo() {
     <div className={styles.container}>
       <h2>Mi Equipo: <span className={styles.teamName}>{teamData.team_name}</span></h2>
       <p>Descripción: {teamData.description}</p>
-      
+      <p>Color: {teamData.team_color}</p>
       <h3>Miembros:</h3>
       
       <ul className={styles.memberList}>

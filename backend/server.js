@@ -5,6 +5,7 @@ import testRoutes from "./routes/test.js";
 import admin from 'firebase-admin';
 import { createRequire } from 'module'; // Importa createRequire
 import { verifyToken, isAdmin } from './middlewares/authMiddleware.js'; // <-- IMPORTA
+import multer from 'multer';
 
 const require = createRequire(import.meta.url);
 const serviceAccount = require('./config/motiv8-b965b-firebase-adminsdk-fbsvc-4489c9f191.json');
@@ -16,6 +17,7 @@ admin.initializeApp({
 // Ahora puedes obtener las instancias de Firestore y Auth aquí o en tus rutas
 export const db = admin.firestore();
 const auth = admin.auth();
+const bucket = admin.storage().bucket("gs://motiv8-b965b.appspot.com");
 
 const app = express();
 app.use(express.json());
@@ -26,8 +28,11 @@ app.use(cors({
 }));
 
 const PORT = 5000
-const STRAVA_CLIENT_ID = 179868;
-const STRAVA_CLIENT_SECRET = '093af90ac7d9f9c8bb34f06c32e9041a7f0f0593';
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // Límite de 5MB
+});
 
 app.use("/api", testRoutes);
 
@@ -258,46 +263,83 @@ app.post('/api/activities', verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post('/api/teams', verifyToken, async (req, res) => {
-  const { team_name } = req.body;
-  const user = req.user; // From verifyToken
+app.post('/api/teams', verifyToken, upload.single('teamImageFile'), async (req, res) => {
+      
+  const { team_name, sport_type, description, team_color } = req.body;
+  const user = req.user;
+  const file = req.file; // El archivo subido
 
-  if (!team_name) {
-    return res.status(400).send('Team name is required.');
-  }
-  if (user.team_member === true) {
-    return res.status(400).send('You already belong to a team. Leave your current team first.');
-  }
+  if (!team_name) return res.status(400).send('Nombre requerido.');
+  if (user.team_member) return res.status(400).send('Ya estás en un equipo.');
 
   try {
+    // 1. Crea el documento del equipo PRIMERO (sin la URL)
     const newTeamRef = await db.collection('teams').add({
-      team_name: team_name,
+      team_name,
+      sport_type: sport_type || null,
+      description: description || null,
+      team_color: team_color || '#CCCCCC',
       owner_uid: user.uid,
-      members: [user.uid], // Creator is the first member
+      members: [user.uid],
+      team_image_url: null, // Empezará como nulo
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      sport_type: req.body.sport_type,
-      description: req.body.description,
-      created_by: user.uid,
-      insignia: [],
-      team_distance: 0,
-      activity_time: 0,
     });
 
+    let publicImageUrl = null;
+
+    // 2. Si el usuario subió un archivo, procésalo
+    if (file) {
+      const fileName = `team_logos/${newTeamRef.id}-${file.originalname}`;
+      const blob = bucket.file(fileName);
+      
+      const blobStream = blob.createWriteStream({
+        metadata: { contentType: file.mimetype },
+      });
+
+      // 3. Espera a que la subida termine
+      await new Promise((resolve, reject) => {
+        blobStream.on('error', (err) => reject(err));
+        
+        blobStream.on('finish', async () => {
+          try {
+            // 4. Genera la URL firmada (pública) que expira en el futuro
+            const [url] = await blob.getSignedUrl({
+              action: 'read',
+              expires: '03-09-2491' // Una fecha muy lejana
+            });
+            
+            publicImageUrl = url; // Esta SÍ es la URL 'https://...'
+            resolve(publicImageUrl);
+
+          } catch (err) {
+            reject(new Error("Error al firmar la URL de la imagen."));
+          }
+        });
+        
+        blobStream.end(file.buffer); // Inicia la subida
+      });
+
+      // 5. Actualiza el documento del equipo con la URL generada
+      await newTeamRef.update({
+        team_image_url: publicImageUrl
+      });
+    }
+
+    // 6. Actualiza el documento del usuario
     await db.collection('users').doc(user.uid).update({
       team_member: true,
-      // id_team: newTeamRef.id // Store the team ID on the user doc
+      id_team: newTeamRef.id
     });
 
-    res.status(201).json({
-      message: 'Team created successfully',
-      // id_team: newTeamRef.id,
-      team_name: team_name,
-      members: [user.uid]
+    res.status(201).json({ 
+      message: 'Equipo creado con éxito', 
+      teamId: newTeamRef.id,
+      team_image_url: publicImageUrl 
     });
 
   } catch (error) {
-    console.error("Error creating team:", error);
-    res.status(500).send('Internal server error while creating team.');
+    console.error("Error al crear equipo con imagen:", error);
+    res.status(500).send('Error interno al crear el equipo.');
   }
 });
 
