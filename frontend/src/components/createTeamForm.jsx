@@ -8,6 +8,7 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
   const [team_name, setTeamName] = useState('');
   const [sport_type, setSportType] = useState(''); // Changed name
   const [description, setDescription] = useState(''); // Changed name
+  const [team_color, setTeamColor] = useState('#CCCCCC'); // New field for team color
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -83,6 +84,18 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       </div>
 
       <div className={styles.inputGroup}>
+        <label htmlFor="description">Descripción</label>
+        <textarea
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          rows="3"
+          disabled={isLoading}
+        />
+      </div>
+
+      <div className={styles.inputGroup}>
         <label htmlFor="sport_type">Tipo de deporte</label>
         <select
           id="sport_type"
@@ -99,16 +112,18 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       </div>
 
       <div className={styles.inputGroup}>
-        <label htmlFor="description">Descripción</label>
-        <textarea
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+        <label htmlFor="team_color">Color del equipo</label>
+        <input style={{ width: '100%', height: '45px' }}
+          type="color"
+          id="team_color"
+          value={team_color}
+          onChange={(e) => setTeamColor(e.target.value)}
           required
-          rows="3"
           disabled={isLoading}
         />
       </div>
+
+      
 
       <div className={styles.buttonContainer}>
         <button type="button" onClick={onClose} className={styles.cancelButton} disabled={isLoading}>
