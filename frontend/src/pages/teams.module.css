@@ -12,6 +12,7 @@
 /* === Títulos === */
 .teamsTitle {
   margin: 0;
+  font-size: 50px;
   color: var(--accent-color);
   text-align: start;
   transition: color 0.3s ease;
@@ -21,8 +22,6 @@
   margin: 5px 0 10px 0;
   text-align: start;
   color: var(--text-color);
-  opacity: 0.85;
-  transition: color 0.3s ease;
 }
 
 /* === Contenedor principal === */

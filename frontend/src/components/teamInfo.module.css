@@ -1,18 +1,18 @@
-/* === Teams Container (modo claro/oscuro con transición) === */
+/* === Teams Container === */
 .container {
-  background-color: var(--card-bg, #2a2a2a);
+  background-color: var(--card-bg);
+  color: var(--text-color);
   padding: 40px;
   border-radius: 12px;
-  box-shadow: 0 0 15px var(--accent-color, #ffd000ff);
+  box-shadow: 0 0 15px var(--accent-color);
   width: 100%;
   max-width: 400px;
 
-  /* 👇 Centrado absoluto */
+  /* Centrado absoluto */
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--text-color, #ffffff);
 
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -29,7 +29,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color, #444);
+  border-bottom: 1px solid var(--border-color);
   transition: border-color 0.3s ease;
 }
 
@@ -39,13 +39,13 @@
 
 .teamName {
   font-weight: bold;
-  color: var(--accent-color, #ffd000ff);
+  color: var(--accent-color);
   transition: color 0.3s ease;
 }
 
 .memberCount {
   font-size: 0.9em;
-  color: var(--muted-text, #999);
+  color: var(--muted-text);
   margin-left: 10px;
   transition: color 0.3s ease;
 }
@@ -62,33 +62,33 @@
 }
 
 .leavebutton {
-  background-color: #9e1b28;
-  color: #ffffff;
+  background-color: var(--danger);
+  color: var(--btn-text);
 }
 
 .leavebutton:hover {
-  background-color: #b62d3c;
+  background-color: var(--danger-hover);
   transform: scale(1.05);
 }
 
 .joinButton {
-  background-color: #28a745;
-  color: #ffffff;
+  background-color: var(--success);
+  color: var(--btn-text);
 }
 
 .joinButton:hover {
-  background-color: #32c154;
+  background-color: var(--success-hover);
   transform: scale(1.05);
 }
 
 .createButton {
-  background-color: #007bff;
-  color: #ffffff;
+  background-color: var(--info);
+  color: var(--btn-text);
   margin-top: 10px;
 }
 
 .createButton:hover {
-  background-color: #1c88ff;
+  background-color: var(--info-hover);
   transform: scale(1.05);
 }
 
@@ -96,7 +96,7 @@
 .divider {
   margin: 30px 0;
   border: none;
-  border-top: 1px solid var(--border-color, #444);
+  border-top: 1px solid var(--border-color);
   transition: border-color 0.3s ease;
 }
 
@@ -111,12 +111,12 @@
 }
 
 .loading {
-  color: var(--accent-color, #ffd000ff);
+  color: var(--accent-color);
 }
 
 .error {
-  color: #ff4d4d;
+  color: var(--danger);
   background-color: rgba(255, 77, 77, 0.1);
-  border: 1px solid #ff4d4d;
+  border: 1px solid var(--danger);
   margin-bottom: 15px;
 }

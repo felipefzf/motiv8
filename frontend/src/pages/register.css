@@ -1,4 +1,4 @@
-/* === Registro con soporte para modo claro/oscuro === */
+/* === Estilos del registro (modo claro/oscuro) === */
 .register-container {
   background-color: var(--card-bg);
   padding: 40px;
@@ -13,6 +13,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+
   color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -65,7 +66,7 @@
 .register-button {
   padding: 12px 20px;
   background-color: var(--accent-color);
-  color: #000;
+  color: #ffffff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
