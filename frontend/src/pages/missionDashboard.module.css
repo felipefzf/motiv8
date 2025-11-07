@@ -1,173 +1,180 @@
-/* src/pages/MissionList.module.css */
+/* === Mission Dashboard === */
 
 .container {
-    font-family: Arial, sans-serif;
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    color: #ffffff;
-    /* Cambiado de #fff para mejor legibilidad */
-    padding-bottom: 80px;
-    /* Espacio para el navbar fijo */
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding-bottom: 80px; /* Espacio para el navbar fijo */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* --- Encabezado --- */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
+/* --- Lista de Misiones --- */
 .list {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 }
 
 .listItem {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
+  border-bottom: 1px solid var(--border-color);
+  padding: 15px 0;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  transition: border-color 0.3s ease;
 }
 
+.listItem:last-child {
+  border-bottom: none;
+}
+
+/* --- Información de la misión --- */
+.missionInfo h3,
 .missionInfo p {
-    margin: 0 0 5px 0;
+  margin: 0 0 5px 0;
 }
 
-.missionInfo h3 {
-    margin: 0 0 5px 0;
-}
-
+/* --- Botones --- */
 .listItemButtons {
-    display: flex;
-    flex-direction: column;
-    /* Apila botones en móvil */
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* --- Estilos de Botones --- */
 .button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    white-space: nowrap;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+.button:hover {
+  transform: scale(1.05);
+}
+
+/* --- Tipos de botón --- */
 .createButton {
-    background-color: #007bff;
-    color: white;
+  background-color: var(--btn-primary);
+  color: var(--btn-text);
 }
 
 .updateButton {
-    background-color: #28a745;
-    color: white;
+  background-color: var(--btn-success);
+  color: var(--btn-text);
 }
 
 .editButton {
-    background-color: #ffc107;
-    color: #333;
+  background-color: var(--btn-warning);
+  color: var(--text-color);
 }
 
 .deleteButton {
-    background-color: #dc3545;
-    color: white;
+  background-color: var(--btn-danger);
+  color: var(--btn-text);
 }
 
 .cancelButton {
-    background-color: #6c757d;
-    color: white;
+  background-color: var(--btn-neutral);
+  color: var(--btn-text);
 }
 
-/* --- Estilos del Modal (Ventana Flotante) --- */
+/* --- Modal (ventana emergente) --- */
 .modalBackdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    /* Encima de todo */
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
 }
 
 .modalContent {
-    color: #505050;
-    /* Cambiado de #fff para mejor legibilidad */
-
-    background: #ebebeb;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    width: 90%;
-    max-width: 600px;
-    z-index: 2001;
-    max-height: 90vh;
-    /* Permite scroll si es muy alto */
-    overflow-y: auto;
-    /* Añade scroll si el form es largo */
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px var(--shadow-color);
+  width: 90%;
+  max-width: 600px;
+  z-index: 2001;
+  max-height: 90vh;
+  overflow-y: auto;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .modalContent h3 {
-    margin-top: 0;
+  margin-top: 0;
+  color: var(--accent-color);
 }
 
+/* --- Formulario dentro del modal --- */
 .inputGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
 }
 
 .inputGroupFull {
-    grid-column: span 2;
+  grid-column: span 2;
 }
 
-/* Estilos de inputs del formulario */
 .modalContent input[type="text"],
 .modalContent input[type="number"],
 .modalContent input[type="date"],
 .modalContent select,
 .modalContent textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    /* Importante para el padding */
-    font-family: inherit;
-    font-size: 1rem;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease;
 }
 
 .modalContent label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
 }
 
 .formActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
 }
 
+/* --- Errores --- */
 .error {
-    color: red;
-    font-weight: bold;
-    background-color: #ffe0e0;
-    border: 1px solid #cc0000;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 20px;
+  color: var(--error-text);
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-weight: bold;
 }

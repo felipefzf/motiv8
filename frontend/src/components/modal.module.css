@@ -1,5 +1,4 @@
-/* === ModalGeneral.module.css con soporte de modo claro/oscuro === */
-
+/* === ModalGeneral.module.css === */
 .modalBackdrop {
   position: fixed;
   top: 0;
@@ -26,8 +25,8 @@
   position: relative;
   max-height: 90vh;
   overflow-y: auto;
-  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* === Botón Cerrar === */

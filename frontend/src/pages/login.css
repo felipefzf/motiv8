@@ -1,31 +1,4 @@
-/* === Variables globales === */
-:root {
-  /* Tema claro (por defecto) */
-  --bg-color: #f9f9f9;
-  --text-color: #1e1e1e;
-  --accent-color: #0066cc;
-  --card-bg: #ffffff;
-  --border-color: #ddd;
-  --shadow-color: #0066cc;
-  --btn-bg: #444;
-  --btn-text: #fff;
-  --btn-hover: #005bb5;
-}
-
-/* Tema oscuro */
-[data-theme="dark"] {
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --accent-color: #ffd000ff;
-  --card-bg: #2a2a2a;
-  --border-color: #333;
-  --shadow-color: #ffd000ff;
-  --btn-bg: #444;
-  --btn-text: #fff;
-  --btn-hover: #e0bb00;
-}
-
-/* === Estilos del login === */
+/* === Estilos del Login === */
 
 /* Contenedor principal */
 .login-container {
@@ -88,7 +61,7 @@
 .login-button {
   padding: 10px 20px;
   background-color: var(--accent-color);
-  color: var(--bg-color);
+  color: var(--btn-text);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -112,7 +85,7 @@
   padding: 10px 20px;
   margin-top: 10px;
   background-color: var(--accent-color);
-  color: var(--bg-color);
+  color: var(--btn-text);
   text-decoration: none;
   border-radius: 5px;
   transition: background-color 0.3s ease, transform 0.2s ease;
@@ -125,10 +98,10 @@
 
 /* Mensaje de error */
 .error-message {
-  color: #D8000C;
+  color: var(--error-red);
+  background-color: var(--error-bg-light);
+  border: 1px solid var(--error-red);
   margin-top: 15px;
-  background-color: #FFD2D2;
-  border: 1px solid #D8000C;
   padding: 8px;
   border-radius: 4px;
 }

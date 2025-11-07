@@ -1,10 +1,10 @@
-/* Contenedor general */
+/* === Contenedor general === */
 .act-container {
   color: var(--text-color);
   padding: 20px;
 }
 
-/* Títulos principales */
+/* === Títulos === */
 .act-title {
   margin: 0;
   color: var(--accent-color);
@@ -14,30 +14,31 @@
   margin: 5px 0 10px 0;
 }
 
-/* Botones generales */
+/* === Botones generales === */
 .btn {
   margin-top: 20px;
   display: block;
 }
 
-/* Formulario */
+/* === Formulario principal === */
 .activity-form,
 .form-container {
   background-color: var(--card-bg);
   color: var(--text-color);
   border-radius: 15px;
   padding: 20px;
-  width: 100%;           
-  max-width: 500px;        /* Máximo ancho en desktop */
+  width: 100%;
+  max-width: 500px;
   margin: 20px auto;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 12px;
   box-shadow: 0 4px 15px var(--shadow-color);
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Título del formulario */
+/* === Título del formulario === */
 .form-title,
 .activity-form h2 {
   text-align: center;
@@ -45,7 +46,7 @@
   margin-bottom: 15px;
 }
 
-/* Grupos de inputs */
+/* === Grupos de inputs === */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -57,7 +58,7 @@ label {
   font-weight: bold;
 }
 
-/* Inputs y selects */
+/* === Inputs y selects === */
 .activity-form input,
 .activity-form select,
 .form-container input,
@@ -67,9 +68,10 @@ label {
   border: none;
   background-color: var(--border-color);
   color: var(--text-color);
-  width: 100%;            
-  box-sizing: border-box; 
+  width: 100%;
+  box-sizing: border-box;
   font-size: 15px;
+  transition: outline 0.3s ease;
 }
 
 .activity-form input:focus,
@@ -79,9 +81,8 @@ label {
   outline: 2px solid var(--accent-color);
 }
 
-/* Evita que nombres largos de comunas rompan el layout */
-.activity-form select option,
-.form-container select option {
+/* === Opciones de select === */
+select option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -89,7 +90,7 @@ label {
   color: var(--text-color);
 }
 
-/* Botón de submit */
+/* === Botón de envío === */
 .activity-form button,
 .submit-btn {
   width: 100%;
@@ -100,15 +101,21 @@ label {
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .activity-form button:hover,
 .submit-btn:hover {
   background-color: var(--btn-hover);
+  transform: scale(1.03);
 }
 
-/* Media query para móviles muy pequeños */
+/* === Alerta === */
+.alerta {
+  color: var(--text-color);
+}
+
+/* === Responsividad === */
 @media screen and (max-width: 400px) {
   .activity-form,
   .form-container {
@@ -125,8 +132,4 @@ label {
   .submit-btn {
     font-size: 14px;
   }
-}
-
-.alerta {
-    color: var(--text-color);
 }

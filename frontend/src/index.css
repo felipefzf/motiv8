@@ -1,3 +1,4 @@
+/* === index.css === */
 /* === VARIABLES GLOBALES === */
 :root {
   /* 🌞 Modo claro */
@@ -6,109 +7,181 @@
   --button-bg: #ffffff;
   --button-text: #1e1e1e;
   --accent-color: #0066cc;
-  --hover-color: #005bb5;
   --card-bg: #ffffff;
   --border-color: #ddd;
   --shadow-color: #0066cc;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-solo-bg: #444;
+  --btn-emparejar-bg: #0066cc;
+  --btn-completar-bg: #28a745;
 }
 
+/* 🌙 Modo oscuro */
 [data-theme="dark"] {
-  /* 🌙 Modo oscuro */
   --bg-color: #121212;
   --text-color: #ffffff;
   --button-bg: #2a2a2a;
   --button-text: #ffffff;
   --accent-color: #ffd000ff;
-  --hover-color: #e0bb00;
   --card-bg: #2a2a2a;
   --border-color: #333;
   --shadow-color: #ffd000ff;
+  --btn-bg: #444;
+  --btn-text: #fff;
+  --btn-solo-bg: #444;
+  --btn-emparejar-bg: #0066cc;
+  --btn-completar-bg: #28a745;
 }
 
-/* === Estilos base === */
+/* === RESET Y BASE === */
+* {
+  box-sizing: border-box;
+  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
 html, body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
 
+/* === ELEMENTOS GENERALES === */
 a {
-  font-weight: 500;
-  color: var(--link-color);
+  color: var(--accent-color);
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
 a:hover {
-  color: var(--hover-color);
-  text-decoration: underline;
+  color: var(--btn-emparejar-bg);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-/* === BOTONES === */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
   background-color: var(--button-bg);
   color: var(--button-text);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 15px;
   cursor: pointer;
-  transition: border-color 0.25s, background-color 0.3s, color 0.3s, transform 0.2s;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  font-weight: 600;
 }
 
 button:hover {
-  border-color: var(--accent-color);
-  background-color: var(--hover-color);
-  color: var(--button-text);
-  transform: translateY(-2px);
+  background-color: var(--accent-color);
+  color: #fff;
+  transform: scale(1.03);
 }
 
-button:focus,
-button:focus-visible {
-  outline: 3px solid var(--accent-color);
+/* === CLASES GLOBALES === */
+.text-center {
+  text-align: center;
 }
 
-/* === BOTÓN DE CAMBIO DE TEMA === */
-.app-header {
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  z-index: 9999;
-  pointer-events: none;
+.text-accent {
+  color: var(--accent-color);
 }
 
-.theme-toggle {
-  pointer-events: all;
-  background: var(--button-bg);
-  color: var(--button-text);
-  border: 2px solid var(--accent-color);
-  padding: 8px 16px;
+.card {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+/* === BOTONES === */
+.btn {
+  display: inline-block;
+  padding: 10px 15px;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 2px 6px var(--shadow-color);
-  transition: background 0.3s, color 0.3s, transform 0.2s, border-color 0.3s;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.theme-toggle:hover {
-  background: var(--accent-color);
-  color: var(--bg-color);
-  transform: translateY(-1px);
+.btn:hover {
+  background-color: var(--accent-color);
+  transform: scale(1.03);
 }
 
-/* === RESET === */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+.btn-solo {
+  background-color: var(--btn-solo-bg);
+}
+
+.btn-emparejar {
+  background-color: var(--btn-emparejar-bg);
+}
+
+.btn-completar {
+  background-color: var(--btn-completar-bg);
+}
+
+.btn-cerrarsesion {
+  background-color: #d42020;
+  color: #fff;
+}
+
+.btn-salirEquipo {
+  background-color: #d42020;
+  color: #fff;
+}
+
+/* === FORMULARIOS === */
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 6px var(--shadow-color);
+}
+
+/* === SCROLLBAR PERSONALIZADA === */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--bg-color);
+}
+
+/* === UTILIDADES === */
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
