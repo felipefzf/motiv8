@@ -5,8 +5,7 @@ const AuthContext = createContext(null);
 
 // 2. Crea el "Proveedor"
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  
+  const [user, setUser] = useState(null);  
   // (Optimización: 'useState' con una función para leer localStorage 
   //  solo una vez al inicio, en lugar de en cada render)
   const [token, setToken] = useState(() => localStorage.getItem('firebaseToken'));
@@ -51,6 +50,16 @@ export function AuthProvider({ children }) {
     }
   }, [fetchUserData]);
 
+  const updateUserTeamStatus = (teamId) => {
+    if (user) {
+      setUser({
+        ...user,
+        team_member: true, // <-- El cambio
+        id_team: teamId,   // <-- El cambio
+      });
+    }
+  };
+
   // 5. useEffect (ahora con dependencias correctas)
   useEffect(() => {
     if (token) {
@@ -74,7 +83,8 @@ export function AuthProvider({ children }) {
       setToken(token);
       setUser(userData);
     },
-    logout // Pasa la versión memorizada de 'logout'
+    logout, // Pasa la versión memorizada de 'logout'
+    updateUserTeamStatus,
   };
 
   // 7. No mostramos la app hasta saber si estamos logueados o no

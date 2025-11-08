@@ -29,10 +29,7 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       team_name,
       sport_type, // Send the new field name
       description,
-      insignia: [],
-      team_distance: 0,
-      activity_time: 0, // 👈 Enviamos el tiempo de actividad en minutos
-      // // 'owner_uid' will be taken from the token by the backend middleware
+      team_color, // Send the new field name
     };
 
     try {

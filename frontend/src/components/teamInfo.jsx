@@ -50,30 +50,30 @@ function MyTeamInfo() {
 
   // --- Lógica para Salir del Equipo (Necesita Backend) ---
   const handleLeaveTeam = async () => {
-    setLeaveError(null); // Clear previous leave errors
+    setLeaveError(null); 
     if (!teamData || !user) {
-        setLeaveError("Cannot leave team: User or team data missing.");
+        setLeaveError("No se pueden cargar los datos del equipo o del usuario.");
         return;
     };
 
-    // Confirmation dialog, with extra warning for the owner
-    let confirmationMessage = `Are you sure you want to leave "${teamData.team_name}"?`;
+    // Confirmación con advertencia extra si es el dueño
+    let confirmationMessage = `¿Estás seguro de que quieres salir de "${teamData.team_name}"?`;
     if (user.uid === teamData.owner_uid) {
-      confirmationMessage = `You are the owner of "${teamData.team_name}". If you leave, the team will be permanently deleted for everyone! Are you absolutely sure?`;
+      confirmationMessage = `¡Eres el dueño! Si sales, el equipo se eliminará permanentemente para todos. ¿Estás seguro?`;
     }
 
     if (!window.confirm(confirmationMessage)) {
-      return; // Stop if the user cancels
+      return; // El usuario canceló
     }
 
     const token = localStorage.getItem('firebaseToken');
     if (!token) {
-      setLeaveError("Authentication error. Please log in again.");
+      setLeaveError("Error de autenticación.");
       return;
     }
 
     try {
-      // Make the DELETE request to the backend endpoint
+      // Llama a la nueva ruta DELETE del backend
       const response = await fetch('/api/teams/leave', {
         method: 'DELETE',
         headers: {
@@ -82,19 +82,19 @@ function MyTeamInfo() {
       });
 
       if (!response.ok) {
-        // Get error message from backend response
         const errText = await response.text();
-        throw new Error(errText || 'Failed to leave the team.');
+        throw new Error(errText || 'Error al salir del equipo.');
       }
 
-      // --- Success ---
-      alert("You have successfully left the team.");
-      // Call refreshUser from the AuthContext to update the user's state
-      // This will trigger a re-render in Teams.jsx and show JoinTeamView
+      // --- ¡Éxito! ---
+      alert("Has salido del equipo.");
+      
+      // Llama a refreshUser() para que AuthContext
+      // obtenga el estado 'team_member: false' desde el backend.
       refreshUser();
 
     } catch (err) {
-      setLeaveError(err.message); // Show error to the user
+      setLeaveError(err.message);
       console.error("Error leaving team:", err);
     }
   };
@@ -115,13 +115,17 @@ function MyTeamInfo() {
       
       <ul className={styles.memberList}>
         {teamData.members?.map(member => (
-          <li key={member.uid}>
-            {/* {member.uid} {member.uid === user.uid ? <span className={styles.you}>(Tú)</span> : ''} */}
-            {/* Para mostrar nombres, necesitarías obtenerlos */}
-            <li key={member.uid}>{member.name}</li>
+          <li key={member.uid} className={styles.memberItem}>
+            <span className={styles.memberName}>{member.name}</span>
+            <span className={styles.memberRole}> - ({member.role})</span> {/* <-- Muestra el rol */}
+            
+            {/* Muestra "(Tú)" si el UID coincide */}
+            {member.uid === user.uid && <span className={styles.you}> (Tú)</span>}
           </li>
         ))}
-      </ul><br />
+        {/* --- FIN DEL BLOQUE --- */}
+
+      </ul>
       
       <h3>Insignias y Logros:</h3>
       <br /><br /><br />

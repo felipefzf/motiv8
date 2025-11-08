@@ -263,11 +263,10 @@ app.post('/api/activities', verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post('/api/teams', verifyToken, upload.single('teamImageFile'), async (req, res) => {
+app.post('/api/teams', verifyToken, async (req, res) => {
       
   const { team_name, sport_type, description, team_color } = req.body;
   const user = req.user;
-  const file = req.file; // El archivo subido
 
   if (!team_name) return res.status(400).send('Nombre requerido.');
   if (user.team_member) return res.status(400).send('Ya estás en un equipo.');
@@ -280,50 +279,10 @@ app.post('/api/teams', verifyToken, upload.single('teamImageFile'), async (req, 
       description: description || null,
       team_color: team_color || '#CCCCCC',
       owner_uid: user.uid,
-      members: [user.uid],
+      members: [{uid: user.uid, role: 'Líder👑'}],
       team_image_url: null, // Empezará como nulo
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-
-    let publicImageUrl = null;
-
-    // 2. Si el usuario subió un archivo, procésalo
-    if (file) {
-      const fileName = `team_logos/${newTeamRef.id}-${file.originalname}`;
-      const blob = bucket.file(fileName);
-      
-      const blobStream = blob.createWriteStream({
-        metadata: { contentType: file.mimetype },
-      });
-
-      // 3. Espera a que la subida termine
-      await new Promise((resolve, reject) => {
-        blobStream.on('error', (err) => reject(err));
-        
-        blobStream.on('finish', async () => {
-          try {
-            // 4. Genera la URL firmada (pública) que expira en el futuro
-            const [url] = await blob.getSignedUrl({
-              action: 'read',
-              expires: '03-09-2491' // Una fecha muy lejana
-            });
-            
-            publicImageUrl = url; // Esta SÍ es la URL 'https://...'
-            resolve(publicImageUrl);
-
-          } catch (err) {
-            reject(new Error("Error al firmar la URL de la imagen."));
-          }
-        });
-        
-        blobStream.end(file.buffer); // Inicia la subida
-      });
-
-      // 5. Actualiza el documento del equipo con la URL generada
-      await newTeamRef.update({
-        team_image_url: publicImageUrl
-      });
-    }
 
     // 6. Actualiza el documento del usuario
     await db.collection('users').doc(user.uid).update({
@@ -334,7 +293,7 @@ app.post('/api/teams', verifyToken, upload.single('teamImageFile'), async (req, 
     res.status(201).json({ 
       message: 'Equipo creado con éxito', 
       teamId: newTeamRef.id,
-      team_image_url: publicImageUrl 
+      team_name: team_name,
     });
 
   } catch (error) {
@@ -349,7 +308,7 @@ app.post('/api/teams/:teamId/join', verifyToken, async (req, res) => {
   const user = req.user;
 
   if (user.team_member) {
-    return res.status(400).send('You already belong to a team. Leave your current team first.');
+    return res.status(400).send('Ya perteneces a un equipo. Debes salir primero.');
   }
 
   try {
@@ -365,7 +324,10 @@ app.post('/api/teams/:teamId/join', verifyToken, async (req, res) => {
 
       // Update team: Add user UID to the members array
       transaction.update(teamRef, {
-        members: admin.firestore.FieldValue.arrayUnion(user.uid)
+        members: admin.firestore.FieldValue.arrayUnion({
+          uid: user.uid, 
+          role: 'Miembro'
+        })
       });
 
       // Update user: Set teamMember to true and store teamId
@@ -375,7 +337,7 @@ app.post('/api/teams/:teamId/join', verifyToken, async (req, res) => {
       });
     });
 
-    res.status(200).send('Successfully joined the team.');
+    res.status(200).send('Te has unido al equipo correctamente.');
 
   } catch (error) {
     console.error("Error joining team:", error);
@@ -430,92 +392,172 @@ app.get('/api/teams/available', verifyToken, async (req, res) => {
 });
 
 // Obtener Información sobre el Equipo al que Pertenece el Usuario
+// app.get('/api/teams/my-team', verifyToken, async (req, res) => {
+//   const user = req.user;
+
+//   if (!user.team_member) { 
+//     // If the middleware provided up-to-date info, this user isn't in a team
+//     return res.status(404).send('You do not belong to any team.');
+//   }
+
+//   try {
+//     // Option 1: If you stored teamId on the user document (recommended)
+//     if (user.id_team) {
+//         const teamDoc = await db.collection('teams').doc(user.id_team).get();
+//         if (teamDoc.exists) {
+//             // Verify the user is still listed as a member in the team document for consistency
+//             const teamData = teamDoc.data();
+//             const userIsMember = teamData.members.find(member => member.uid === user.uid);
+//             if (teamData.members && userIsMember) {
+//                 const memberDetails = [];
+//                 if (teamData.members && teamData.members.length > 0) {
+//                   // Create an array of promises to fetch each user document
+//                   const memberPromises = teamData.members.map(member =>
+//                     db.collection('users').doc(member.uid).get()
+//                   );
+//                   // Wait for all fetches to complete
+//                   const memberDocs = await Promise.all(memberPromises);
+
+//                   // Extract the data we need (id and name)
+//                   memberDocs.forEach(memberDoc => {
+//                     if (memberDoc.exists) {
+//                       // Get the 'name' field from the user document
+//                       memberDetails.push({
+//                         uid: memberDoc.id, 
+//                         name: memberDoc.data().name || 'Usuario sin nombre', // Use the 'name' field
+//                         role: memberDoc.data().role || 'Member'
+//                       });
+//                     } else {
+//                       // Handle case where a member document might be missing
+//                       memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
+//                     }
+//                   });
+//                 }
+//                 return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
+//             } else {
+//                  // Data inconsistency: User thinks they are in a team, but team doesn't list them. Fix user doc.
+//                  await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
+//                  return res.status(404).send('Team data inconsistent. Your membership status has been corrected. Please try joining a team again.');
+//             }
+//         } else {
+//             // Data inconsistency: User has a teamId for a non-existent team. Fix user doc.
+//             await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
+//             return res.status(404).send('The team associated with your account no longer exists. Your membership status has been corrected.');
+//         }
+//     } else {
+//         // Option 2: Fallback query if teamId is not on the user doc (less efficient)
+//         // This case indicates data inconsistency if user.teamMember was true
+//         const teamsRef = db.collection('teams');
+//         const querySnapshot = await teamsRef.where('members', 'array-contains', user.uid).limit(1).get();
+
+//         if (querySnapshot.empty) {
+//             // Fix user doc inconsistency
+//             await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
+//             return res.status(404).send('Could not find your team (data corrected). Try joining again.');
+//         }
+
+//         const teamDoc = querySnapshot.docs[0];
+//         const teamData = teamDoc.data();
+
+//         const memberDetails = [];
+//         if (teamData.members && teamData.members.length > 0) {
+//           const memberPromises = teamData.members.map(member =>
+//             db.collection('users').doc(member.uid).get()
+//           );
+//           const memberDocs = await Promise.all(memberPromises);
+//           memberDocs.forEach(memberDoc => {
+//             if (memberDoc.exists) {
+//               memberDetails.push({
+//                 uid: memberDoc.id,
+//                 name: memberDoc.data().name || 'Usuario sin nombre',
+//                 role: member.role
+//               });
+//             } else {
+//               memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
+//             }
+//           });
+//         }
+
+//         // Optionally update the user doc with the found teamId now
+//         //  await db.collection('users').doc(user.uid).update({ id_team: teamDoc.id });
+//         return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
+//     }
+
+//   } catch (error) {
+//     console.error("Error fetching user's team:", error);
+//     res.status(500).send('Internal server error while fetching your team.');
+//   }
+// });
+
+// En server.js
+
 app.get('/api/teams/my-team', verifyToken, async (req, res) => {
   const user = req.user;
 
-  if (!user.team_member) { 
-    // If the middleware provided up-to-date info, this user isn't in a team
-    return res.status(404).send('You do not belong to any team.');
+  // (Usando tus nombres de campo: team_member, id_team)
+  if (!user.team_member || !user.id_team) {
+    return res.status(404).send('No perteneces a ningún equipo.');
   }
 
+  const teamId = user.id_team;
+
   try {
-    // Option 1: If you stored teamId on the user document (recommended)
-    if (user.id_team) {
-        const teamDoc = await db.collection('teams').doc(user.id_team).get();
-        if (teamDoc.exists) {
-            // Verify the user is still listed as a member in the team document for consistency
-            const teamData = teamDoc.data();
-            if (teamData.members && teamData.members.includes(user.uid)) {
-                const memberDetails = [];
-                if (teamData.members && teamData.members.length > 0) {
-                  // Create an array of promises to fetch each user document
-                  const memberPromises = teamData.members.map(memberId =>
-                    db.collection('users').doc(memberId).get()
-                  );
-                  // Wait for all fetches to complete
-                  const memberDocs = await Promise.all(memberPromises);
+    const teamDoc = await db.collection('teams').doc(teamId).get();
 
-                  // Extract the data we need (id and name)
-                  memberDocs.forEach(memberDoc => {
-                    if (memberDoc.exists) {
-                      // Get the 'name' field from the user document
-                      memberDetails.push({
-                        uid: memberDoc.id, 
-                        name: memberDoc.data().name || 'Usuario sin nombre' // Use the 'name' field
-                      });
-                    } else {
-                      // Handle case where a member document might be missing
-                      memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
-                    }
-                  });
-                }
-                return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
-            } else {
-                 // Data inconsistency: User thinks they are in a team, but team doesn't list them. Fix user doc.
-                 await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-                 return res.status(404).send('Team data inconsistent. Your membership status has been corrected. Please try joining a team again.');
-            }
-        } else {
-            // Data inconsistency: User has a teamId for a non-existent team. Fix user doc.
-            await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-            return res.status(404).send('The team associated with your account no longer exists. Your membership status has been corrected.');
-        }
-    } else {
-        // Option 2: Fallback query if teamId is not on the user doc (less efficient)
-        // This case indicates data inconsistency if user.teamMember was true
-        const teamsRef = db.collection('teams');
-        const querySnapshot = await teamsRef.where('members', 'array-contains', user.uid).limit(1).get();
+    if (teamDoc.exists) {
+      const teamData = teamDoc.data();
+      
+      // Verifica consistencia (usando .find() para el array de objetos)
+      const userIsMember = teamData.members.find(member => member.uid === user.uid);
 
-        if (querySnapshot.empty) {
-            // Fix user doc inconsistency
-            await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-            return res.status(404).send('Could not find your team (data corrected). Try joining again.');
-        }
-
-        const teamDoc = querySnapshot.docs[0];
-        const teamData = teamDoc.data();
-
+      if (teamData.members && userIsMember) {
+        
+        // --- Bloque para Obtener Nombres ---
         const memberDetails = [];
         if (teamData.members && teamData.members.length > 0) {
-          const memberPromises = teamData.members.map(memberId =>
-            db.collection('users').doc(memberId).get()
+          
+          // Asegúrate de que tu objeto member se llame 'uid' aquí
+          const memberPromises = teamData.members.map(member =>
+            db.collection('users').doc(member.uid).get() 
           );
+          
           const memberDocs = await Promise.all(memberPromises);
+
+          // ¡BLOQUE CORREGIDO!
           memberDocs.forEach(memberDoc => {
             if (memberDoc.exists) {
+
+              const originalMember = teamData.members.find(m => m.uid === memberDoc.id);
+              const role = originalMember ? originalMember.role : 'Miembro'; // Rol por defecto
               memberDetails.push({
                 uid: memberDoc.id,
-                name: memberDoc.data().name || 'Usuario sin nombre'
+                name: memberDoc.data().name || 'Usuario sin nombre',
+                role: role
               });
             } else {
-              memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
+              // ¡Usa 'memberDoc.id', no 'member.id'!
+              memberDetails.push({ uid: memberDoc.id, name: 'Usuario desconocido' });
             }
           });
         }
+        // --- Fin del Bloque ---
 
-        // Optionally update the user doc with the found teamId now
-         await db.collection('users').doc(user.uid).update({ id_team: teamDoc.id });
-        return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
+        // Devuelve los datos del equipo CON los nombres
+        return res.status(200).json({ 
+          id: teamDoc.id, 
+          ...teamData,
+          members: memberDetails // Sobrescribe 'members' con la lista detallada
+        });
+
+      } else {
+        // ... (Lógica de inconsistencia, actualiza al usuario)
+        await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
+        return res.status(404).send('Team data inconsistent. Your membership status has been corrected.');
+      }
+    } else {
+      // ... (Lógica de inconsistencia, el equipo no existe)
+      await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
+      return res.status(404).send('The team associated with your account no longer exists.');
     }
 
   } catch (error) {
@@ -525,74 +567,155 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
 });
 
 // Salir de un equipo (ELIMINAR si eres el dueño)
-app.delete('/api/teams/leave', verifyToken, async (req, res) => {
-  const user = req.user; // Obtenido del verifyToken (ahora debe contener 'id_team' y 'team_member')
+// app.delete('/api/teams/leave', verifyToken, async (req, res) => {
+//   const user = req.user; // Obtenido del verifyToken (ahora debe contener 'id_team' y 'team_member')
 
-  // 1. Verificar si el usuario realmente está en un equipo (usando los nuevos nombres)
-  if (!user.team_member || !user.id_team) { // <-- Cambio aquí
+//   // 1. Verificar si el usuario realmente está en un equipo (usando los nuevos nombres)
+//   if (!user.team_member || !user.id_team) { // <-- Cambio aquí
+//     return res.status(400).send('No perteneces a ningún equipo.');
+//   }
+
+//   const teamId = user.id_team; // <-- Cambio aquí (variable local puede mantener el nombre)
+//   const userId = user.uid;
+//   const teamRef = db.collection('teams').doc(teamId);
+//   const userRef = db.collection('users').doc(userId);
+
+//   try {
+//     // Usaremos una transacción para asegurar consistencia
+//     await db.runTransaction(async (transaction) => {
+//       const teamDoc = await transaction.get(teamRef);
+//       if (!teamDoc.exists) {
+//         // El equipo ya no existe, limpiamos el estado del usuario por si acaso
+//         transaction.update(userRef, {
+//           team_member: false, // <-- Cambio aquí
+//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+//         });
+//         throw new Error("El equipo al que pertenecías ya no existe.");
+//       }
+
+//       const teamData = teamDoc.data();
+
+//       // 2. Lógica Condicional: ¿Es el dueño? (asumiendo que 'owner_uid' sigue igual)
+//       if (teamData.owner_uid === userId) {
+//         // --- CASO: EL DUEÑO SE VA ---
+        
+//         // a) Borrar el documento del equipo completo
+//         transaction.delete(teamRef);
+
+//         // b) Actualizar a TODOS los MIEMBROS restantes
+//         const otherMembers = teamData.members.filter(memberId => memberId !== userId);
+//         otherMembers.forEach(memberId => {
+//           const memberRef = db.collection('users').doc(memberId);
+//           transaction.update(memberRef, {
+//             team_member: false, // <-- Cambio aquí
+//             id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+//           });
+//         });
+        
+//         // c) Actualizar al dueño (que se está yendo)
+//         transaction.update(userRef, {
+//           team_member: false, // <-- Cambio aquí
+//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+//         });
+
+//       } else {
+//         // --- CASO: UN MIEMBRO NORMAL SE VA ---
+
+//         // a) Quitar al usuario del array 'members' del equipo
+//         transaction.update(teamRef, {
+//           members: admin.firestore.FieldValue.arrayRemove(userId)
+//         });
+
+//         // b) Actualizar solo al usuario que se está yendo
+//         transaction.update(userRef, {
+//           team_member: false, // <-- Cambio aquí
+//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+//         });
+//       }
+//     }); // Fin de la transacción
+
+//     // 3. Respuesta Exitosa
+//     res.status(200).send('Has salido del equipo correctamente.');
+
+//   } catch (error) {
+//     console.error("Error al salir del equipo:", error);
+//     res.status(500).send(error.message || 'Error interno al salir del equipo.');
+//   }
+// });
+
+app.delete('/api/teams/leave', verifyToken, async (req, res) => {
+  const user = req.user; // Obtenido del verifyToken (contiene uid, id_team, team_member)
+
+  // 1. Verificar si el usuario realmente está en un equipo
+  if (!user.team_member || !user.id_team) {
     return res.status(400).send('No perteneces a ningún equipo.');
   }
 
-  const teamId = user.id_team; // <-- Cambio aquí (variable local puede mantener el nombre)
+  const teamId = user.id_team;
   const userId = user.uid;
   const teamRef = db.collection('teams').doc(teamId);
   const userRef = db.collection('users').doc(userId);
 
   try {
-    // Usaremos una transacción para asegurar consistencia
+    // 2. Usar una transacción para asegurar que todo ocurra a la vez
     await db.runTransaction(async (transaction) => {
       const teamDoc = await transaction.get(teamRef);
       if (!teamDoc.exists) {
-        // El equipo ya no existe, limpiamos el estado del usuario por si acaso
+        // El equipo ya no existe, solo limpia al usuario
         transaction.update(userRef, {
-          team_member: false, // <-- Cambio aquí
-          id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+          team_member: false,
+          id_team: admin.firestore.FieldValue.delete()
         });
         throw new Error("El equipo al que pertenecías ya no existe.");
       }
 
       const teamData = teamDoc.data();
 
-      // 2. Lógica Condicional: ¿Es el dueño? (asumiendo que 'owner_uid' sigue igual)
+      // 3. Lógica Condicional: ¿Es el dueño?
       if (teamData.owner_uid === userId) {
         // --- CASO: EL DUEÑO SE VA ---
         
         // a) Borrar el documento del equipo completo
         transaction.delete(teamRef);
 
-        // b) Actualizar a TODOS los MIEMBROS restantes
-        const otherMembers = teamData.members.filter(memberId => memberId !== userId);
-        otherMembers.forEach(memberId => {
-          const memberRef = db.collection('users').doc(memberId);
+        // b) Actualizar a TODOS los MIEMBROS restantes para quitarles el equipo
+        // (Iteramos sobre los miembros EXCLUYENDO al dueño)
+        const otherMembers = teamData.members.filter(member => member.uid !== userId);
+        
+        otherMembers.forEach(member => {
+          const memberRef = db.collection('users').doc(member.uid);
           transaction.update(memberRef, {
-            team_member: false, // <-- Cambio aquí
-            id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+            team_member: false,
+            id_team: admin.firestore.FieldValue.delete()
           });
         });
         
         // c) Actualizar al dueño (que se está yendo)
         transaction.update(userRef, {
-          team_member: false, // <-- Cambio aquí
-          id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+          team_member: false,
+          id_team: admin.firestore.FieldValue.delete()
         });
 
       } else {
         // --- CASO: UN MIEMBRO NORMAL SE VA ---
 
-        // a) Quitar al usuario del array 'members' del equipo
+        // a) ¡LA CORRECCIÓN! Filtra el array 'members' para quitar al usuario
+        const updatedMembers = teamData.members.filter(member => member.uid !== userId);
+
+        // Sobrescribe el array 'members' con la nueva versión
         transaction.update(teamRef, {
-          members: admin.firestore.FieldValue.arrayRemove(userId)
+          members: updatedMembers
         });
 
         // b) Actualizar solo al usuario que se está yendo
         transaction.update(userRef, {
-          team_member: false, // <-- Cambio aquí
-          id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
+          team_member: false,
+          id_team: admin.firestore.FieldValue.delete()
         });
       }
     }); // Fin de la transacción
 
-    // 3. Respuesta Exitosa
+    // 4. Respuesta Exitosa
     res.status(200).send('Has salido del equipo correctamente.');
 
   } catch (error) {

@@ -6,7 +6,7 @@ import TeamDetailModal from './teamDetailModal'; // <-- 1. Import Detail Modal
 import styles from './JoinTeam.module.css';
 
 function JoinTeamView() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUserTeamStatus } = useAuth();
   const [availableTeams, setAvailableTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,7 +93,7 @@ function JoinTeamView() {
   const closeCreateModal = () => setIsCreateModalOpen(false);
   const handleTeamCreated = (newTeamData) => {
     alert(`Equipo "${newTeamData.team_name}" creado.`);
-    refreshUser();
+    updateUserTeamStatus(newTeamData.teamId);
     closeCreateModal();
   };
 
