@@ -1,6 +1,6 @@
-/* === Variables globales === */
+/* === VARIABLES DE NAVBAR === */
 :root {
-  /* Tema claro */
+  /* 🌞 Modo claro */
   --navbar-bg: #0066cc;
   --navbar-shadow: rgba(0, 0, 0, 0.1);
   --nav-icon-glow: #fefefe;
@@ -8,8 +8,8 @@
   --nav-filter: brightness(0);
 }
 
-/* Tema oscuro */
 [data-theme="dark"] {
+  /* 🌙 Modo oscuro */
   --navbar-bg: #ffd000ff;
   --navbar-shadow: rgba(255, 255, 255, 0.1);
   --nav-icon-glow: #fefefe;
@@ -41,12 +41,9 @@
   background-color: var(--nav-bubble);
   opacity: 0.3;
   border-radius: 16px;
-
-  /* Altura y centrado */
   height: 46px;
   top: 50%;
   transform: translateY(-50%);
-
   transition:
     left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
     width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),

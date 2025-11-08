@@ -131,7 +131,7 @@ function MyTeamInfo() {
       <br /><br /><br />
 
 
-      <button onClick={handleLeaveTeam} className={styles.leavebutton}>
+      <button onClick={handleLeaveTeam} className="btn-salirEquipo">
         Salir del Equipo
       </button>
     </div>

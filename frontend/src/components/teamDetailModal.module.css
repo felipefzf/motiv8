@@ -1,11 +1,10 @@
-/* === TeamDetailModal.module.css con soporte de modo claro/oscuro === */
+/* === TeamDetailModal.module.css === */
 
 .container {
   padding: 10px;
   background-color: var(--card-bg);
   color: var(--text-color);
   border-radius: 8px;
-
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
