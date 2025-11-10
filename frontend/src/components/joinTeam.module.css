@@ -17,18 +17,37 @@
   bottom: 80px; /* altura del navbar */
   left: 50%;
   transform: translateX(-50%);
-  overflow-y: auto; /* permite scroll si el contenido excede */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* ocultar overflow total, solo la lista scrollea */
 
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* === Lista de equipos === */
+/* === Lista de equipos (scroll solo aquí) === */
 .teamList {
-
   list-style: none;
   padding: 0;
   margin-top: 20px;
   color: var(--text-color, #ffffff);
+
+  flex: 1; /* ocupa el espacio disponible antes del botón */
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+/* Scroll personalizado */
+.teamList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.teamList::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color, #ffd000ff);
+  border-radius: 3px;
+}
+
+.teamList::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .teamItem {
@@ -80,11 +99,18 @@
   transform: scale(1.05);
 }
 
-/* === Botón crear equipo === */
+/* === Sección del botón crear equipo al final === */
+.bottomSection {
+  margin-top: auto; /* empuja el contenido hacia el fondo */
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color, #ddd);
+}
+
 .createButton {
   background-color: var(--accent-color, #ffd000ff);
   color: var(--bg-color, #2a2a2a);
-  margin-top: 20px;
+  margin-top: 15px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -123,8 +149,7 @@
 }
 
 .jointeambody {
-    overflow-y: auto; /* permite scroll si el contenido excede */
-
+  overflow-y: auto; /* permite scroll si el contenido excede */
   padding: 10px;
   background-color: var(--accent-color, #ffd000ff);
   color: var(--bg-color, #2a2a2a);
@@ -148,33 +173,10 @@
   transition: color 0.3s ease;
 }
 
-/* === Estados generales === */
-.loading,
-.error {
-  text-align: center;
-  padding: 30px;
-  font-weight: bold;
-  font-size: 1.1em;
-  border-radius: 6px;
-  transition: background-color 0.3s ease, color 0.3s ease, border 0.3s ease;
-}
-
-/* Estado de carga */
-.loading {
-  color: var(--accent-color);
-}
-
-/* Estado de error */
-.error {
-  color: #ff4d4d;
-  background-color: rgba(255, 77, 77, 0.15);
-  border: 1px solid #ff4d4d;
-}
-
-/* === Ajustes para pantallas muy pequeñas === */
+/* === Ajustes para pantallas pequeñas === */
 @media screen and (max-height: 600px), screen and (max-width: 400px) {
   .container {
-    padding: 20px;  /* Menos padding para que el contenido quepa */
-    max-width: 95%;  /* Más ancho relativo en móviles */
+    padding: 20px;
+    max-width: 95%;
   }
 }
