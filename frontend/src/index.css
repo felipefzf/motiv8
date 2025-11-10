@@ -72,11 +72,7 @@ button {
   font-weight: 600;
 }
 
-button:hover {
-  background-color: var(--accent-color);
-  color: #fff;
-  transform: scale(1.03);
-}
+
 
 /* === CLASES GLOBALES === */
 .text-center {

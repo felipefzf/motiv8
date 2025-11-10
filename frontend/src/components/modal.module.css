@@ -32,8 +32,8 @@
 /* === Botón Cerrar === */
 .closeButton {
   position: absolute;
-  top: 6px;
-  right: 10px;
+  top: -5px;
+  right: -5px;
   background: none;
   border: none;
   font-size: 1.8rem;
