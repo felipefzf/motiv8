@@ -890,6 +890,52 @@ app.post('/api/user/initStats', async (req, res) => {
   }
 });
 
+//PROGESO 
+
+app.post('/api/user-missions/update-progress', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId, value, unit } = req.body; // ← ahora también recibimos la unidad
+
+  try {
+    const userMissionRef = db.collection('user_missions').doc(userId);
+    const doc = await userMissionRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send("No hay misiones asignadas.");
+    }
+
+    const data = doc.data();
+    const updatedMissions = data.missions.map(m => {
+      if (m.id === missionId) {
+        // Verificamos que la unidad coincida
+        if (m.unit !== unit) {
+          return m; // No actualizamos si la unidad no coincide
+        }
+
+        const nuevoProgreso = (m.progressValue || 0) + value;
+        const completada = nuevoProgreso >= m.targetValue;
+
+        return {
+          ...m,
+          progressValue: nuevoProgreso,
+          completed: completada
+        };
+      }
+      return m;
+    });
+
+    await userMissionRef.set({
+      ...data,
+      missions: updatedMissions,
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(200).json({ missions: updatedMissions });
+  } catch (error) {
+    console.error("Error actualizando progreso:", error);
+    res.status(500).send("Error interno al actualizar progreso.");
+  }
+});
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
