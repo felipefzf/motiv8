@@ -7,9 +7,6 @@ import { useAuth } from "../context/authContext";
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
 
-  
-
-
   const { token } = useAuth();
   const completarMision = (id) => {
     axios
@@ -28,6 +25,14 @@ export default function Home() {
   };
 
   const agregarTresMisiones = () => {
+    // Si el usuario aún tiene misiones activas, no permitir agregar nuevas
+    if (misiones.length > 0) {
+      alert(
+        "❌ No puedes agregar nuevas misiones hasta completar todas las actuales."
+      );
+      return;
+    }
+
     axios
       .post(
         "http://localhost:5000/api/user-missions/assign-3",
@@ -37,7 +42,8 @@ export default function Home() {
         }
       )
       .then((res) => {
-        setMisiones(res.data.missions); // ← reemplaza con las 3 nuevas
+        setMisiones(res.data.missions);
+        alert("✅ Se asignaron 3 nuevas misiones");
       })
       .catch((err) => {
         console.error("Error al agregar 3 misiones:", err);
@@ -131,10 +137,12 @@ export default function Home() {
         </div>
       </div>
 
-      <button className="btn btn-dark mb-3" onClick={agregarTresMisiones} >
-        AGREGAR 3 MISIONES
-      </button>
-      
+      {misiones.length === 0 && (
+        <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
+          AGREGAR 3 MISIONES
+        </button>
+      )}
+
       <br />
       <Link to="/activityCreator" className="btn-registrar">
         Registrar Actividad
