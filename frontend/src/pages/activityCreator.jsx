@@ -46,11 +46,13 @@ export default function ActivityCreator() {
     e.preventDefault();
 
     const actividad = {
-      path: [],
+      path: [], // opcional
       distance: Number(formData.kilometros),
       time: Number(formData.tiempo),
       avg_speed: Number(formData.velocidadPromedio),
       max_speed: Number(formData.velocidadPunta),
+      regionInicio: regionInicio,
+      regionTermino: regionTermino,
       comunaInicio: formData.comunaInicio,
       comunaTermino: formData.comunaTermino,
     };

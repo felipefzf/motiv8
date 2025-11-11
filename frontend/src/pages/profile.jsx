@@ -18,7 +18,8 @@ export default function Profile() {
   const [perfil, setPerfil] = useState(null);
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
-
+  
+  
   // Cambiar tema
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
@@ -48,18 +49,17 @@ export default function Profile() {
       .catch((err) => console.error("Error obteniendo estadísticas:", err));
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
+  
+useEffect(() => {
+  if (!user) return;
 
-    axios
-      .get("http://localhost:5000/api/user-locations", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("firebaseToken")}`,
-        },
-      })
-      .then((res) => setUbicaciones(res.data))
-      .catch((err) => console.error("Error obteniendo ubicaciones:", err));
-  }, [user]);
+  axios.get("http://localhost:5000/api/user-locations", {
+    headers: { Authorization: `Bearer ${localStorage.getItem("firebaseToken")}` }
+  })
+  .then(res => setUbicaciones(res.data))
+  .catch(err => console.error("Error obteniendo ubicaciones:", err));
+}, [user]);
+
 
   const handleLogout = async () => {
     try {
@@ -116,6 +116,7 @@ export default function Profile() {
           <p>Insignias ganadas: {stats?.insigniasGanadas || 0}</p>
         </div>
         
+
 <h3 className="section-title">Ubicaciones visitadas</h3>
 <div className="locations-container">
   {ubicaciones.length > 0 ? (
@@ -126,6 +127,7 @@ export default function Profile() {
     <p>No hay ubicaciones registradas</p>
   )}
 </div>
+
 
 
         <h3 className="section-title">Logros y Medallas</h3>

@@ -280,16 +280,12 @@ app.post("/api/activities", verifyToken, async (req, res) => {
     // 1. Guardar actividad
     const newActivity = {
       id_user: userId,
-      path:
-        path && path.length > 0
-          ? path.map(
-              (coord) => new admin.firestore.GeoPoint(coord.lat, coord.lng)
-            )
-          : [],
       distance: Number(distance),
       time: Number(time),
       avg_speed: Number(avg_speed),
       max_speed: Number(max_speed),
+      regionInicio: req.body.regionInicio || null,
+      regionTermino: req.body.regionTermino || null,
       comunaInicio: req.body.comunaInicio || null,
       comunaTermino: req.body.comunaTermino || null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -1168,28 +1164,30 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
   }
 });
 
-app.get("/api/user-locations", verifyToken, async (req, res) => {
+app.get('/api/user-locations', verifyToken, async (req, res) => {
   const userId = req.user.uid;
   try {
-    const snapshot = await db
-      .collection("activities")
-      .where("id_user", "==", userId)
-      .get();
+    const snapshot = await db.collection('activities').where('id_user', '==', userId).get();
     if (snapshot.empty) return res.status(200).json([]);
 
-    const locations = new Set();
-    snapshot.forEach((doc) => {
+    const uniqueLocations = new Set();
+    snapshot.forEach(doc => {
       const data = doc.data();
-      if (data.comunaInicio) locations.add(data.comunaInicio);
-      if (data.comunaTermino) locations.add(data.comunaTermino);
+      if (data.regionInicio && data.comunaInicio) {
+        uniqueLocations.add(`${data.regionInicio} - ${data.comunaInicio}`);
+      }
+      if (data.regionTermino && data.comunaTermino) {
+        uniqueLocations.add(`${data.regionTermino} - ${data.comunaTermino}`);
+      }
     });
 
-    res.status(200).json(Array.from(locations));
+    res.status(200).json(Array.from(uniqueLocations));
   } catch (error) {
     console.error("Error obteniendo ubicaciones:", error);
     res.status(500).send("Error interno al obtener ubicaciones.");
   }
 });
+
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
