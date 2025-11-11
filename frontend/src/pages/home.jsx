@@ -8,21 +8,20 @@ export default function Home() {
   const [misiones, setMisiones] = useState([]);
 
   const { token } = useAuth();
-  const completarMision = (id) => {
-    axios
-      .post(
-        "http://localhost:5000/api/user-missions/complete",
-        { missionId: id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then((res) => {
-        setMisiones(res.data.missions);
-        alert("🎉 Misión completada"); // ← Aquí aparece la alerta
-      })
-      .catch((err) => console.error("Error al completar misión:", err));
-  };
+  
+
+  
+const reclamarRecompensa = (id) => {
+  axios.post("http://localhost:5000/api/user-missions/claim", { missionId: id }, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  .then(res => {
+    setMisiones(res.data.missions);
+    alert("🎉 Recompensa reclamada");
+  })
+  .catch(err => console.error("Error reclamando recompensa:", err));
+};
+
 
   const agregarTresMisiones = () => {
     // Si el usuario aún tiene misiones activas, no permitir agregar nuevas
@@ -108,9 +107,7 @@ export default function Home() {
 
                     {mision.completed ? (
                       // ✅ Si está completada, solo muestra el botón de recompensa
-                      <button onClick={() => completarMision(mision.id)}>
-                        Recoger recompensa
-                      </button>
+                      <button onClick={() => reclamarRecompensa(mision.id)}>Recoger recompensa</button>
                     ) : (
                       // ✅ Si NO está completada, muestra barra y controles
                       <>
