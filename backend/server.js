@@ -254,13 +254,25 @@ app.delete("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
 app.post("/api/activities", verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid;
-    const { path, distance, time, avg_speed, max_speed } = req.body;
+    const {
+      path,
+      distance,
+      time,
+      avg_speed,
+      max_speed,
+      comunaInicio,
+      comunaTermino,
+      regionInicio,
+      regionTermino,
+    } = req.body;
 
     if (
-      distance == null ||
-      time == null ||
-      avg_speed == null ||
-      max_speed == null
+      !distance ||
+      !time ||
+      !avg_speed ||
+      !max_speed ||
+      !comunaInicio ||
+      !comunaTermino
     ) {
       return res.status(400).send("Faltan datos de la actividad.");
     }
@@ -278,21 +290,20 @@ app.post("/api/activities", verifyToken, async (req, res) => {
       time: Number(time),
       avg_speed: Number(avg_speed),
       max_speed: Number(max_speed),
+      comunaInicio: req.body.comunaInicio || null,
+      comunaTermino: req.body.comunaTermino || null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
     const docRef = await db.collection("activities").add(newActivity);
 
-    // 2. Actualizar misiones
+    // 2. Actualizar progreso en misiones
     const userMissionRef = db.collection("user_missions").doc(userId);
     const missionDoc = await userMissionRef.get();
 
     let updatedMissions = [];
-    let nuevasCompletadas = 0;
-
     if (missionDoc.exists) {
       const data = missionDoc.data();
-
       updatedMissions = data.missions.map((m) => {
         let progresoActual = Number(m.progressValue || 0);
 
@@ -331,7 +342,6 @@ app.post("/api/activities", verifyToken, async (req, res) => {
         stats.velocidadMaximaKmh || 0,
         Number(max_speed)
       );
-
       const nuevaVelocidadPromedio =
         nuevaDistancia > 0
           ? nuevaDistancia / (nuevoTiempo / 60)
@@ -342,12 +352,34 @@ app.post("/api/activities", verifyToken, async (req, res) => {
         tiempoTotalRecorridoMin: nuevoTiempo,
         velocidadMaximaKmh: nuevaVelocidadMax,
         velocidadPromedioKmh: nuevaVelocidadPromedio,
-        misionesCompletas: (stats.misionesCompletas || 0) + nuevasCompletadas,
         ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
-    // 4. Responder al frontend
+    // 4. Actualizar lugares visitados (sin duplicados)
+    const userPlacesRef = db.collection("user_places").doc(userId);
+    const placesDoc = await userPlacesRef.get();
+
+    let lugaresVisitados = placesDoc.exists
+      ? placesDoc.data().lugares || []
+      : [];
+
+    // Añadir comunaInicio si no existe
+    if (!lugaresVisitados.includes(comunaInicio)) {
+      lugaresVisitados.push(comunaInicio);
+    }
+
+    // Añadir comunaTermino si no existe
+    if (!lugaresVisitados.includes(comunaTermino)) {
+      lugaresVisitados.push(comunaTermino);
+    }
+
+    await userPlacesRef.set({
+      lugares: lugaresVisitados,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // 5. Responder al frontend
     res.status(201).json({
       activity: {
         id: docRef.id,
@@ -356,9 +388,13 @@ app.post("/api/activities", verifyToken, async (req, res) => {
         time: Number(time),
         avg_speed: Number(avg_speed),
         max_speed: Number(max_speed),
-        path,
+        comunaInicio,
+        comunaTermino,
+        regionInicio,
+        regionTermino,
       },
-      missions: updatedMissions, // ✅ Devuelve las misiones antes de eliminar completadas
+      missions: updatedMissions,
+      lugaresVisitados,
     });
   } catch (error) {
     console.error("Error al guardar actividad:", error);
@@ -661,13 +697,10 @@ app.get("/api/teams/my-team", verifyToken, async (req, res) => {
         });
       } else {
         // ... (Lógica de inconsistencia, actualiza al usuario)
-        await db
-          .collection("users")
-          .doc(user.uid)
-          .update({
-            team_member: false,
-            id_team: admin.firestore.FieldValue.delete(),
-          });
+        await db.collection("users").doc(user.uid).update({
+          team_member: false,
+          id_team: admin.firestore.FieldValue.delete(),
+        });
         return res
           .status(404)
           .send(
@@ -676,13 +709,10 @@ app.get("/api/teams/my-team", verifyToken, async (req, res) => {
       }
     } else {
       // ... (Lógica de inconsistencia, el equipo no existe)
-      await db
-        .collection("users")
-        .doc(user.uid)
-        .update({
-          team_member: false,
-          id_team: admin.firestore.FieldValue.delete(),
-        });
+      await db.collection("users").doc(user.uid).update({
+        team_member: false,
+        id_team: admin.firestore.FieldValue.delete(),
+      });
       return res
         .status(404)
         .send("The team associated with your account no longer exists.");
@@ -1089,41 +1119,45 @@ app.post(
   }
 );
 
-app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
+app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   const { missionId } = req.body;
 
   try {
-    const userMissionRef = db.collection('user_missions').doc(userId);
+    const userMissionRef = db.collection("user_missions").doc(userId);
     const doc = await userMissionRef.get();
 
     if (!doc.exists) return res.status(404).send("No hay misiones asignadas.");
 
     const data = doc.data();
-    const missionToClaim = data.missions.find(m => m.id === missionId && m.completed);
+    const missionToClaim = data.missions.find(
+      (m) => m.id === missionId && m.completed
+    );
 
     if (!missionToClaim) {
       return res.status(400).send("La misión no está completada o no existe.");
     }
 
     // Eliminar misión reclamada
-    const updatedMissions = data.missions.filter(m => m.id !== missionId);
+    const updatedMissions = data.missions.filter((m) => m.id !== missionId);
 
     await userMissionRef.set({
       ...data,
       missions: updatedMissions,
-      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+      assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Actualizar contador en userStats
-    const userStatsRef = db.collection('userStats').doc(userId);
+    // ✅ Actualizar estadísticas del usuario (misiones completadas + puntos)
+    const userStatsRef = db.collection("userStats").doc(userId);
     const statsDoc = await userStatsRef.get();
 
     if (statsDoc.exists) {
       const stats = statsDoc.data();
       await userStatsRef.update({
         misionesCompletas: (stats.misionesCompletas || 0) + 1,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+        puntosTotales:
+          (stats.puntosTotales || 0) + (missionToClaim.reward || 0),
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -1131,6 +1165,29 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Error reclamando recompensa:", error);
     res.status(500).send("Error interno al reclamar recompensa.");
+  }
+});
+
+app.get("/api/user-locations", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  try {
+    const snapshot = await db
+      .collection("activities")
+      .where("id_user", "==", userId)
+      .get();
+    if (snapshot.empty) return res.status(200).json([]);
+
+    const locations = new Set();
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.comunaInicio) locations.add(data.comunaInicio);
+      if (data.comunaTermino) locations.add(data.comunaTermino);
+    });
+
+    res.status(200).json(Array.from(locations));
+  } catch (error) {
+    console.error("Error obteniendo ubicaciones:", error);
+    res.status(500).send("Error interno al obtener ubicaciones.");
   }
 });
 
