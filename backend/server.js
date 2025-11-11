@@ -385,8 +385,7 @@ app.post("/api/activities", verifyToken, async (req, res) => {
 
     // 5. Responder al frontend
     // 3. Actualizar estadísticas del usuario
-    const userStatsRef = db.collection('userStats').doc(userId);
-    const statsDoc = await userStatsRef.get();
+    
 
     if (statsDoc.exists) {
       const stats = statsDoc.data();
@@ -654,84 +653,9 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
   }
 });
 
-// Salir de un equipo (ELIMINAR si eres el dueño)
-// app.delete('/api/teams/leave', verifyToken, async (req, res) => {
-//   const user = req.user; // Obtenido del verifyToken (ahora debe contener 'id_team' y 'team_member')
 
-//   // 1. Verificar si el usuario realmente está en un equipo (usando los nuevos nombres)
-//   if (!user.team_member || !user.id_team) { // <-- Cambio aquí
-//     return res.status(400).send('No perteneces a ningún equipo.');
-//   }
 
-//   const teamId = user.id_team; // <-- Cambio aquí (variable local puede mantener el nombre)
-//   const userId = user.uid;
-//   const teamRef = db.collection('teams').doc(teamId);
-//   const userRef = db.collection('users').doc(userId);
 
-//   try {
-//     // Usaremos una transacción para asegurar consistencia
-//     await db.runTransaction(async (transaction) => {
-//       const teamDoc = await transaction.get(teamRef);
-//       if (!teamDoc.exists) {
-//         // El equipo ya no existe, limpiamos el estado del usuario por si acaso
-//         transaction.update(userRef, {
-//           team_member: false, // <-- Cambio aquí
-//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
-//         });
-//         throw new Error("El equipo al que pertenecías ya no existe.");
-//       }
-
-//       const teamData = teamDoc.data();
-
-//       // 2. Lógica Condicional: ¿Es el dueño? (asumiendo que 'owner_uid' sigue igual)
-//       if (teamData.owner_uid === userId) {
-//         // --- CASO: EL DUEÑO SE VA ---
-
-//         // a) Borrar el documento del equipo completo
-//         transaction.delete(teamRef);
-
-//         // b) Actualizar a TODOS los MIEMBROS restantes
-//         const otherMembers = teamData.members.filter(memberId => memberId !== userId);
-//         otherMembers.forEach(memberId => {
-//           const memberRef = db.collection('users').doc(memberId);
-//           transaction.update(memberRef, {
-//             team_member: false, // <-- Cambio aquí
-//             id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
-//           });
-//         });
-
-//         // c) Actualizar al dueño (que se está yendo)
-//         transaction.update(userRef, {
-//           team_member: false, // <-- Cambio aquí
-//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
-//         });
-
-//       } else {
-//         // --- CASO: UN MIEMBRO NORMAL SE VA ---
-
-//         // a) Quitar al usuario del array 'members' del equipo
-//         transaction.update(teamRef, {
-//           members: admin.firestore.FieldValue.arrayRemove(userId)
-//         });
-
-//         // b) Actualizar solo al usuario que se está yendo
-//         transaction.update(userRef, {
-//           team_member: false, // <-- Cambio aquí
-//           id_team: admin.firestore.FieldValue.delete() // <-- Cambio aquí
-//         });
-//       }
-//     }); // Fin de la transacción
-
-//     // 3. Respuesta Exitosa
-//     res.status(200).send('Has salido del equipo correctamente.');
-
-//   } catch (error) {
-//     console.error("Error al salir del equipo:", error);
-//     res.status(500).send(error.message || 'Error interno al salir del equipo.');
-//   }
-// });
-
-app.delete("/api/teams/leave", verifyToken, async (req, res) => {
 // Ruta para obtener los detalles (con nombres) de CUALQUIER equipo
 app.get('/api/teams/:teamId/details', verifyToken, async (req, res) => {
   const { teamId } = req.params;
