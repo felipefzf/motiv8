@@ -13,7 +13,8 @@ function JoinTeamView() {
   const [actionError, setActionError] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
-  
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
   const containerRef = useRef(null); // 🟡 referencia al contenedor principal
 
   useEffect(() => {
@@ -101,12 +102,13 @@ function JoinTeamView() {
 
   // --- Detail Modal Handlers ---
   const openDetailModal = (team) => {
-    setActionError(null);
-    setSelectedTeam(team);
+    setSelectedTeam(team); // Guarda el equipo básico
+    setIsDetailModalOpen(true); // Abre el modal
   };
+
   const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
     setSelectedTeam(null);
-    setActionError(null);
   };
 
   if (loading) return <p className={styles.loading}>Buscando equipos disponibles...</p>;
@@ -154,10 +156,11 @@ function JoinTeamView() {
         <CreateTeamForm onClose={closeCreateModal} onTeamCreated={handleTeamCreated} />
       </Modal>
 
-      <TeamDetailModal
-        team={selectedTeam}
+      <TeamDetailModal 
+        isOpen={isDetailModalOpen}
         onClose={closeDetailModal}
-        onJoin={handleJoinTeam}
+        onJoin={handleJoinTeam} // Reutiliza la función de unirse
+        team={selectedTeam} 
       />
 
       {selectedTeam && actionError && <p className={styles.modalError}>{actionError}</p>}

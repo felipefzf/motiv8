@@ -28,6 +28,9 @@ export const verifyToken = async (req, res, next) => {
 
     // 3. ¡Éxito! Adjunta los datos del usuario (incluyendo el rol) al objeto 'req'
     req.user = {
+      name: userDoc.data().name,
+      comuna: userDoc.data().comuna || null,
+      region: userDoc.data().region || null,
       uid: decodedToken.uid,
       email: decodedToken.email,
       role: userDoc.data().role,
