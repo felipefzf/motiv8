@@ -1,9 +1,11 @@
 import { useState } from "react";
 import "./activityCreator.css";
-import { regionesYcomunas } from "../utils/funcionUtils"
-
+import { regionesYcomunas } from "../utils/funcionUtils";
+import axios from "axios";
+import { useAuth } from "../context/authContext";
 
 export default function ActivityCreator() {
+  const { token } = useAuth();
   const [regionInicio, setRegionInicio] = useState("");
   const [regionTermino, setRegionTermino] = useState("");
   const [comunasInicio, setComunasInicio] = useState([]);
@@ -11,13 +13,12 @@ export default function ActivityCreator() {
   const [formData, setFormData] = useState({
     nombreActividad: "",
     kilometros: "",
+    tiempo: "",
     velocidadPunta: "",
     velocidadPromedio: "",
     comunaInicio: "",
     comunaTermino: "",
   });
-
-  
 
   const handleRegionInicio = (e) => {
     const region = e.target.value;
@@ -39,20 +40,31 @@ export default function ActivityCreator() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Datos del formulario:", formData);
-  };
-  const toastTrigger = document.getElementById('liveToastBtn')
-  const toastLiveExample = document.getElementById('liveToast')
 
-  if (toastTrigger) {
-    // eslint-disable-next-line no-undef
-    const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastLiveExample)
-    toastTrigger.addEventListener('click', () => {
-      toastBootstrap.show()
-    })
-  }
+    const actividad = {
+      path: [], // Si no tienes coordenadas, dejamos vacío
+      distance: Number(formData.kilometros),
+      time: Number(formData.tiempo), // ✅ Ahora se envía el tiempo
+      avg_speed: Number(formData.velocidadPromedio),
+      max_speed: Number(formData.velocidadPunta),
+    };
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/activities", actividad, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert("✅ Actividad registrada y progreso actualizado");
+      console.log("Misiones actualizadas:", res.data.missions);
+      // Aquí puedes actualizar el estado global o redirigir
+    } catch (error) {
+      console.error("Error registrando actividad:", error);
+      alert("❌ Error al registrar actividad");
+    }
+  };
+
   return (
     <div className="act-container">
       <h1 className="act-title">MOTIV8</h1>
@@ -89,28 +101,17 @@ export default function ActivityCreator() {
         <label>Kilómetros Totales:</label>
         <input type="number" name="kilometros" value={formData.kilometros} onChange={handleChange} required />
 
+        <label>Tiempo (minutos):</label>
+        <input type="number" name="tiempo" value={formData.tiempo} onChange={handleChange} required />
+
         <label>Velocidad Punta (km/h):</label>
         <input type="number" name="velocidadPunta" value={formData.velocidadPunta} onChange={handleChange} required />
 
         <label>Velocidad Promedio (km/h):</label>
         <input type="number" name="velocidadPromedio" value={formData.velocidadPromedio} onChange={handleChange} required />
 
-        <button type="button" class="btn btn-primary" id="liveToastBtn">Registrar Actividad</button>
-
-        <div className="alerta toast-container position-fixed bottom-0 end-0 p-3">
-          <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-              <strong class="me-auto">MOTIV8</strong>
-              <small>Hace un instante</small>
-              <button type="button" className="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-              Actividad Registrada con exito!!
-            </div>
-          </div>
-        </div>
+        <button type="submit" className="btn btn-primary">Registrar Actividad</button>
       </form>
     </div>
-
   );
 }

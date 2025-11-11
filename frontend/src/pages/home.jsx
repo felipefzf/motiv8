@@ -7,17 +7,8 @@ import { useAuth } from "../context/authContext";
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
 
-  const registrarActividad = (actividad) => {
-    axios
-      .post("http://localhost:5000/api/activities", actividad, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => {
-        setMisiones(res.data.missions); // ✅ Actualiza la barra sin segunda llamada
-        alert("Actividad registrada y progreso actualizado");
-      })
-      .catch((err) => console.error("Error registrando actividad:", err));
-  };
+  
+
 
   const { token } = useAuth();
   const completarMision = (id) => {
@@ -130,7 +121,6 @@ export default function Home() {
                         {/* Botones de acción */}
                         <button className="btn-solo">HACER EN SOLITARIO</button>
                         <button className="btn-emparejar">EMPAREJAR</button>
-                        <button className="btn" onClick={registrarActividad}>ACTUALIZAR ACTIVIDADES</button>
                       </>
                     )}
                   </div>
@@ -141,9 +131,10 @@ export default function Home() {
         </div>
       </div>
 
-      <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
+      <button className="btn btn-dark mb-3" onClick={agregarTresMisiones} >
         AGREGAR 3 MISIONES
       </button>
+      
       <br />
       <Link to="/activityCreator" className="btn-registrar">
         Registrar Actividad

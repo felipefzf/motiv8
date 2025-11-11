@@ -232,39 +232,38 @@ app.post('/api/activities', verifyToken, async (req, res) => {
     const { path, distance, time, avg_speed, max_speed } = req.body;
 
     // Validación básica
-    if (!path || distance == null || time == null || avg_speed == null || max_speed == null) {
+    if (distance == null || time == null || avg_speed == null || max_speed == null) {
       return res.status(400).send('Faltan datos de la actividad.');
     }
 
     // 1. Guardar la actividad en Firestore
     const newActivity = {
       id_user: userId,
-      path: path.map(coord => new admin.firestore.GeoPoint(coord.lat, coord.lng)), // ✅ GeoPoint
+      path: path && path.length > 0 ? path.map(coord => new admin.firestore.GeoPoint(coord.lat, coord.lng)) : [],
       distance: Number(distance),
-      time: Number(time),
+      time: Number(time), // ✅ Tiempo en minutos
       avg_speed: Number(avg_speed),
       max_speed: Number(max_speed),
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
     };
 
     const docRef = await db.collection('activities').add(newActivity);
 
-    // 2. Actualizar progreso en misiones del usuario
+    // 2. Actualizar progreso en misiones
     const userMissionRef = db.collection('user_missions').doc(userId);
     const missionDoc = await userMissionRef.get();
 
     let updatedMissions = [];
     if (missionDoc.exists) {
       const data = missionDoc.data();
-
       updatedMissions = data.missions.map(m => {
         let progresoActual = Number(m.progressValue || 0);
 
-        // Comparar unidad de la misión con la actividad
-        if (m.unit === 'km') {
-          progresoActual += Number(distance);
-        } else if (m.unit === 'min') {
-          progresoActual += Number(time) / 60; // convertir segundos a minutos
+        // Comparar unidad y sumar progreso
+        if (m.unit.toLowerCase() === 'km') {
+          progresoActual += Number(distance); // ✅ Sumar distancia
+        } else if (m.unit.toLowerCase() === 'min') {
+          progresoActual += Number(time); // ✅ Sumar tiempo en minutos
         }
 
         const completada = progresoActual >= Number(m.targetValue);
@@ -284,9 +283,17 @@ app.post('/api/activities', verifyToken, async (req, res) => {
       });
     }
 
-    // 3. Responder con actividad + misiones actualizadas
+    // 3. Responder al frontend con actividad y misiones actualizadas
     res.status(201).json({
-      activity: { id: docRef.id, ...newActivity },
+      activity: {
+        id: docRef.id,
+        id_user: userId,
+        distance: Number(distance),
+        time: Number(time),
+        avg_speed: Number(avg_speed),
+        max_speed: Number(max_speed),
+        path
+      },
       missions: updatedMissions
     });
 
