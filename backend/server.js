@@ -926,6 +926,14 @@ app.post('/api/user/initStats', async (req, res) => {
   }
 });
 
+app.get('/api/userStats/:uid', async (req, res) => {
+  const { uid } = req.params;
+  const doc = await db.collection('userStats').doc(uid).get();
+  if (!doc.exists) return res.status(404).send('Stats no encontradas');
+  res.status(200).json(doc.data());
+});
+
+
 //PROGESO 
 
 app.post('/api/user-missions/update-progress', verifyToken, async (req, res) => {
