@@ -298,23 +298,31 @@ app.post("/api/activities", verifyToken, async (req, res) => {
     const missionDoc = await userMissionRef.get();
 
     let updatedMissions = [];
+    let nuevasCompletadas = 0;
+
     if (missionDoc.exists) {
       const data = missionDoc.data();
-      updatedMissions = data.missions.map((m) => {
+
+      updatedMissions = data.missions.map(m => {
         let progresoActual = Number(m.progressValue || 0);
 
-        if (m.unit.toLowerCase() === "km") {
+        if (m.unit.toLowerCase() === 'km') {
           progresoActual += Number(distance);
-        } else if (m.unit.toLowerCase() === "min") {
+        } else if (m.unit.toLowerCase() === 'min') {
           progresoActual += Number(time);
         }
 
+        const completadaAntes = m.completed;
         const completadaAhora = progresoActual >= Number(m.targetValue);
+
+        if (!completadaAntes && completadaAhora) {
+          nuevasCompletadas += 1; // ✅ Contamos solo las nuevas completadas
+        }
 
         return {
           ...m,
           progressValue: progresoActual,
-          completed: completadaAhora,
+          completed: completadaAhora
         };
       });
 
@@ -376,6 +384,32 @@ app.post("/api/activities", verifyToken, async (req, res) => {
     });
 
     // 5. Responder al frontend
+    // 3. Actualizar estadísticas del usuario
+    const userStatsRef = db.collection('userStats').doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    if (statsDoc.exists) {
+      const stats = statsDoc.data();
+
+      const nuevaDistancia = (stats.distanciaTotalKm || 0) + Number(distance);
+      const nuevoTiempo = (stats.tiempoTotalRecorridoMin || 0) + Number(time);
+      const nuevaVelocidadMax = Math.max(stats.velocidadMaximaKmh || 0, Number(max_speed));
+
+      const nuevaVelocidadPromedio = nuevaDistancia > 0
+        ? (nuevaDistancia / (nuevoTiempo / 60)) // km/h
+        : stats.velocidadPromedioKmh || 0;
+
+      await userStatsRef.update({
+        distanciaTotalKm: nuevaDistancia,
+        tiempoTotalRecorridoMin: nuevoTiempo,
+        velocidadMaximaKmh: nuevaVelocidadMax,
+        velocidadPromedioKmh: nuevaVelocidadPromedio,
+        misionesCompletas: (stats.misionesCompletas || 0) + nuevasCompletadas,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // 4. Responder al frontend
     res.status(201).json({
       activity: {
         id: docRef.id,
@@ -531,106 +565,7 @@ app.get("/api/teams/available", verifyToken, async (req, res) => {
 });
 
 // Obtener Información sobre el Equipo al que Pertenece el Usuario
-// app.get('/api/teams/my-team', verifyToken, async (req, res) => {
-//   const user = req.user;
-
-//   if (!user.team_member) {
-//     // If the middleware provided up-to-date info, this user isn't in a team
-//     return res.status(404).send('You do not belong to any team.');
-//   }
-
-//   try {
-//     // Option 1: If you stored teamId on the user document (recommended)
-//     if (user.id_team) {
-//         const teamDoc = await db.collection('teams').doc(user.id_team).get();
-//         if (teamDoc.exists) {
-//             // Verify the user is still listed as a member in the team document for consistency
-//             const teamData = teamDoc.data();
-//             const userIsMember = teamData.members.find(member => member.uid === user.uid);
-//             if (teamData.members && userIsMember) {
-//                 const memberDetails = [];
-//                 if (teamData.members && teamData.members.length > 0) {
-//                   // Create an array of promises to fetch each user document
-//                   const memberPromises = teamData.members.map(member =>
-//                     db.collection('users').doc(member.uid).get()
-//                   );
-//                   // Wait for all fetches to complete
-//                   const memberDocs = await Promise.all(memberPromises);
-
-//                   // Extract the data we need (id and name)
-//                   memberDocs.forEach(memberDoc => {
-//                     if (memberDoc.exists) {
-//                       // Get the 'name' field from the user document
-//                       memberDetails.push({
-//                         uid: memberDoc.id,
-//                         name: memberDoc.data().name || 'Usuario sin nombre', // Use the 'name' field
-//                         role: memberDoc.data().role || 'Member'
-//                       });
-//                     } else {
-//                       // Handle case where a member document might be missing
-//                       memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
-//                     }
-//                   });
-//                 }
-//                 return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
-//             } else {
-//                  // Data inconsistency: User thinks they are in a team, but team doesn't list them. Fix user doc.
-//                  await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-//                  return res.status(404).send('Team data inconsistent. Your membership status has been corrected. Please try joining a team again.');
-//             }
-//         } else {
-//             // Data inconsistency: User has a teamId for a non-existent team. Fix user doc.
-//             await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-//             return res.status(404).send('The team associated with your account no longer exists. Your membership status has been corrected.');
-//         }
-//     } else {
-//         // Option 2: Fallback query if teamId is not on the user doc (less efficient)
-//         // This case indicates data inconsistency if user.teamMember was true
-//         const teamsRef = db.collection('teams');
-//         const querySnapshot = await teamsRef.where('members', 'array-contains', user.uid).limit(1).get();
-
-//         if (querySnapshot.empty) {
-//             // Fix user doc inconsistency
-//             await db.collection('users').doc(user.uid).update({ team_member: false, id_team: admin.firestore.FieldValue.delete() });
-//             return res.status(404).send('Could not find your team (data corrected). Try joining again.');
-//         }
-
-//         const teamDoc = querySnapshot.docs[0];
-//         const teamData = teamDoc.data();
-
-//         const memberDetails = [];
-//         if (teamData.members && teamData.members.length > 0) {
-//           const memberPromises = teamData.members.map(member =>
-//             db.collection('users').doc(member.uid).get()
-//           );
-//           const memberDocs = await Promise.all(memberPromises);
-//           memberDocs.forEach(memberDoc => {
-//             if (memberDoc.exists) {
-//               memberDetails.push({
-//                 uid: memberDoc.id,
-//                 name: memberDoc.data().name || 'Usuario sin nombre',
-//                 role: member.role
-//               });
-//             } else {
-//               memberDetails.push({ uid: memberDoc.id, name: 'Usuario no encontrado' });
-//             }
-//           });
-//         }
-
-//         // Optionally update the user doc with the found teamId now
-//         //  await db.collection('users').doc(user.uid).update({ id_team: teamDoc.id });
-//         return res.status(200).json({ id: teamDoc.id, ...teamData, members: memberDetails });
-//     }
-
-//   } catch (error) {
-//     console.error("Error fetching user's team:", error);
-//     res.status(500).send('Internal server error while fetching your team.');
-//   }
-// });
-
-// En server.js
-
-app.get("/api/teams/my-team", verifyToken, async (req, res) => {
+app.get('/api/teams/my-team', verifyToken, async (req, res) => {
   const user = req.user;
 
   // (Usando tus nombres de campo: team_member, id_team)
@@ -797,6 +732,59 @@ app.get("/api/teams/my-team", verifyToken, async (req, res) => {
 // });
 
 app.delete("/api/teams/leave", verifyToken, async (req, res) => {
+// Ruta para obtener los detalles (con nombres) de CUALQUIER equipo
+app.get('/api/teams/:teamId/details', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    const teamDoc = await db.collection('teams').doc(teamId).get();
+    if (!teamDoc.exists) {
+      return res.status(404).send('Equipo no encontrado');
+    }
+
+    const teamData = teamDoc.data();
+
+    // --- Lógica para Obtener Nombres y Roles ---
+    const memberDetails = [];
+    if (teamData.members && teamData.members.length > 0) {
+
+      const memberPromises = teamData.members.map(member =>
+        db.collection('users').doc(member.uid).get() // <-- Usa member.uid
+      );
+
+      const memberDocs = await Promise.all(memberPromises);
+
+      memberDocs.forEach(memberDoc => {
+        if (memberDoc.exists) {
+          const originalMember = teamData.members.find(m => m.uid === memberDoc.id);
+          const role = originalMember ? originalMember.team_role : 'Miembro';
+
+          memberDetails.push({
+            uid: memberDoc.id,
+            name: memberDoc.data().name || 'Usuario sin nombre',
+            team_role: role 
+          });
+        } else {
+          memberDetails.push({ uid: memberDoc.id, name: 'Usuario desconocido', team_role: 'N/A' });
+        }
+      });
+    }
+    // --- Fin de la Lógica ---
+
+    res.status(200).json({ 
+      id: teamDoc.id, 
+      ...teamData, 
+      members: memberDetails
+    });
+
+  } catch (error) {
+    console.error("Error fetching team details:", error);
+    res.status(500).send(error.message || 'Error interno');
+  }
+});
+
+// Salir de un equipo (ELIMINAR si eres el dueño)
+app.delete('/api/teams/leave', verifyToken, async (req, res) => {
   const user = req.user; // Obtenido del verifyToken (contiene uid, id_team, team_member)
 
   // 1. Verificar si el usuario realmente está en un equipo
