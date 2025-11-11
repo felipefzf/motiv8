@@ -969,11 +969,25 @@ app.post("/api/user/initStats", async (req, res) => {
   }
 });
 
-app.get("/api/userStats/:uid", async (req, res) => {
-  const { uid } = req.params;
-  const doc = await db.collection("userStats").doc(uid).get();
-  if (!doc.exists) return res.status(404).send("Stats no encontradas");
-  res.status(200).json(doc.data());
+app.get('/api/userStats/:uid', async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const doc = await db.collection('userStats').doc(uid).get();
+    if (!doc.exists) return res.status(404).send('Stats no encontradas');
+
+    const stats = doc.data();
+    const progreso = calcularProgresoNivel(stats.puntos || 0);
+
+    res.status(200).json({
+      ...stats,
+      nivelActual: progreso.nivelActual,
+      nivelSiguiente: progreso.nivelSiguiente,
+      puntosParaSiguienteNivel: progreso.puntosParaSiguienteNivel
+    });
+  } catch (error) {
+    console.error("Error obteniendo stats:", error);
+    res.status(500).send('Error interno al obtener stats');
+  }
 });
 
 //PROGESO
@@ -1027,54 +1041,109 @@ app.post(
   }
 );
 
-app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
+app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
   const userId = req.user.uid;
   const { missionId } = req.body;
 
   try {
-    const userMissionRef = db.collection("user_missions").doc(userId);
+    const userMissionRef = db.collection('user_missions').doc(userId);
     const doc = await userMissionRef.get();
 
     if (!doc.exists) return res.status(404).send("No hay misiones asignadas.");
 
     const data = doc.data();
-    const missionToClaim = data.missions.find(
-      (m) => m.id === missionId && m.completed
-    );
+    const missionToClaim = data.missions.find(m => m.id === missionId && m.completed);
 
     if (!missionToClaim) {
       return res.status(400).send("La misión no está completada o no existe.");
     }
 
     // Eliminar misión reclamada
-    const updatedMissions = data.missions.filter((m) => m.id !== missionId);
-
+    const updatedMissions = data.missions.filter(m => m.id !== missionId);
     await userMissionRef.set({
       ...data,
       missions: updatedMissions,
-      assignedAt: admin.firestore.FieldValue.serverTimestamp(),
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    // ✅ Actualizar estadísticas del usuario (misiones completadas + puntos)
-    const userStatsRef = db.collection("userStats").doc(userId);
+    // Actualizar stats
+    const userStatsRef = db.collection('userStats').doc(userId);
     const statsDoc = await userStatsRef.get();
+
+    const rewardPoints = missionToClaim.reward || 0;
+    let nuevosPuntos = rewardPoints;
+    let nivelActual = 1;
+    let nivelSiguiente = 2;
+    let puntosParaSiguienteNivel = 1000;
 
     if (statsDoc.exists) {
       const stats = statsDoc.data();
+      nuevosPuntos = (stats.puntos || 0) + rewardPoints;
+
+      const progreso = calcularProgresoNivel(nuevosPuntos);
+      nivelActual = progreso.nivelActual;
+      nivelSiguiente = progreso.nivelSiguiente;
+      puntosParaSiguienteNivel = progreso.puntosParaSiguienteNivel;
+
       await userStatsRef.update({
         misionesCompletas: (stats.misionesCompletas || 0) + 1,
-        puntosTotales:
-          (stats.puntosTotales || 0) + (missionToClaim.reward || 0),
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+        puntos: nuevosPuntos,
+        nivel: nivelActual,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      const progreso = calcularProgresoNivel(nuevosPuntos);
+      nivelActual = progreso.nivelActual;
+      nivelSiguiente = progreso.nivelSiguiente;
+      puntosParaSiguienteNivel = progreso.puntosParaSiguienteNivel;
+
+      await userStatsRef.set({
+        distanciaTotalKm: 0,
+        tiempoTotalRecorridoMin: 0,
+        velocidadMaximaKmh: 0,
+        velocidadPromedioKmh: 0,
+        misionesCompletas: 1,
+        insigniasGanadas: 0,
+        puntos: nuevosPuntos,
+        nivel: nivelActual,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
       });
     }
 
-    res.status(200).json({ missions: updatedMissions });
+    res.status(200).json({
+      missions: updatedMissions,
+      stats: {
+        puntos: nuevosPuntos,
+        nivelActual,
+        nivelSiguiente,
+        puntosParaSiguienteNivel
+      }
+    });
   } catch (error) {
     console.error("Error reclamando recompensa:", error);
     res.status(500).send("Error interno al reclamar recompensa.");
   }
 });
+
+function calcularProgresoNivel(puntos) {
+  let nivel = 1;
+  let requerido = 1000;
+  let incremento = 1000;
+
+  while (puntos >= requerido) {
+    nivel++;
+    incremento += 500; // cada nivel requiere más puntos
+    requerido += incremento;
+  }
+
+  const puntosParaSiguienteNivel = requerido - puntos;
+  return {
+    nivelActual: nivel,
+    nivelSiguiente: nivel + 1,
+    puntosParaSiguienteNivel
+  };
+}
+
 
 app.get('/api/user-locations', verifyToken, async (req, res) => {
   const userId = req.user.uid;

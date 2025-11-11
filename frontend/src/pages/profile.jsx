@@ -3,7 +3,6 @@ import tomy from "../assets/tomy.png";
 import bici from "../assets/bicicleta.png";
 import medalla from "../assets/medalla.png";
 import objetivo from "../assets/objetivo.png";
-import equipo from "../assets/equipo.png";
 import "./Profile.css";
 import { useAuth } from "../context/authContext";
 import { useNavigate } from "react-router-dom";
@@ -18,8 +17,27 @@ export default function Profile() {
   const [perfil, setPerfil] = useState(null);
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
-  
-  
+  const [equipo, setEquipo] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    axios
+      .get("http://localhost:5000/api/teams/my-team", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("firebaseToken")}`,
+        },
+      })
+      .then((res) => setEquipo(res.data))
+      .catch((err) => {
+        if (err.response?.status === 404) {
+          setEquipo(null); // Usuario no pertenece a ningún equipo
+        } else {
+          console.error("Error obteniendo equipo:", err);
+        }
+      });
+  }, [user]);
+
   // Cambiar tema
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
@@ -49,17 +67,18 @@ export default function Profile() {
       .catch((err) => console.error("Error obteniendo estadísticas:", err));
   }, [user]);
 
-  
-useEffect(() => {
-  if (!user) return;
+  useEffect(() => {
+    if (!user) return;
 
-  axios.get("http://localhost:5000/api/user-locations", {
-    headers: { Authorization: `Bearer ${localStorage.getItem("firebaseToken")}` }
-  })
-  .then(res => setUbicaciones(res.data))
-  .catch(err => console.error("Error obteniendo ubicaciones:", err));
-}, [user]);
-
+    axios
+      .get("http://localhost:5000/api/user-locations", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("firebaseToken")}`,
+        },
+      })
+      .then((res) => setUbicaciones(res.data))
+      .catch((err) => console.error("Error obteniendo ubicaciones:", err));
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -94,7 +113,11 @@ useEffect(() => {
         />
         <h4 className="profile-name">
           {perfil?.name || "Sin nombre"}{" "}
-          <span className="profile-level">Nivel 7</span>
+          <span className="profile-level">
+            Lvl: {stats?.nivelActual || 1} xp {stats?.puntos || 0} /{" "}
+            {stats?.puntosParaSiguienteNivel || 0} lvl:{" "}
+            {stats?.nivelSiguiente || stats?.nivelActual + 1}{" "}
+          </span>
         </h4>
         <br />
         <p>
@@ -103,9 +126,20 @@ useEffect(() => {
             {perfil?.comuna || "No definida"}, {perfil?.region || "Chile"}
           </span>
         </p>
-        <p>
-          Deporte Principal: <span className="profile-level">Ciclismo</span>
-        </p>
+
+        <div>
+          
+            Deporte Principal:{" "}
+            <span className="profile-level">
+              {equipo ? equipo.sport_type || "No especificado" : "Agente libre"}
+            </span>
+          
+          {equipo && (
+            <p>
+              Equipo: <span className="profile-level">{equipo.team_name}</span>
+            </p>
+          )}
+        </div>
 
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
@@ -115,27 +149,25 @@ useEffect(() => {
           <p>Misiones completadas: {stats?.misionesCompletas || 0}</p>
           <p>Insignias ganadas: {stats?.insigniasGanadas || 0}</p>
         </div>
-        
 
-<h3 className="section-title">Ubicaciones visitadas</h3>
-<div className="locations-container">
-  {ubicaciones.length > 0 ? (
-    ubicaciones.map((loc, i) => (
-      <span key={i} className="badge bg-primary m-1">{loc}</span>
-    ))
-  ) : (
-    <p>No hay ubicaciones registradas</p>
-  )}
-</div>
-
-
+        <h3 className="section-title">Ubicaciones visitadas</h3>
+        <div className="locations-container">
+          {ubicaciones.length > 0 ? (
+            ubicaciones.map((loc, i) => (
+              <span key={i} className="badge bg-primary m-1">
+                {loc}
+              </span>
+            ))
+          ) : (
+            <p>No hay ubicaciones registradas</p>
+          )}
+        </div>
 
         <h3 className="section-title">Logros y Medallas</h3>
         <div className="achievements">
           <img src={bici} alt="Medalla 1" />
           <img src={medalla} alt="Medalla 2" />
           <img src={objetivo} alt="Medalla 3" />
-          <img src={equipo} alt="Medalla 4" />
         </div>
 
         <br />
