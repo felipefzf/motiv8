@@ -228,31 +228,74 @@ app.delete('/api/missions/:id', verifyToken, isAdmin, async (req, res) => {
 // Crear actividad (sólo admin)
 app.post('/api/activities', verifyToken, async (req, res) => {
   try {
-    const userId = req.user.uid; // Obtenido del verifyToken
-    
-    // 1. Extrae los datos calculados del frontend
+    const userId = req.user.uid;
     const { path, distance, time, avg_speed, max_speed } = req.body;
 
-    // 2. Validación básica
-    if (!path || distance == null || time == null || avg_speed == null || max_speed == null) {
+    // Validación básica
+    if (distance == null || time == null || avg_speed == null || max_speed == null) {
       return res.status(400).send('Faltan datos de la actividad.');
     }
 
-    // 3. Prepara el documento para Firestore
+    // 1. Guardar la actividad en Firestore
     const newActivity = {
       id_user: userId,
-      path: path,         // Array de { lat, lng }
-      distance: distance, // km
-      time: time,         // segundos
-      avg_speed: avg_speed,   // km/h
-      max_speed: max_speed,   // km/h
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      path: path && path.length > 0 ? path.map(coord => new admin.firestore.GeoPoint(coord.lat, coord.lng)) : [],
+      distance: Number(distance),
+      time: Number(time), // ✅ Tiempo en minutos
+      avg_speed: Number(avg_speed),
+      max_speed: Number(max_speed),
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
     };
 
-    // 4. Guarda en una nueva colección 'activities'
     const docRef = await db.collection('activities').add(newActivity);
 
-    res.status(201).json({ id: docRef.id, ...newActivity });
+    // 2. Actualizar progreso en misiones
+    const userMissionRef = db.collection('user_missions').doc(userId);
+    const missionDoc = await userMissionRef.get();
+
+    let updatedMissions = [];
+    if (missionDoc.exists) {
+      const data = missionDoc.data();
+      updatedMissions = data.missions.map(m => {
+        let progresoActual = Number(m.progressValue || 0);
+
+        // Comparar unidad y sumar progreso
+        if (m.unit.toLowerCase() === 'km') {
+          progresoActual += Number(distance); // ✅ Sumar distancia
+        } else if (m.unit.toLowerCase() === 'min') {
+          progresoActual += Number(time); // ✅ Sumar tiempo en minutos
+        }
+
+        const completada = progresoActual >= Number(m.targetValue);
+
+        return {
+          ...m,
+          progressValue: progresoActual,
+          completed: completada
+        };
+      });
+
+      // Guardar misiones actualizadas
+      await userMissionRef.set({
+        ...data,
+        missions: updatedMissions,
+        assignedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // 3. Responder al frontend con actividad y misiones actualizadas
+    res.status(201).json({
+      activity: {
+        id: docRef.id,
+        id_user: userId,
+        distance: Number(distance),
+        time: Number(time),
+        avg_speed: Number(avg_speed),
+        max_speed: Number(max_speed),
+        path
+      },
+      missions: updatedMissions
+    });
 
   } catch (error) {
     console.error("Error al guardar actividad:", error);
@@ -890,6 +933,60 @@ app.post('/api/user/initStats', async (req, res) => {
   }
 });
 
+app.get('/api/userStats/:uid', async (req, res) => {
+  const { uid } = req.params;
+  const doc = await db.collection('userStats').doc(uid).get();
+  if (!doc.exists) return res.status(404).send('Stats no encontradas');
+  res.status(200).json(doc.data());
+});
+
+
+//PROGESO 
+
+app.post('/api/user-missions/update-progress', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId, value, unit } = req.body; // ← ahora también recibimos la unidad
+
+  try {
+    const userMissionRef = db.collection('user_missions').doc(userId);
+    const doc = await userMissionRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).send("No hay misiones asignadas.");
+    }
+
+    const data = doc.data();
+    const updatedMissions = data.missions.map(m => {
+      if (m.id === missionId) {
+        // Verificamos que la unidad coincida
+        if (m.unit !== unit) {
+          return m; // No actualizamos si la unidad no coincide
+        }
+
+        const nuevoProgreso = (m.progressValue || 0) + value;
+        const completada = nuevoProgreso >= m.targetValue;
+
+        return {
+          ...m,
+          progressValue: nuevoProgreso,
+          completed: completada
+        };
+      }
+      return m;
+    });
+
+    await userMissionRef.set({
+      ...data,
+      missions: updatedMissions,
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(200).json({ missions: updatedMissions });
+  } catch (error) {
+    console.error("Error actualizando progreso:", error);
+    res.status(500).send("Error interno al actualizar progreso.");
+  }
+});
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
