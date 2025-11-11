@@ -5,27 +5,20 @@ import medalla from '../assets/medalla.png';
 import objetivo from '../assets/objetivo.png';
 import equipo from '../assets/equipo.png';
 import './Profile.css';
-// 1. Importa useAuth desde tu contexto
-import { useAuth } from '../context/authContext'; // <-- (Asegúrate que la ruta sea correcta)
+import { useAuth } from '../context/authContext';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-
-
-// (No necesitas 'signOut' o 'auth' si el contexto ya lo maneja)
-// import { useNavigate } from 'react-router-dom';
-// import { signOut } from 'firebase/auth';
-// import { auth } from '../firebaseConfig';
-
+import axios from 'axios';
 
 export default function Profile() {
-  // 2. Llama al hook de AuthContext
-  const { user } = useAuth(); // <-- 'user' ahora está definido
-    const navigate = useNavigate();
-  // const navigate = useNavigate(); // <-- Ya no es necesario si 'logout' redirige
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [theme, setTheme] = useState('dark');
+  const [perfil, setPerfil] = useState(null);
+  const [stats, setStats] = useState(null);
 
-  // Tu lógica de tema (esto está perfecto)
+  // Cambiar tema
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
@@ -39,11 +32,21 @@ export default function Profile() {
     localStorage.setItem('theme', newTheme);
   };
 
-  // 3. Lógica de Logout (simplificada)
+  // Cargar datos del perfil y estadísticas
+  useEffect(() => {
+    if (!user) return;
+
+    axios.get(`http://localhost:5000/api/users/${user.uid}`)
+      .then(res => setPerfil(res.data))
+      .catch(err => console.error("Error obteniendo perfil:", err));
+
+    axios.get(`http://localhost:5000/api/userStats/${user.uid}`)
+      .then(res => setStats(res.data))
+      .catch(err => console.error("Error obteniendo estadísticas:", err));
+  }, [user]);
+
   const handleLogout = async () => {
     try {
-      // Simplemente llama a la función 'logout' del contexto.
-      // Ella se encarga de signOut, limpiar localStorage y redirigir.
       await signOut(auth);
       localStorage.removeItem('firebaseToken');
       localStorage.removeItem('userRole');
@@ -53,13 +56,11 @@ export default function Profile() {
     }
   };
 
-  // 4. Guardia de carga (importante)
-  // Muestra "Cargando..." mientras el AuthContext obtiene los datos del usuario.
-  if (!user) {
+  // ✅ Renderizado seguro
+  if (!user || !perfil || !stats) {
     return <p>Cargando perfil...</p>;
   }
 
-  // Si 'user' existe, renderiza el perfil:
   return (
     <div className="profile-container">
       <button onClick={toggleTheme} className="theme-toggle-btn">
@@ -70,28 +71,25 @@ export default function Profile() {
       <h2 className="profile-subtitle">Perfil</h2>
 
       <div className="profile-content">
-        <img
-          src={tomy}
-          className="profile-image rounded-circle border"
-          alt="Perfil"
-        />
+        <img src={tomy} className="profile-image rounded-circle border" alt="Perfil" />
         <h4 className="profile-name">
-          {/* Ahora 'user.name' funciona */}
-          {user.name} <span className="profile-level">Nivel 7</span>
+          {perfil?.name || 'Sin nombre'} <span className="profile-level">Nivel 7</span>
         </h4>
         <br />
         <p>
-          {/* Y 'user.comuna' también (si existe en tu DB) */}
-          Ubicación: <span className="profile-level">{user.comuna || 'No definida'}, {user.region || 'Chile'}</span>
+          Ubicación: <span className="profile-level">{perfil?.comuna || 'No definida'}, {perfil?.region || 'Chile'}</span>
         </p>
         <p>
           Deporte Principal: <span className="profile-level">Ciclismo</span>
         </p>
 
-        {/* ... (El resto de tu JSX de estadísticas y logros no cambia) ... */}
         <h3 className="section-title">Estadísticas</h3>
         <div className="container text-center">
-          {/* ... (tus stats) ... */}
+          <p>Distancia total: {stats?.distanciaTotalKm || 0} km</p>
+          <p>Tiempo total: {stats?.tiempoTotalRecorridoMin || 0} min</p>
+          <p>Velocidad máxima: {stats?.velocidadMaximaKmh || 0} km/h</p>
+          <p>Misiones completadas: {stats?.misionesCompletas || 0}</p>
+          <p>Insignias ganadas: {stats?.insigniasGanadas || 0}</p>
         </div>
 
         <h3 className="section-title">Logros y Medallas</h3>
