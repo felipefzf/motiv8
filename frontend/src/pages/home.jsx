@@ -7,6 +7,18 @@ import { useAuth } from "../context/authContext";
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
 
+  const registrarActividad = (actividad) => {
+    axios
+      .post("http://localhost:5000/api/activities", actividad, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setMisiones(res.data.missions); // ✅ Actualiza la barra sin segunda llamada
+        alert("Actividad registrada y progreso actualizado");
+      })
+      .catch((err) => console.error("Error registrando actividad:", err));
+  };
+
   const { token } = useAuth();
   const completarMision = (id) => {
     axios
@@ -70,65 +82,72 @@ export default function Home() {
   }, [token]);
 
   return (
-  <div className="home-container">
-    <h1 className="home-title">MOTIV8</h1>
-    <h3 className="home-subtitle">Inicio</h3>
+    <div className="home-container">
+      <h1 className="home-title">MOTIV8</h1>
+      <h3 className="home-subtitle">Inicio</h3>
 
-    <div className="missions-section">
-      <h3 className="missions-title">Misiones asignadas</h3>
-      <br />
-      <div className="container text-center">
-        <div className="row row-cols-2">
-          {misiones.map((mision, index) => {
-            const progreso = mision.progressValue || 0;
-            const porcentaje = Math.min((progreso / mision.targetValue) * 100, 100);
-            const restante = Math.max(mision.targetValue - progreso, 0);
+      <div className="missions-section">
+        <h3 className="missions-title">Misiones asignadas</h3>
+        <br />
+        <div className="container text-center">
+          <div className="row row-cols-2">
+            {misiones.map((mision, index) => {
+              const progreso = mision.progressValue || 0;
+              const porcentaje = Math.min(
+                (progreso / mision.targetValue) * 100,
+                100
+              );
+              const restante = Math.max(mision.targetValue - progreso, 0);
 
-            return (
-              <div className="card-home" key={index}>
-                <div className="card-body">
-                  <p className="mission-text">{mision.name}</p>
-                  <p>Descripción: {mision.description}</p>
-                  <p>
-                    Objetivo: {mision.targetValue} {mision.unit}
-                  </p>
-                  <p>Recompensa: {mision.reward} pts</p>
+              return (
+                <div className="card-home" key={index}>
+                  <div className="card-body">
+                    <p className="mission-text">{mision.name}</p>
+                    <p>Descripción: {mision.description}</p>
+                    <p>
+                      Objetivo: {mision.targetValue} {mision.unit}
+                    </p>
+                    <p>Recompensa: {mision.reward} pts</p>
 
-                  {mision.completed ? (
-                    // ✅ Si está completada, solo muestra el botón de recompensa
-                    <button onClick={() => completarMision(mision.id)}>
-                      Recoger recompensa
-                    </button>
-                  ) : (
-                    // ✅ Si NO está completada, muestra barra y controles
-                    <>
-                      <progress value={progreso} max={mision.targetValue}>{porcentaje.toFixed(1)}% completado</progress>
-                      <p>{porcentaje.toFixed(1)}% completado</p>
+                    {mision.completed ? (
+                      // ✅ Si está completada, solo muestra el botón de recompensa
+                      <button onClick={() => completarMision(mision.id)}>
+                        Recoger recompensa
+                      </button>
+                    ) : (
+                      // ✅ Si NO está completada, muestra barra y controles
+                      <>
+                        <progress value={progreso} max={mision.targetValue}>
+                          {porcentaje.toFixed(1)}% completado
+                        </progress>
+                        <p>{porcentaje.toFixed(1)}% completado</p>
 
-                      {/* Mostrar unidad correcta */}
-                      <p>Te faltan {restante.toFixed(1)} {mision.unit}</p>
+                        {/* Mostrar unidad correcta */}
+                        <p>
+                          Te faltan {restante.toFixed(1)} {mision.unit}
+                        </p>
 
-                      {/* Botones de acción */}
-                      <button className="btn-solo">HACER EN SOLITARIO</button>
-                      <button className="btn-emparejar">EMPAREJAR</button>
-                    </>
-                  )}
+                        {/* Botones de acción */}
+                        <button className="btn-solo">HACER EN SOLITARIO</button>
+                        <button className="btn-emparejar">EMPAREJAR</button>
+                        <button className="btn" onClick={registrarActividad}>ACTUALIZAR ACTIVIDADES</button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
+        AGREGAR 3 MISIONES
+      </button>
+      <br />
+      <Link to="/activityCreator" className="btn-registrar">
+        Registrar Actividad
+      </Link>
     </div>
-
-    <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
-      AGREGAR 3 MISIONES
-    </button>
-    <br />
-    <Link to="/activityCreator" className="btn-registrar">
-      Registrar Actividad
-    </Link>
-  </div>
-);
-
+  );
 }
