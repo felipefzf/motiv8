@@ -236,12 +236,12 @@ app.post('/api/activities', verifyToken, async (req, res) => {
       return res.status(400).send('Faltan datos de la actividad.');
     }
 
-    // 1. Guardar la actividad en Firestore
+    // 1. Guardar la actividad
     const newActivity = {
       id_user: userId,
       path: path && path.length > 0 ? path.map(coord => new admin.firestore.GeoPoint(coord.lat, coord.lng)) : [],
       distance: Number(distance),
-      time: Number(time), // ✅ Tiempo en minutos
+      time: Number(time), // minutos
       avg_speed: Number(avg_speed),
       max_speed: Number(max_speed),
       createdAt: admin.firestore.FieldValue.serverTimestamp()
@@ -254,28 +254,34 @@ app.post('/api/activities', verifyToken, async (req, res) => {
     const missionDoc = await userMissionRef.get();
 
     let updatedMissions = [];
+    let nuevasCompletadas = 0;
+
     if (missionDoc.exists) {
       const data = missionDoc.data();
+
       updatedMissions = data.missions.map(m => {
         let progresoActual = Number(m.progressValue || 0);
 
-        // Comparar unidad y sumar progreso
         if (m.unit.toLowerCase() === 'km') {
-          progresoActual += Number(distance); // ✅ Sumar distancia
+          progresoActual += Number(distance);
         } else if (m.unit.toLowerCase() === 'min') {
-          progresoActual += Number(time); // ✅ Sumar tiempo en minutos
+          progresoActual += Number(time);
         }
 
-        const completada = progresoActual >= Number(m.targetValue);
+        const completadaAntes = m.completed;
+        const completadaAhora = progresoActual >= Number(m.targetValue);
+
+        if (!completadaAntes && completadaAhora) {
+          nuevasCompletadas += 1; // ✅ Contamos solo las nuevas completadas
+        }
 
         return {
           ...m,
           progressValue: progresoActual,
-          completed: completada
+          completed: completadaAhora
         };
       });
 
-      // Guardar misiones actualizadas
       await userMissionRef.set({
         ...data,
         missions: updatedMissions,
@@ -283,7 +289,32 @@ app.post('/api/activities', verifyToken, async (req, res) => {
       });
     }
 
-    // 3. Responder al frontend con actividad y misiones actualizadas
+    // 3. Actualizar estadísticas del usuario
+    const userStatsRef = db.collection('userStats').doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    if (statsDoc.exists) {
+      const stats = statsDoc.data();
+
+      const nuevaDistancia = (stats.distanciaTotalKm || 0) + Number(distance);
+      const nuevoTiempo = (stats.tiempoTotalRecorridoMin || 0) + Number(time);
+      const nuevaVelocidadMax = Math.max(stats.velocidadMaximaKmh || 0, Number(max_speed));
+
+      const nuevaVelocidadPromedio = nuevaDistancia > 0
+        ? (nuevaDistancia / (nuevoTiempo / 60)) // km/h
+        : stats.velocidadPromedioKmh || 0;
+
+      await userStatsRef.update({
+        distanciaTotalKm: nuevaDistancia,
+        tiempoTotalRecorridoMin: nuevoTiempo,
+        velocidadMaximaKmh: nuevaVelocidadMax,
+        velocidadPromedioKmh: nuevaVelocidadPromedio,
+        misionesCompletas: (stats.misionesCompletas || 0) + nuevasCompletadas,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // 4. Responder al frontend
     res.status(201).json({
       activity: {
         id: docRef.id,
