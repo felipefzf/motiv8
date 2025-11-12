@@ -3,18 +3,29 @@
 /* Contenedor principal */
 .login-container {
   background-color: var(--card-bg);
-  padding: 40px;
   border-radius: 12px;
   box-shadow: 0 0 15px var(--shadow-color);
-  width: 100%;
-  max-width: 400px;
   text-align: center;
+  color: var(--text-color);
 
-  position: absolute;
+  /* Centrado fijo y fluido */
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 100;
+
+  /* Tamaño adaptable */
+  width: clamp(280px, 80vw, 500px);   /* se agranda o achica según el ancho del viewport */
+  height: clamp(300px, 70vh, 600px);  /* se adapta al alto del dispositivo */
+  padding: clamp(20px, 4vw, 40px);    /* padding responsivo */
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra el contenido internamente */
+  transition: all 0.3s ease;
 }
+
 
 /* Título principal */
 .login-title {

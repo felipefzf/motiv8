@@ -78,7 +78,7 @@
 }
 
 .cancelButton {
-  background-color: var(--btn-cancel-bg);
+  background-color: #d42020;
   color: var(--btn-text);
 }
 

@@ -19,20 +19,30 @@
 
 /* === Navbar principal === */
 .navbar {
-  padding: 12px;
   background: var(--navbar-bg);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 2px 5px var(--navbar-shadow);
+  gap: clamp(10px, 4vw, 25px); /* espacio adaptable entre íconos o botones */
+  box-shadow: 0 -2px 8px var(--navbar-shadow); /* sombra sutil hacia arriba */
+
+  /* Pegada completamente a los bordes */
   position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0; /* asegura que no haya espacio lateral */
   width: 100%;
+  margin: 0; /* elimina cualquier margen */
+  padding: 0; /* sin padding interno, solo si los botones ya tienen espacio */
   z-index: 1000;
-  height: 60px;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+  /* Tamaño adaptable */
+  height: clamp(50px, 8vh, 70px);
+
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
 }
+
+
 
 /* === Burbuja animada === */
 .bubble {
