@@ -1170,6 +1170,39 @@ app.get('/api/user-locations', verifyToken, async (req, res) => {
 });
 
 
+app.get('/api/ranking', async (req, res) => {
+  try {
+    const statsSnapshot = await db.collection('userStats').get();
+    const usersSnapshot = await db.collection('users').get();
+
+    const usersMap = new Map();
+    usersSnapshot.forEach(doc => usersMap.set(doc.id, doc.data()));
+
+    const ranking = [];
+    statsSnapshot.forEach(doc => {
+      const stats = doc.data();
+      const userInfo = usersMap.get(doc.id) || {};
+      ranking.push({
+        uid: doc.id,
+        name: userInfo.name || "Usuario",
+        region: userInfo.region || "Sin región",
+        comuna: userInfo.comuna || "Sin comuna",
+        nivel: stats.nivel || 1,
+        puntos: stats.puntos || 0,
+        distanciaTotalKm: stats.distanciaTotalKm || 0,
+        velocidadPromedioKmh: stats.velocidadPromedioKmh || 0,
+        velocidadMaximaKmh: stats.velocidadMaximaKmh || 0
+      });
+    });
+
+    ranking.sort((a, b) => b.nivel - a.nivel); // Ordenar por nivel descendente
+    res.status(200).json(ranking);
+  } catch (error) {
+    console.error("Error obteniendo ranking:", error);
+    res.status(500).send("Error interno al obtener ranking.");
+  }
+});
+
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`✅ SV corriendo en http://localhost:${PORT}`);

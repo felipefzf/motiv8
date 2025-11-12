@@ -6,7 +6,7 @@ import About from "./pages/about";
 import Profile from "./pages/profile";
 import Teams from "./pages/teams";
 import Login from "./pages/login";
-import Activities from "./pages/activities";
+import Rankings from "./pages/rankings";
 import Register from "./pages/register";
 import MissionDashboard from "./pages/missionDashboard";
 import AdminRoute from "./components/adminRoute";
@@ -53,7 +53,7 @@ function App() {
             {/* 🔆 Pasamos toggleTheme solo al perfil */}
             <Route path="/profile" element={<Profile toggleTheme={toggleTheme} />} />
             <Route path="/teams" element={<Teams />} />
-            <Route path="/activities" element={<Activities />} />
+            <Route path="/rankings" element={<Rankings />} />
             <Route path="/activityCreator" element={<ActivityCreator />} />
             <Route path="/activityTracker" element={<ActivityTracker />} />
             <Route element={<AdminRoute />}>
