@@ -24,6 +24,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  
 }
 
 .profile-image {
@@ -42,11 +43,13 @@
 
 .profile-level {
   color: var(--accent-color);
+  
 }
 
 .section-title {
   color: var(--accent-color);
   margin-top: 20px;
+  
 }
 
 .highlight {
@@ -96,4 +99,18 @@
 .theme-toggle-btn:hover {
   background-color: var(--accent-color);
   color: var(--bg-color);
+}
+
+.ubi-list {
+  display: inline-block;
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+  padding: 5px 10px;
+  border-radius: 15px;
+  margin: 2px;
+  font-size: 14px;
+}
+.profile-highlight {
+  color: var(--accent-color);
+  font-weight: bold;
 }

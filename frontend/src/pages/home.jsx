@@ -107,7 +107,7 @@ const reclamarRecompensa = (id) => {
 
                     {mision.completed ? (
                       // ✅ Si está completada, solo muestra el botón de recompensa
-                      <button onClick={() => reclamarRecompensa(mision.id)}>Recoger recompensa</button>
+                      <button className="btn-recompensa" onClick={() => reclamarRecompensa(mision.id)}>Recoger recompensa</button>
                     ) : (
                       // ✅ Si NO está completada, muestra barra y controles
                       <>

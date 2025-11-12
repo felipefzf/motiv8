@@ -14,7 +14,7 @@
   --btn-text: #fff;
   --btn-solo-bg: #444;
   --btn-emparejar-bg: #0066cc;
-  --btn-completar-bg: #28a745;
+  --btn-recompensa-bg: #28a745;
 }
 
 /* 🌙 Modo oscuro */
@@ -31,7 +31,7 @@
   --btn-text: #fff;
   --btn-solo-bg: #444;
   --btn-emparejar-bg: #0066cc;
-  --btn-completar-bg: #28a745;
+  --btn-recompensa-bg: #28a745;
 }
 
 /* === RESET Y BASE === */
