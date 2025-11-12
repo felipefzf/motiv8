@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +34,7 @@ const Ranking = () => {
           <ul>
             {ranking.map((user, index) => (
               <li key={user.uid}>
-                <strong>#{index + 1}</strong> {user.name} | Nivel: {user.nivel} 
+                <strong>#{index + 1}</strong> {user.name} | Nivel: {user.nivel}
               </li>
             ))}
           </ul>

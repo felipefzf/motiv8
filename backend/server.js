@@ -1185,13 +1185,7 @@ app.get('/api/ranking', async (req, res) => {
       ranking.push({
         uid: doc.id,
         name: userInfo.name || "Usuario",
-        region: userInfo.region || "Sin región",
-        comuna: userInfo.comuna || "Sin comuna",
-        nivel: stats.nivel || 1,
-        puntos: stats.puntos || 0,
-        distanciaTotalKm: stats.distanciaTotalKm || 0,
-        velocidadPromedioKmh: stats.velocidadPromedioKmh || 0,
-        velocidadMaximaKmh: stats.velocidadMaximaKmh || 0
+        nivel: stats.nivel || 1
       });
     });
 
