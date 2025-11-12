@@ -880,43 +880,26 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
   }
 });
 
-app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
+app.post('/api/user-missions/assign-3', verifyToken, async (req, res) => {
   const userId = req.user.uid;
   try {
-    const userMissionRef = db.collection("user_missions").doc(userId);
-    const doc = await userMissionRef.get();
-
-    // ✅ Si el usuario tiene misiones activas, no permitir agregar nuevas
-    if (doc.exists && doc.data().missions.length > 0) {
-      return res
-        .status(400)
-        .send(
-          "No puedes agregar nuevas misiones hasta completar todas las actuales."
-        );
-    }
-
-    // Obtener todas las misiones disponibles
-    const snapshot = await db.collection("missions").get();
-    const allMissions = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const snapshot = await db.collection('missions').get();
+    const allMissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     if (allMissions.length < 3) {
       return res.status(400).send("No hay suficientes misiones disponibles.");
     }
 
-    // Seleccionar 3 misiones aleatorias
     const shuffled = allMissions.sort(() => 0.5 - Math.random());
-    const nuevas = shuffled.slice(0, 3).map((m) => ({
+    const nuevas = shuffled.slice(0, 3).map(m => ({
       ...m,
       progressValue: 0,
-      completed: false,
+      completed: false
     }));
 
-    await userMissionRef.set({
+    await db.collection('user_missions').doc(userId).set({
       missions: nuevas,
-      assignedAt: admin.firestore.FieldValue.serverTimestamp(),
+      assignedAt: admin.firestore.FieldValue.serverTimestamp()
     });
 
     res.status(201).json({ missions: nuevas });
@@ -1086,7 +1069,7 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
       puntosParaSiguienteNivel = progreso.puntosParaSiguienteNivel;
 
       await userStatsRef.update({
-        misionesCompletas: (stats.misionesCompletas || 0) + 1,
+        
         puntos: nuevosPuntos,
         nivel: nivelActual,
         ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
@@ -1102,7 +1085,7 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
         tiempoTotalRecorridoMin: 0,
         velocidadMaximaKmh: 0,
         velocidadPromedioKmh: 0,
-        misionesCompletas: 1,
+        
         insigniasGanadas: 0,
         puntos: nuevosPuntos,
         nivel: nivelActual,
