@@ -83,7 +83,7 @@
 /* === Botón de cambio de tema (solo en profile) === */
 .theme-toggle-btn {
   position: absolute;
-  top: 20px;
+  top: 30px;
   right: 20px;
   padding: 10px 14px;
   background-color: var(--btn-bg);
