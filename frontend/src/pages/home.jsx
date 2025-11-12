@@ -63,7 +63,7 @@ const reclamarRecompensa = (id) => {
           // Si no hay misiones asignadas, asignar nuevas
           axios
             .post(
-              "http://localhost:5000/api/user-missions/assign",
+              "http://localhost:5000/api/user-missions/assign-3",
               {},
               {
                 headers: { Authorization: `Bearer ${token}` },
