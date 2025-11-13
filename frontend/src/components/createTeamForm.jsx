@@ -11,6 +11,18 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
   const [team_color, setTeamColor] = useState('#CCCCCC'); // New field for team color
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [teamImageFile, setTeamImageFile] = useState(null); // New state for team image file
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setTeamImageFile(file); // <-- Guarda en 'teamImageFile'
+      setError('');
+    } else {
+      setTeamImageFile(null); // Limpia si no es válido
+      setError('Por favor, sube un archivo de imagen válido.');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,22 +36,30 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       return;
     }
 
+    console.log("Archivo seleccionado en el frontend:", teamImageFile);
+
+    // FormData for multipart/form-data upload
+    const formData = new FormData();
+    formData.append('team_name', team_name);
+    formData.append('sport_type', sport_type); // Send the new field name
+    formData.append('description', description);
+    formData.append('team_color', team_color); // Send the new field name
+    if (teamImageFile) {
+      formData.append('teamImageFile', teamImageFile);
+    }
+
+    for (let key of formData.keys()) {
+      console.log("Enviando llave:", key);
+    }
     // Data matching the backend expected fields
-    const teamData = {
-      team_name,
-      sport_type, // Send the new field name
-      description,
-      team_color, // Send the new field name
-    };
 
     try {
       const response = await fetch('/api/teams', { // Use relative path with proxy
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` // Send the token
         },
-        body: JSON.stringify(teamData),
+        body: formData, // Send FormData instead of JSON
       });
 
       const data = await response.json();
@@ -77,6 +97,16 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
           onChange={(e) => setTeamName(e.target.value)}
           required
           disabled={isLoading}
+        />
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label htmlFor="team_image">Logo del Equipo (Opcional):</label>
+        <input
+          type="file"
+          id="team_image"
+          accept="image/png, image/jpeg"
+          onChange={handleFileChange} // Usa el nuevo handler
         />
       </div>
 

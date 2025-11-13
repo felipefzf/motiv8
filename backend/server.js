@@ -17,7 +17,7 @@ admin.initializeApp({
 // Ahora puedes obtener las instancias de Firestore y Auth aquí o en tus rutas
 export const db = admin.firestore();
 const auth = admin.auth();
-const bucket = admin.storage().bucket("gs://motiv8-b965b.appspot.com");
+const bucket = admin.storage().bucket("gs://motiv8-b965b.firebasestorage.app");
 
 const app = express();
 app.use(express.json());
@@ -28,12 +28,13 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use(express.urlencoded({ extended: true }));
 
 const PORT = 5000;
 
-const upload = multer({
+const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // Límite de 5MB
+  limits: { fileSize: 5 * 1024 * 1024 } // Límite de 5MB
 });
 
 app.use("/api", testRoutes);
@@ -433,9 +434,15 @@ app.post("/api/activities", verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post("/api/teams", verifyToken, async (req, res) => {
+app.post("/api/teams", verifyToken, upload.single("teamImageFile"), async (req, res) => {
+
+  console.log("req.file (lo que recibió multer):", req.file);
+  console.log("req.body (los campos de texto):", req.body);
+
   const { team_name, sport_type, description, team_color } = req.body;
   const user = req.user;
+
+  const file = req.file;
 
   if (!team_name) return res.status(400).send("Nombre requerido.");
   if (user.team_member) return res.status(400).send("Ya estás en un equipo.");
@@ -451,6 +458,28 @@ app.post("/api/teams", verifyToken, async (req, res) => {
       members: [{ uid: user.uid, role: "Líder👑" }],
       team_image_url: null, // Empezará como nulo
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    let teamImageUrl = null;
+    if (file) {
+      // 2. Sube la imagen al Storage Bucket
+      const fileName = `team_logos/${newTeamRef.id}-${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      await fileUpload.save(file.buffer, {
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      // 3. Obtén la URL pública de la imagen
+      await fileUpload.makePublic();
+      teamImageUrl = fileUpload.publicUrl();
+    }
+
+    // 4. Actualiza el documento del equipo con la URL de la imagen
+    await newTeamRef.update({
+      team_image_url: teamImageUrl,
     });
 
     // 6. Actualiza el documento del usuario
@@ -652,9 +681,6 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
     res.status(500).send("Internal server error while fetching your team.");
   }
 });
-
-
-
 
 // Ruta para obtener los detalles (con nombres) de CUALQUIER equipo
 app.get('/api/teams/:teamId/details', verifyToken, async (req, res) => {
