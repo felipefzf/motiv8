@@ -109,6 +109,7 @@ function MyTeamInfo() {
   return (
     <div className={styles.container}>
       <img 
+          className={styles.teamLogo}
           src={teamData.team_image_url} 
           alt={`Logo de ${teamData.team_name}`}
           className={styles.teamLogo} // <-- Usamos un nuevo estilo

@@ -9,24 +9,29 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: 1000;
   backdrop-filter: blur(4px);
 }
 
 /* === Contenido del Modal === */
 .modalContent {
-  background: var(--card-bg);
-  color: var(--text-color);
-  padding: 25px 30px;
+  background: var(--card-bg, white); /* Fondo blanco o de tema */
+  padding: 0px;
   border-radius: 8px;
-  box-shadow: 0 5px 15px var(--shadow-color);
+  box-shadow: 0 4px 12px var(--shadow-color, rgba(0,0,0,0.15));
+  color: var(--text-color, #000);
+
+  /* --- 2. SÍ debe manejar el scroll --- */
+  max-height: 70vh;  
+  overflow-y: auto;  /* ¡Añade la barra de scroll aquí! */
+  
+  /* --- 3. SÍ debe estar encima del backdrop --- */
+  position: relative; 
+  z-index: 1001; /* Capa superior */
+
+  /* --- 4. Define el tamaño --- */
   width: 90%;
-  max-width: 500px;
-  position: relative;
-  max-height: 90vh;
-  overflow-y: auto;
-  border: 1px solid var(--border-color);
-  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  max-width: 400px;
 }
 
 /* === Botón Cerrar === */
