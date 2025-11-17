@@ -132,7 +132,7 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       <div className={styles.inputGroup}>
         <label htmlFor="team_name">Nombre del Equipo</label>
         <input
-          style={{ width: "100%", height: "45px" }}
+          className={styles.inputFull}
           type="text"
           id="team_name"
           value={team_name}
@@ -141,10 +141,11 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
           disabled={isLoading}
         />
       </div>
-      {/* (Otros inputs: Descripción, Deporte, Color...) */}
+
       <div className={styles.inputGroup}>
         <label>Descripción</label>
         <textarea
+          className={styles.textareaFull}
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -152,24 +153,26 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
           disabled={isLoading}
         />
       </div>
+
       <div className={styles.inputGroup}>
         <label htmlFor="sport_type">Deporte</label>
-          <select
-            id="sport_type"
-            value={sport_type}
-            onChange={(e) => setSportType(e.target.value)}
-            required
-            disabled={isLoading}
-          >
-            <option value="">Selecciona un deporte</option>
-            <option value="Running">Running</option>
-            <option value="Cycling">Cycling</option>
-          </select>      
-        </div>
+        <select
+          id="sport_type"
+          value={sport_type}
+          onChange={(e) => setSportType(e.target.value)}
+          required
+          disabled={isLoading}
+        >
+          <option value="">Selecciona un deporte</option>
+          <option value="Running">Running</option>
+          <option value="Cycling">Cycling</option>
+        </select>      
+      </div>
+
       <div className={styles.inputGroup}>
         <label htmlFor="team_color">Color del equipo</label>
         <input
-          style={{ width: "100%", height: "45px" }}
+          className={styles.inputFull}
           type="color"
           id="team_color"
           value={team_color}
@@ -200,7 +203,7 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
               alt="Crop me"
               src={imgSrc}
               onLoad={onImageLoad}
-              style={{ maxHeight: '300px' }} // Limita la altura para que no tape todo
+              className={styles.cropImage}
             />
           </ReactCrop>
           
@@ -215,7 +218,11 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
         <div className={styles.previewContainer}>
           <p>Imagen seleccionada:</p>
           <img src={previewUrl} alt="Vista previa" className={styles.previewImage} />
-          <button type="button" onClick={() => setImgSrc(previewUrl)} className={styles.editButton}>
+          <button
+            type="button"
+            onClick={() => setImgSrc(previewUrl)}
+            className={styles.editButton}
+          >
             Editar
           </button>
         </div>
@@ -224,12 +231,14 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
       {/* Canvas Oculto (Necesario para procesar la imagen) */}
       <canvas
         ref={canvasRef}
-        style={{ display: 'none', width: completedCrop?.width, height: completedCrop?.height }}
+        className={styles.hiddenCanvas}
       />
       
       {/* Botones finales */}
       <div className={styles.buttonContainer}>
-        <button type="button" onClick={onClose} className={styles.cancelButton}>Cancelar</button>
+        <button type="button" onClick={onClose} className={styles.cancelButton}>
+          Cancelar
+        </button>
         <button type="submit" className={styles.submitButton} disabled={isLoading}>
           {isLoading ? 'Creando...' : 'Crear Equipo'}
         </button>
