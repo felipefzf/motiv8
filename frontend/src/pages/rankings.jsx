@@ -41,8 +41,8 @@ const Ranking = () => {
           onChange={(e) => setFilter(e.target.value)}
         >
           <option value="nivel">Nivel</option>
-          <option value="puntos">Puntos</option>
-          <option value="experiencia">Experiencia</option>
+          <option value="misiones">Misiones</option>
+          <option value="distancia">Distancia</option>
         </select>
       </div>
 

@@ -24,6 +24,7 @@
   /* --- 2. SÍ debe manejar el scroll --- */
   max-height: 70vh;  
   overflow-y: auto;  /* ¡Añade la barra de scroll aquí! */
+  overflow-x: hidden;
   
   /* --- 3. SÍ debe estar encima del backdrop --- */
   position: relative; 
