@@ -10,7 +10,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import axios from "axios";
 
-export default function Profile() {
+export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [theme, setTheme] = useState("dark");
@@ -19,6 +19,7 @@ export default function Profile() {
   const [ubicaciones, setUbicaciones] = useState([]);
   const [equipo, setEquipo] = useState(null);
 
+  // Cargar equipo (para mostrar deporte/equipo)
   useEffect(() => {
     if (!user) return;
 
@@ -31,28 +32,31 @@ export default function Profile() {
       .then((res) => setEquipo(res.data))
       .catch((err) => {
         if (err.response?.status === 404) {
-          setEquipo(null); // Usuario no pertenece a ningún equipo
+          setEquipo(null);
         } else {
           console.error("Error obteniendo equipo:", err);
         }
       });
   }, [user]);
 
-  // Cambiar tema
+  // Tema inicial
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  const toggleTheme = () => {
+  const handleToggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
+    if (typeof toggleTheme === "function") {
+      toggleTheme();
+    }
   };
 
-  // Cargar datos del perfil y estadísticas
+  // Perfil + stats
   useEffect(() => {
     if (!user) return;
 
@@ -67,6 +71,7 @@ export default function Profile() {
       .catch((err) => console.error("Error obteniendo estadísticas:", err));
   }, [user]);
 
+  // Ubicaciones
   useEffect(() => {
     if (!user) return;
 
@@ -85,20 +90,42 @@ export default function Profile() {
       await signOut(auth);
       localStorage.removeItem("firebaseToken");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("teamColor");
+
+      // reset color de equipo
+      if (typeof setTeamColor === "function") {
+        setTeamColor("");
+      }
+
+      const currentTheme =
+        document.documentElement.getAttribute("data-theme") || "dark";
+      if (currentTheme === "light") {
+        document.documentElement.style.setProperty("--accent-color", "#0066cc");
+        document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+      } else {
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          "#ffd000ff"
+        );
+        document.documentElement.style.setProperty(
+          "--shadow-color",
+          "#ffd000ff"
+        );
+      }
+
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
 
-  // ✅ Renderizado seguro
   if (!user || !perfil || !stats) {
     return <p>Cargando perfil...</p>;
   }
 
   return (
     <div className="profile-container">
-      <button onClick={toggleTheme} className="theme-toggle-btn">
+      <button onClick={handleToggleTheme} className="theme-toggle-btn">
         {theme === "dark" ? "☀️ Tema Claro" : "🌙 Tema Oscuro"}
       </button>
 
@@ -128,12 +155,10 @@ export default function Profile() {
         </p>
 
         <div>
-
           Deporte Principal:{" "}
           <span className="profile-level">
             {equipo ? equipo.sport_type || "No especificado" : "Agente libre"}
           </span>
-
           {equipo && (
             <p>
               <br />
@@ -145,11 +170,36 @@ export default function Profile() {
         <h3 className="section-title">Estadísticas</h3>
         <br />
         <div className="container text-center">
-          <p>Distancia total: <span className="profile-highlight">{stats?.distanciaTotalKm || 0} km</span></p>
-          <p>Tiempo total: <span className="profile-highlight">{stats?.tiempoTotalRecorridoMin || 0} min</span></p>
-          <p>Velocidad máxima: <span className="profile-highlight">{stats?.velocidadMaximaKmh || 0} km/h</span></p>
-          <p>Misiones completadas: <span className="profile-highlight">{stats?.misionesCompletas || 0}</span></p>
-          <p>Insignias ganadas: <span className="profile-highlight">{stats?.insigniasGanadas || 0}</span></p>
+          <p>
+            Distancia total:{" "}
+            <span className="profile-highlight">
+              {stats?.distanciaTotalKm || 0} km
+            </span>
+          </p>
+          <p>
+            Tiempo total:{" "}
+            <span className="profile-highlight">
+              {stats?.tiempoTotalRecorridoMin || 0} min
+            </span>
+          </p>
+          <p>
+            Velocidad máxima:{" "}
+            <span className="profile-highlight">
+              {stats?.velocidadMaximaKmh || 0} km/h
+            </span>
+          </p>
+          <p>
+            Misiones completadas:{" "}
+            <span className="profile-highlight">
+              {stats?.misionesCompletas || 0}
+            </span>
+          </p>
+          <p>
+            Insignias ganadas:{" "}
+            <span className="profile-highlight">
+              {stats?.insigniasGanadas || 0}
+            </span>
+          </p>
         </div>
 
         <h3 className="section-title">Ubicaciones visitadas</h3>

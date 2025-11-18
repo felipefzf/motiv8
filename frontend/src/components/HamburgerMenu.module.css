@@ -1,7 +1,7 @@
 /* Posiciona el contenedor del menú */
 .hamburgerContainer {
   position: absolute; /* Lo fija en la pantalla */
-  top: 15px;
+  top: 90px;
   right: 20px;
   z-index: 999; /* Asegura que esté encima de otros elementos */
   border: 2px solid #817d7d;
@@ -12,7 +12,7 @@
 .toggleButton {
   background: none;
   border: none;
-  color: #ffd000ff; /* Color del icono */
+  color: var(--accent-color); /* Color del icono */
   font-size: 1.5rem; /* Tamaño del icono */
   cursor: pointer;
   z-index: 1002;
