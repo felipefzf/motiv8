@@ -10,7 +10,6 @@ import axios from "axios";
 import EditAvatarModal from '../components/editAvatarModal.jsx'; 
 import EditProfileModal from '../components/editProfileModal.jsx'; 
 
-export default function Profile() {
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
   const navigate = useNavigate();
