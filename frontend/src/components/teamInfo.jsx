@@ -1,19 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/authContext'; // Para obtener el UID
-import styles from './teamInfo.module.css'; // Crearemos este archivo CSS
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/authContext";
+import styles from "./teamInfo.module.css";
 
-function MyTeamInfo() {
+function MyTeamInfo({ setTeamColor }) {
   const { user, refreshUser } = useAuth();
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [leaveError, setLeaveError] = useState(null);
 
+  const resetAccentToDefault = () => {
+    const currentTheme =
+      document.documentElement.getAttribute("data-theme") || "dark";
+
+    if (currentTheme === "light") {
+      document.documentElement.style.setProperty("--accent-color", "#0066cc");
+      document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+    } else {
+      document.documentElement.style.setProperty(
+        "--accent-color",
+        "#ffd000ff"
+      );
+      document.documentElement.style.setProperty(
+        "--shadow-color",
+        "#ffd000ff"
+      );
+    }
+  };
+
   useEffect(() => {
     const fetchMyTeam = async () => {
-      if (!user) return; // Salir si no hay usuario
+      if (!user) return;
 
-      const token = localStorage.getItem('firebaseToken');
+      const token = localStorage.getItem("firebaseToken");
       if (!token) {
         setError("No autenticado.");
         setLoading(false);
@@ -24,20 +43,37 @@ function MyTeamInfo() {
       setError(null);
 
       try {
-        const response = await fetch('/api/teams/my-team', { // Llama a la ruta /api
-          headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch("/api/teams/my-team", {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!response.ok) {
           if (response.status === 404) {
-             throw new Error("Parece que no perteneces a ningún equipo.");
+            localStorage.removeItem("teamColor");
+            if (typeof setTeamColor === "function") {
+              setTeamColor("");
+            }
+            resetAccentToDefault();
+            throw new Error("Parece que no perteneces a ningún equipo.");
           }
           throw new Error(`Error del servidor: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         setTeamData(data);
-        
+
+        if (data.team_color && typeof setTeamColor === "function") {
+          setTeamColor(data.team_color);
+          localStorage.setItem("teamColor", data.team_color);
+          document.documentElement.style.setProperty(
+            "--accent-color",
+            data.team_color
+          );
+          document.documentElement.style.setProperty(
+            "--shadow-color",
+            data.team_color
+          );
+        }
       } catch (e) {
         setError(e.message);
       } finally {
@@ -46,94 +82,100 @@ function MyTeamInfo() {
     };
 
     fetchMyTeam();
-  }, [user]); // Ejecutar cuando 'user' cambie
+  }, [user, setTeamColor]);
 
-  // --- Lógica para Salir del Equipo (Necesita Backend) ---
   const handleLeaveTeam = async () => {
-    setLeaveError(null); 
+    setLeaveError(null);
     if (!teamData || !user) {
-        setLeaveError("No se pueden cargar los datos del equipo o del usuario.");
-        return;
-    };
+      setLeaveError(
+        "No se pueden cargar los datos del equipo o del usuario."
+      );
+      return;
+    }
 
-    // Confirmación con advertencia extra si es el dueño
     let confirmationMessage = `¿Estás seguro de que quieres salir de "${teamData.team_name}"?`;
     if (user.uid === teamData.owner_uid) {
-      confirmationMessage = `¡Eres el dueño! Si sales, el equipo se eliminará permanentemente para todos. ¿Estás seguro?`;
+      confirmationMessage =
+        "¡Eres el dueño! Si sales, el equipo se eliminará permanentemente para todos. ¿Estás seguro?";
     }
 
     if (!window.confirm(confirmationMessage)) {
-      return; // El usuario canceló
+      return;
     }
 
-    const token = localStorage.getItem('firebaseToken');
+    const token = localStorage.getItem("firebaseToken");
     if (!token) {
       setLeaveError("Error de autenticación.");
       return;
     }
 
     try {
-      // Llama a la nueva ruta DELETE del backend
-      const response = await fetch('/api/teams/leave', {
-        method: 'DELETE',
+      const response = await fetch("/api/teams/leave", {
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(errText || 'Error al salir del equipo.');
+        throw new Error(errText || "Error al salir del equipo.");
       }
 
-      // --- ¡Éxito! ---
       alert("Has salido del equipo.");
-      
-      // Llama a refreshUser() para que AuthContext
-      // obtenga el estado 'team_member: false' desde el backend.
-      refreshUser();
 
+      localStorage.removeItem("teamColor");
+      if (typeof setTeamColor === "function") {
+        setTeamColor("");
+      }
+      resetAccentToDefault();
+
+      setTeamData(null);
+      refreshUser();
     } catch (err) {
       setLeaveError(err.message);
       console.error("Error leaving team:", err);
     }
   };
 
-  // --- Render Logic ---
   if (loading) return <p className={styles.loading}>Loading your team info...</p>;
-  // Show general fetch error first if it exists
   if (error) return <p className={styles.error}>{error}</p>;
-  // If not loading and no team data (could happen after leaving or inconsistency)
   if (!teamData) return <p>You are not currently part of a team.</p>;
 
   return (
     <div className={styles.container}>
-      <img 
+      {teamData.team_image_url && (
+        <img
           className={styles.teamLogo}
-          src={teamData.team_image_url} 
-          alt={`Logo de ${teamData.team_name}`}/>
-      <h2><span className={styles.teamName}>{teamData.team_name}</span></h2>
+          src={teamData.team_image_url}
+          alt={`Logo de ${teamData.team_name}`}
+        />
+      )}
+      <h2>
+        <span className={styles.teamName}>{teamData.team_name}</span>
+      </h2>
       <p>Descripción: {teamData.description}</p>
       <p>Color: {teamData.team_color}</p>
+
       <h3>Miembros:</h3>
-      
       <ul className={styles.memberList}>
-        {teamData.members?.map(member => (
+        {teamData.members?.map((member) => (
           <li key={member.uid} className={styles.memberItem}>
             <span className={styles.memberName}>{member.name}</span>
-            <span className={styles.memberRole}> - ({member.role})</span> {/* <-- Muestra el rol */}
-            
-            {/* Muestra "(Tú)" si el UID coincide */}
-            {member.uid === user.uid && <span className={styles.you}> (Tú)</span>}
+            <span className={styles.memberRole}> - ({member.role})</span>
+            {member.uid === user.uid && (
+              <span className={styles.you}> (Tú)</span>
+            )}
           </li>
         ))}
-        {/* --- FIN DEL BLOQUE --- */}
-
       </ul>
-      
-      <h3>Insignias y Logros:</h3>
-      <br /><br /><br />
 
+      <h3>Insignias y Logros:</h3>
+      <br />
+      <br />
+      <br />
+
+      {leaveError && <p className={styles.error}>{leaveError}</p>}
 
       <button onClick={handleLeaveTeam} className="btn-salirEquipo">
         Salir del Equipo

@@ -11,9 +11,8 @@ import EditAvatarModal from '../components/editAvatarModal.jsx';
 import EditProfileModal from '../components/editProfileModal.jsx'; 
 
 export default function Profile() {
-  // 1. Usamos 'user' como la fuente de verdad para el perfil
-  const { user, logout } = useAuth();
-  
+export default function Profile({ toggleTheme, setTeamColor }) {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [theme, setTheme] = useState("dark");
   
@@ -37,8 +36,11 @@ export default function Profile() {
     axios.get("http://localhost:5000/api/teams/my-team", config)
       .then((res) => setEquipo(res.data))
       .catch((err) => {
-        if (err.response?.status === 404) setEquipo(null);
-        else console.error("Error equipo:", err);
+        if (err.response?.status === 404) {
+          setEquipo(null);
+        } else {
+          console.error("Error obteniendo equipo:", err);
+        }
       });
 
     // 2. Cargar Estadísticas
@@ -56,17 +58,21 @@ export default function Profile() {
   }, [user]);
 
   // Lógica del tema (sin cambios)
+  // Tema inicial
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  const toggleTheme = () => {
+  const handleToggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
+    if (typeof toggleTheme === "function") {
+      toggleTheme();
+    }
   };
 
   const handleLogout = async () => {
@@ -74,18 +80,38 @@ export default function Profile() {
         await signOut(auth);
         localStorage.removeItem("firebaseToken");
         localStorage.removeItem("userRole");
+        localStorage.removeItem("teamColor");
         navigate("/login", { replace: true });
       } catch (error) {
         console.error("Error al cerrar sesión:", error);
       }
     };
 
+    if (typeof setTeamColor === "function") {
+        setTeamColor("");
+      }
+
+      const currentTheme =
+        document.documentElement.getAttribute("data-theme") || "dark";
+      if (currentTheme === "light") {
+        document.documentElement.style.setProperty("--accent-color", "#0066cc");
+        document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+      } else {
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          "#ffd000ff"
+        );
+        document.documentElement.style.setProperty(
+          "--shadow-color",
+          "#ffd000ff"
+        );
+      }
   // Renderizado seguro (ya no esperamos a 'perfil')
   if (!user) return <p>Cargando...</p>;
 
   return (
     <div className="profile-container">
-      <button onClick={toggleTheme} className="theme-toggle-btn">
+      <button onClick={handleToggleTheme} className="theme-toggle-btn">
         {theme === "dark" ? "☀️ Tema Claro" : "🌙 Tema Oscuro"}
       </button>
 
@@ -144,7 +170,6 @@ export default function Profile() {
             */}
             {user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}
           </span>
-
           {equipo && (
             <p>
               <br />
@@ -156,6 +181,57 @@ export default function Profile() {
         {/* ... (El resto de estadísticas, logros y botón logout igual) ... */}
         <h3 className="section-title">Estadísticas</h3>
         {/* ... */}
+        <br />
+        <div className="container text-center">
+          <p>
+            Distancia total:{" "}
+            <span className="profile-highlight">
+              {stats?.distanciaTotalKm || 0} km
+            </span>
+          </p>
+          <p>
+            Tiempo total:{" "}
+            <span className="profile-highlight">
+              {stats?.tiempoTotalRecorridoMin || 0} min
+            </span>
+          </p>
+          <p>
+            Velocidad máxima:{" "}
+            <span className="profile-highlight">
+              {stats?.velocidadMaximaKmh || 0} km/h
+            </span>
+          </p>
+          <p>
+            Misiones completadas:{" "}
+            <span className="profile-highlight">
+              {stats?.misionesCompletas || 0}
+            </span>
+          </p>
+          <p>
+            Insignias ganadas:{" "}
+            <span className="profile-highlight">
+              {stats?.insigniasGanadas || 0}
+            </span>
+          </p>
+        </div>
+
+        <h3 className="section-title">Ubicaciones visitadas</h3>
+        <div className="locations-container">
+          {ubicaciones.length > 0 ? (
+            ubicaciones.map((loc, i) => (
+              <span key={i} className="ubi-list">
+                {loc}
+              </span>
+            ))
+          ) : (
+            <p>No hay ubicaciones registradas</p>
+          )}
+        </div>
+
+        <h3 className="section-title">Logros y Medallas</h3>
+        <div className="achievements">
+        </div>
+
         <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">
           Cerrar Sesión
