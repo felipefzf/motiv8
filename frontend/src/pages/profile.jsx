@@ -20,6 +20,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [equipo, setEquipo] = useState(null);
+  const [perfil, setPerfil] = useState(null);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
 
@@ -162,7 +163,14 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           {user.name || "Sin nombre"}{" "}
           <span className="profile-level">Lvl: {stats?.nivelActual || 1}</span>
         </h4>
-
+          <h4 className="profile-name">
+          {perfil?.name || "Sin nombre"}{" "}
+          <span className="profile-level">
+            Lvl: {stats?.nivelActual || 1} xp {stats?.puntos || 0} /{" "}
+            {stats?.puntosParaSiguienteNivel || 0} lvl:{" "}
+            {stats?.nivelSiguiente || stats?.nivelActual + 1}{" "}
+          </span>
+        </h4>
         <br />
 
         <p>
