@@ -32,103 +32,108 @@ app.use(express.urlencoded({ extended: true }));
 
 const PORT = 5000;
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } // Límite de 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // Límite de 5MB
 });
 
 app.use("/api", testRoutes);
 
 // FUNCIONES login y register usuarios
 // Register: Registrar un nuevo usuario
-app.post("/api/auth/register", upload.single("profile_image_file"), async (req, res) => {
-  try {
-    const { email, password, name, region, comuna, main_sport } = req.body;
-    const file = req.file
+app.post(
+  "/api/auth/register",
+  upload.single("profile_image_file"),
+  async (req, res) => {
+    try {
+      const { email, password, name, region, comuna, main_sport } = req.body;
+      const file = req.file;
 
-    // --- PASO 1: Crear el usuario en Firebase Authentication ---
-    // Esto crea el registro de email/contraseña
-    const userRecord = await admin.auth().createUser({
-      email: email,
-      password: password,
-      displayName: name,
-      main_sport: main_sport || '',
-    });
-
-    let profile_image_url = null;
-    
-    if (file) {
-      // Guardamos en una carpeta 'user_avatars'
-      const fileName = `profile_pictures/${userRecord.uid}-${file.originalname}`;
-      const blob = bucket.file(fileName);
-      
-      const blobStream = blob.createWriteStream({
-        metadata: { contentType: file.mimetype },
+      // --- PASO 1: Crear el usuario en Firebase Authentication ---
+      // Esto crea el registro de email/contraseña
+      const userRecord = await admin.auth().createUser({
+        email: email,
+        password: password,
+        displayName: name,
+        main_sport: main_sport || "",
       });
 
-      await new Promise((resolve, reject) => {
-        blobStream.on('error', (err) => reject(err));
-        blobStream.on('finish', async () => {
-          try {
-            const [url] = await blob.getSignedUrl({
-              action: 'read',
-              expires: '03-09-2491'
-            });
-            profile_image_url = url;
-            resolve(url);
-          } catch (err) {
-            reject(new Error("Error al firmar URL."));
-          }
+      let profile_image_url = null;
+
+      if (file) {
+        // Guardamos en una carpeta 'user_avatars'
+        const fileName = `profile_pictures/${userRecord.uid}-${file.originalname}`;
+        const blob = bucket.file(fileName);
+
+        const blobStream = blob.createWriteStream({
+          metadata: { contentType: file.mimetype },
         });
-        blobStream.end(file.buffer);
+
+        await new Promise((resolve, reject) => {
+          blobStream.on("error", (err) => reject(err));
+          blobStream.on("finish", async () => {
+            try {
+              const [url] = await blob.getSignedUrl({
+                action: "read",
+                expires: "03-09-2491",
+              });
+              profile_image_url = url;
+              resolve(url);
+            } catch (err) {
+              reject(new Error("Error al firmar URL."));
+            }
+          });
+          blobStream.end(file.buffer);
+        });
+      }
+
+      // --- PASO 2: Crear el documento en Firestore ---
+      // Aquí es donde defines el rol por defecto
+      const newUserDoc = {
+        email: userRecord.email,
+        name: userRecord.displayName || "Sin Nombre",
+        role: "user", // <--- ¡AQUÍ ESTÁ LA MAGIA!
+        team_member: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        profile_image_url: profile_image_url,
+        region: region,
+        comuna: comuna,
+        main_sport: main_sport,
+        
+      };
+
+      // Usamos el UID del usuario de Auth como ID del documento en Firestore
+      await db.collection("users").doc(userRecord.uid).set(newUserDoc);
+
+      // 🌟 --- PASO 3: Inicializar la Colección de Estadísticas (Colección 'userStats' separada) ---
+
+      // Enviamos una respuesta exitosa
+      res.status(201).send({
+        uid: userRecord.uid,
+        email: userRecord.email,
+        role: "user",
+        team_member: false,
+        region: region,
+        comuna: comuna,
+        profile_image_url: profile_image_url,
       });
+
+      // navigate('/login');
+    } catch (error) {
+      // Manejar errores comunes (ej. email ya existe)
+      if (error.code === "auth/email-already-exists") {
+        return res.status(400).send("El correo electrónico ya está en uso.");
+      }
+      // Manejar otros posibles errores
+      if (error.code === "auth/invalid-password") {
+        return res.status(400).send("La contraseña es demasiado débil.");
+      }
+
+      console.error("Error en el registro:", error);
+      res.status(500).send("Error al registrar el usuario.");
     }
-
-    // --- PASO 2: Crear el documento en Firestore ---
-    // Aquí es donde defines el rol por defecto
-    const newUserDoc = {
-      email: userRecord.email,
-      name: userRecord.displayName || "Sin Nombre",
-      role: "user", // <--- ¡AQUÍ ESTÁ LA MAGIA!
-      team_member: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      profile_image_url: profile_image_url,
-      region: region,
-      comuna: comuna,
-      main_sport: main_sport,
-    };
-
-    // Usamos el UID del usuario de Auth como ID del documento en Firestore
-    await db.collection("users").doc(userRecord.uid).set(newUserDoc);
-
-    // 🌟 --- PASO 3: Inicializar la Colección de Estadísticas (Colección 'userStats' separada) ---
-
-    // Enviamos una respuesta exitosa
-    res.status(201).send({
-      uid: userRecord.uid,
-      email: userRecord.email,
-      role: "user",
-      team_member: false,
-      region: region,
-      comuna: comuna,
-      profile_image_url: profile_image_url,
-    });
-
-    // navigate('/login');
-  } catch (error) {
-    // Manejar errores comunes (ej. email ya existe)
-    if (error.code === "auth/email-already-exists") {
-      return res.status(400).send("El correo electrónico ya está en uso.");
-    }
-    // Manejar otros posibles errores
-    if (error.code === "auth/invalid-password") {
-      return res.status(400).send("La contraseña es demasiado débil.");
-    }
-
-    console.error("Error en el registro:", error);
-    res.status(500).send("Error al registrar el usuario.");
   }
-});
+);
 // Login: Obtener información del usuario autenticado
 app.get("/api/auth/me", verifyToken, (req, res) => {
   // Gracias al middleware 'verifyToken', req.user ya tiene
@@ -143,85 +148,95 @@ app.get("/api/auth/me", verifyToken, (req, res) => {
 });
 
 // Ruta para actualizar la foto de perfil
-app.post('/api/users/avatar', verifyToken, upload.single('profileImageFile'), async (req, res) => {
-  const user = req.user;
-  const file = req.file;
+app.post(
+  "/api/users/avatar",
+  verifyToken,
+  upload.single("profileImageFile"),
+  async (req, res) => {
+    const user = req.user;
+    const file = req.file;
 
-  if (!file) {
-    return res.status(400).send('No se subió ninguna imagen.');
-  }
+    if (!file) {
+      return res.status(400).send("No se subió ninguna imagen.");
+    }
 
-  try {
-    const fileName = `profile_pictures/${user.uid}-${Date.now()}.png`; // Nombre único con timestamp
-    const blob = bucket.file(fileName);
-    
-    const blobStream = blob.createWriteStream({
-      metadata: { contentType: file.mimetype },
-    });
+    try {
+      const fileName = `profile_pictures/${user.uid}-${Date.now()}.png`; // Nombre único con timestamp
+      const blob = bucket.file(fileName);
 
-    await new Promise((resolve, reject) => {
-      blobStream.on('error', (err) => reject(err));
-      blobStream.on('finish', async () => {
-        try {
-          // Generar URL firmada de larga duración
-          const [url] = await blob.getSignedUrl({
-            action: 'read',
-            expires: '03-09-2491' 
-          });
-          resolve(url);
-
-          // Actualizar el usuario en Firestore
-          await db.collection('users').doc(user.uid).update({
-            profile_image_url: url
-          });
-
-          // Devolver la nueva URL al frontend
-          res.status(200).json({ message: 'Avatar actualizado', profile_image_url: url });
-
-        } catch (err) {
-          reject(new Error("Error al firmar URL."));
-        }
+      const blobStream = blob.createWriteStream({
+        metadata: { contentType: file.mimetype },
       });
-      blobStream.end(file.buffer);
-    });
 
-  } catch (error) {
-    console.error("Error al actualizar avatar:", error);
-    res.status(500).send('Error interno al actualizar avatar.');
+      await new Promise((resolve, reject) => {
+        blobStream.on("error", (err) => reject(err));
+        blobStream.on("finish", async () => {
+          try {
+            // Generar URL firmada de larga duración
+            const [url] = await blob.getSignedUrl({
+              action: "read",
+              expires: "03-09-2491",
+            });
+            resolve(url);
+
+            // Actualizar el usuario en Firestore
+            await db.collection("users").doc(user.uid).update({
+              profile_image_url: url,
+            });
+
+            // Devolver la nueva URL al frontend
+            res
+              .status(200)
+              .json({ message: "Avatar actualizado", profile_image_url: url });
+          } catch (err) {
+            reject(new Error("Error al firmar URL."));
+          }
+        });
+        blobStream.end(file.buffer);
+      });
+    } catch (error) {
+      console.error("Error al actualizar avatar:", error);
+      res.status(500).send("Error interno al actualizar avatar.");
+    }
   }
-});
+);
 
 // Ruta para actualizar información del perfil (Texto)
-app.put('/api/users/profile', verifyToken, express.json(), async (req, res) => {
+app.put("/api/users/profile", verifyToken, express.json(), async (req, res) => {
   const user = req.user;
   const { name, comuna, region, main_sport } = req.body;
 
   // Validaciones simples
   if (!name) {
-    return res.status(400).send('El nombre es obligatorio.');
+    return res.status(400).send("El nombre es obligatorio.");
   }
 
   try {
     // Actualizar documento en Firestore
-    await db.collection('users').doc(user.uid).update({
-      name: name,
-      comuna: comuna || '',
-      region: region || '',
-      main_sport: main_sport || ''
-    });
+    await db
+      .collection("users")
+      .doc(user.uid)
+      .update({
+        name: name,
+        comuna: comuna || "",
+        region: region || "",
+        main_sport: main_sport || "",
+      });
 
     // Devolver los datos actualizados
-    res.status(200).json({ 
-      message: 'Perfil actualizado correctamente',
-      user: { 
+    res.status(200).json({
+      message: "Perfil actualizado correctamente",
+      user: {
         ...user, // Datos anteriores
-        name, comuna, region, main_sport // Datos nuevos
-      }
+        name,
+        comuna,
+        region,
+        main_sport, // Datos nuevos
+      },
     });
-
   } catch (error) {
     console.error("Error al actualizar perfil:", error);
-    res.status(500).send('Error interno al actualizar el perfil.');
+    res.status(500).send("Error interno al actualizar el perfil.");
   }
 });
 
@@ -251,12 +266,13 @@ app.post("/api/missions", verifyToken, isAdmin, async (req, res) => {
       name,
       description,
       type,
-      targetValue: Number(targetValue), // Asegurarse de que sea un número
+      targetValue: Number(targetValue),
       unit,
-      reward,
-      status: "active", // Estado inicial
-      startDate: startDate ? new Date(startDate) : null, // Convertir a objeto Date o null
-      endDate: endDate ? new Date(endDate) : null, // Convertir a objeto Date o null
+      reward: Number(reward), // XP
+      coinReward: Number(req.body.coinReward) || 0, // 👈 Nuevo campo
+      status: "active",
+      startDate: startDate ? new Date(startDate) : null,
+      endDate: endDate ? new Date(endDate) : null,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
@@ -309,6 +325,7 @@ app.put("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
     targetValue,
     unit,
     reward,
+    coinReward,
     startDate,
     endDate,
   } = req.body;
@@ -331,7 +348,8 @@ app.put("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
       type,
       targetValue: Number(targetValue),
       unit,
-      reward: Number(reward),
+      reward: Number(reward),        // XP
+      coinReward: Number(coinReward), // 👈 Coins
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
       // No actualizamos 'createdAt' para que mantenga la fecha de creación original
@@ -421,12 +439,12 @@ app.post("/api/activities", verifyToken, async (req, res) => {
     if (missionDoc.exists) {
       const data = missionDoc.data();
 
-      updatedMissions = data.missions.map(m => {
+      updatedMissions = data.missions.map((m) => {
         let progresoActual = Number(m.progressValue || 0);
 
-        if (m.unit.toLowerCase() === 'km') {
+        if (m.unit.toLowerCase() === "km") {
           progresoActual += Number(distance);
-        } else if (m.unit.toLowerCase() === 'min') {
+        } else if (m.unit.toLowerCase() === "min") {
           progresoActual += Number(time);
         }
 
@@ -440,7 +458,7 @@ app.post("/api/activities", verifyToken, async (req, res) => {
         return {
           ...m,
           progressValue: progresoActual,
-          completed: completadaAhora
+          completed: completadaAhora,
         };
       });
 
@@ -503,18 +521,21 @@ app.post("/api/activities", verifyToken, async (req, res) => {
 
     // 5. Responder al frontend
     // 3. Actualizar estadísticas del usuario
-    
 
     if (statsDoc.exists) {
       const stats = statsDoc.data();
 
       const nuevaDistancia = (stats.distanciaTotalKm || 0) + Number(distance);
       const nuevoTiempo = (stats.tiempoTotalRecorridoMin || 0) + Number(time);
-      const nuevaVelocidadMax = Math.max(stats.velocidadMaximaKmh || 0, Number(max_speed));
+      const nuevaVelocidadMax = Math.max(
+        stats.velocidadMaximaKmh || 0,
+        Number(max_speed)
+      );
 
-      const nuevaVelocidadPromedio = nuevaDistancia > 0
-        ? (nuevaDistancia / (nuevoTiempo / 60)) // km/h
-        : stats.velocidadPromedioKmh || 0;
+      const nuevaVelocidadPromedio =
+        nuevaDistancia > 0
+          ? nuevaDistancia / (nuevoTiempo / 60) // km/h
+          : stats.velocidadPromedioKmh || 0;
 
       await userStatsRef.update({
         distanciaTotalKm: nuevaDistancia,
@@ -522,7 +543,7 @@ app.post("/api/activities", verifyToken, async (req, res) => {
         velocidadMaximaKmh: nuevaVelocidadMax,
         velocidadPromedioKmh: nuevaVelocidadPromedio,
         misionesCompletas: (stats.misionesCompletas || 0) + nuevasCompletadas,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -551,70 +572,74 @@ app.post("/api/activities", verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post("/api/teams", verifyToken, upload.single("teamImageFile"), async (req, res) => {
+app.post(
+  "/api/teams",
+  verifyToken,
+  upload.single("teamImageFile"),
+  async (req, res) => {
+    console.log("req.file (lo que recibió multer):", req.file);
+    console.log("req.body (los campos de texto):", req.body);
 
-  console.log("req.file (lo que recibió multer):", req.file);
-  console.log("req.body (los campos de texto):", req.body);
+    const { team_name, sport_type, description, team_color } = req.body;
+    const user = req.user;
 
-  const { team_name, sport_type, description, team_color } = req.body;
-  const user = req.user;
+    const file = req.file;
 
-  const file = req.file;
+    if (!team_name) return res.status(400).send("Nombre requerido.");
+    if (user.team_member) return res.status(400).send("Ya estás en un equipo.");
 
-  if (!team_name) return res.status(400).send("Nombre requerido.");
-  if (user.team_member) return res.status(400).send("Ya estás en un equipo.");
-
-  try {
-    // 1. Crea el documento del equipo PRIMERO (sin la URL)
-    const newTeamRef = await db.collection("teams").add({
-      team_name,
-      sport_type: sport_type || null,
-      description: description || null,
-      team_color: team_color || "#CCCCCC",
-      owner_uid: user.uid,
-      members: [{ uid: user.uid, role: "Líder👑" }],
-      team_image_url: null, // Empezará como nulo
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    let teamImageUrl = null;
-    if (file) {
-      // 2. Sube la imagen al Storage Bucket
-      const fileName = `team_logos/${newTeamRef.id}-${file.originalname}`;
-      const fileUpload = bucket.file(fileName);
-
-      await fileUpload.save(file.buffer, {
-        metadata: {
-          contentType: file.mimetype,
-        },
+    try {
+      // 1. Crea el documento del equipo PRIMERO (sin la URL)
+      const newTeamRef = await db.collection("teams").add({
+        team_name,
+        sport_type: sport_type || null,
+        description: description || null,
+        team_color: team_color || "#CCCCCC",
+        owner_uid: user.uid,
+        members: [{ uid: user.uid, role: "Líder👑" }],
+        team_image_url: null, // Empezará como nulo
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      // 3. Obtén la URL pública de la imagen
-      await fileUpload.makePublic();
-      teamImageUrl = fileUpload.publicUrl();
+      let teamImageUrl = null;
+      if (file) {
+        // 2. Sube la imagen al Storage Bucket
+        const fileName = `team_logos/${newTeamRef.id}-${file.originalname}`;
+        const fileUpload = bucket.file(fileName);
+
+        await fileUpload.save(file.buffer, {
+          metadata: {
+            contentType: file.mimetype,
+          },
+        });
+
+        // 3. Obtén la URL pública de la imagen
+        await fileUpload.makePublic();
+        teamImageUrl = fileUpload.publicUrl();
+      }
+
+      // 4. Actualiza el documento del equipo con la URL de la imagen
+      await newTeamRef.update({
+        team_image_url: teamImageUrl,
+      });
+
+      // 6. Actualiza el documento del usuario
+      await db.collection("users").doc(user.uid).update({
+        team_member: true,
+        id_team: newTeamRef.id,
+      });
+
+      res.status(201).json({
+        message: "Equipo creado con éxito",
+        teamId: newTeamRef.id,
+        team_name: team_name,
+      });
+    } catch (error) {
+      console.error("Error al crear equipo con imagen:", error);
+      res.status(500).send("Error interno al crear el equipo.");
     }
-
-    // 4. Actualiza el documento del equipo con la URL de la imagen
-    await newTeamRef.update({
-      team_image_url: teamImageUrl,
-    });
-
-    // 6. Actualiza el documento del usuario
-    await db.collection("users").doc(user.uid).update({
-      team_member: true,
-      id_team: newTeamRef.id,
-    });
-
-    res.status(201).json({
-      message: "Equipo creado con éxito",
-      teamId: newTeamRef.id,
-      team_name: team_name,
-    });
-  } catch (error) {
-    console.error("Error al crear equipo con imagen:", error);
-    res.status(500).send("Error interno al crear el equipo.");
   }
-});
+);
 
 // Unirte a un Equipo Existente
 app.post("/api/teams/:teamId/join", verifyToken, async (req, res) => {
@@ -710,7 +735,7 @@ app.get("/api/teams/available", verifyToken, async (req, res) => {
 });
 
 // Obtener Información sobre el Equipo al que Pertenece el Usuario
-app.get('/api/teams/my-team', verifyToken, async (req, res) => {
+app.get("/api/teams/my-team", verifyToken, async (req, res) => {
   const user = req.user;
 
   // (Usando tus nombres de campo: team_member, id_team)
@@ -800,13 +825,13 @@ app.get('/api/teams/my-team', verifyToken, async (req, res) => {
 });
 
 // Ruta para obtener los detalles (con nombres) de CUALQUIER equipo
-app.get('/api/teams/:teamId/details', verifyToken, async (req, res) => {
+app.get("/api/teams/:teamId/details", verifyToken, async (req, res) => {
   const { teamId } = req.params;
 
   try {
-    const teamDoc = await db.collection('teams').doc(teamId).get();
+    const teamDoc = await db.collection("teams").doc(teamId).get();
     if (!teamDoc.exists) {
-      return res.status(404).send('Equipo no encontrado');
+      return res.status(404).send("Equipo no encontrado");
     }
 
     const teamData = teamDoc.data();
@@ -814,44 +839,48 @@ app.get('/api/teams/:teamId/details', verifyToken, async (req, res) => {
     // --- Lógica para Obtener Nombres y Roles ---
     const memberDetails = [];
     if (teamData.members && teamData.members.length > 0) {
-
-      const memberPromises = teamData.members.map(member =>
-        db.collection('users').doc(member.uid).get() // <-- Usa member.uid
+      const memberPromises = teamData.members.map(
+        (member) => db.collection("users").doc(member.uid).get() // <-- Usa member.uid
       );
 
       const memberDocs = await Promise.all(memberPromises);
 
-      memberDocs.forEach(memberDoc => {
+      memberDocs.forEach((memberDoc) => {
         if (memberDoc.exists) {
-          const originalMember = teamData.members.find(m => m.uid === memberDoc.id);
-          const role = originalMember ? originalMember.team_role : 'Miembro';
+          const originalMember = teamData.members.find(
+            (m) => m.uid === memberDoc.id
+          );
+          const role = originalMember ? originalMember.team_role : "Miembro";
 
           memberDetails.push({
             uid: memberDoc.id,
-            name: memberDoc.data().name || 'Usuario sin nombre',
-            team_role: role 
+            name: memberDoc.data().name || "Usuario sin nombre",
+            team_role: role,
           });
         } else {
-          memberDetails.push({ uid: memberDoc.id, name: 'Usuario desconocido', team_role: 'N/A' });
+          memberDetails.push({
+            uid: memberDoc.id,
+            name: "Usuario desconocido",
+            team_role: "N/A",
+          });
         }
       });
     }
     // --- Fin de la Lógica ---
 
-    res.status(200).json({ 
-      id: teamDoc.id, 
-      ...teamData, 
-      members: memberDetails
+    res.status(200).json({
+      id: teamDoc.id,
+      ...teamData,
+      members: memberDetails,
     });
-
   } catch (error) {
     console.error("Error fetching team details:", error);
-    res.status(500).send(error.message || 'Error interno');
+    res.status(500).send(error.message || "Error interno");
   }
 });
 
 // Salir de un equipo (ELIMINAR si eres el dueño)
-app.delete('/api/teams/leave', verifyToken, async (req, res) => {
+app.delete("/api/teams/leave", verifyToken, async (req, res) => {
   const user = req.user; // Obtenido del verifyToken (contiene uid, id_team, team_member)
 
   // 1. Verificar si el usuario realmente está en un equipo
@@ -1008,41 +1037,74 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
     }
 
     const data = doc.data();
-    const updatedMissions = data.missions.filter((m) => m.id !== missionId);
+    const mission = data.missions.find((m) => m.id === missionId);
 
+    if (!mission) {
+      return res.status(404).send("Misión no encontrada.");
+    }
+
+    // --- Eliminar misión completada ---
+    const updatedMissions = data.missions.filter((m) => m.id !== missionId);
     await userMissionRef.set({
       ...data,
       missions: updatedMissions,
       assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    res.status(200).json({ missions: updatedMissions });
+    // --- Actualizar estadísticas del usuario ---
+    const userStatsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    if (statsDoc.exists) {
+      const stats = statsDoc.data();
+
+      // Sumar XP y Coins
+      const nuevasCoins = (stats.coins || 0) + (mission.coinReward || 0);
+      const nuevasXp = (stats.xp || 0) + (mission.reward || 0);
+
+      await userStatsRef.update({
+        coins: nuevasCoins,
+        xp: nuevasXp,
+        misionesCompletas: (stats.misionesCompletas || 0) + 1,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    res.status(200).json({
+      missions: updatedMissions,
+      coinsEarned: mission.coinReward || 0,
+      xpEarned: mission.reward || 0,
+    });
   } catch (error) {
     console.error("Error completando misión:", error);
     res.status(500).send("Error interno al completar misión.");
   }
 });
 
-app.post('/api/user-missions/assign-3', verifyToken, async (req, res) => {
+
+app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   try {
-    const snapshot = await db.collection('missions').get();
-    const allMissions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const snapshot = await db.collection("missions").get();
+    const allMissions = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     if (allMissions.length < 3) {
       return res.status(400).send("No hay suficientes misiones disponibles.");
     }
 
     const shuffled = allMissions.sort(() => 0.5 - Math.random());
-    const nuevas = shuffled.slice(0, 3).map(m => ({
+    const nuevas = shuffled.slice(0, 3).map((m) => ({
       ...m,
       progressValue: 0,
-      completed: false
+      completed: false,
     }));
 
-    await db.collection('user_missions').doc(userId).set({
+    await db.collection("user_missions").doc(userId).set({
       missions: nuevas,
-      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+      assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     res.status(201).json({ missions: nuevas });
@@ -1070,30 +1132,40 @@ app.get("/api/users/:uid", async (req, res) => {
   }
 });
 
-app.post("/api/users/avatar", verifyToken, upload.single("avatarFile"), async (req, res) => {
-  try {
-    const user = req.user
-    const file = req.file
-    if (!file) {
-      return res.status(400).send("Archivo requerido")
+app.post(
+  "/api/users/avatar",
+  verifyToken,
+  upload.single("avatarFile"),
+  async (req, res) => {
+    try {
+      const user = req.user;
+      const file = req.file;
+      if (!file) {
+        return res.status(400).send("Archivo requerido");
+      }
+
+      const fileName = `profile/picture/${user.uid}-${Date.now()}-${
+        file.originalname
+      }`;
+      const fileUpload = bucket.file(fileName);
+      await fileUpload.save(file.buffer, {
+        metadata: { contentType: file.mimetype },
+      });
+      await fileUpload.makePublic();
+      const avatarUrl = fileUpload.publicUrl();
+
+      await db
+        .collection("users")
+        .doc(user.uid)
+        .update({ avatar_url: avatarUrl });
+
+      res.status(200).json({ avatar_url: avatarUrl });
+    } catch (error) {
+      console.error("Error actualizando avatar:", error);
+      res.status(500).send("Error interno al actualizar avatar.");
     }
-
-    const fileName = `profile/picture/${user.uid}-${Date.now()}-${file.originalname}`
-    const fileUpload = bucket.file(fileName)
-    await fileUpload.save(file.buffer, {
-      metadata: { contentType: file.mimetype },
-    })
-    await fileUpload.makePublic()
-    const avatarUrl = fileUpload.publicUrl()
-
-    await db.collection("users").doc(user.uid).update({ avatar_url: avatarUrl })
-
-    res.status(200).json({ avatar_url: avatarUrl })
-  } catch (error) {
-    console.error("Error actualizando avatar:", error)
-    res.status(500).send("Error interno al actualizar avatar.")
   }
-})
+);
 
 app.post("/api/user/initStats", async (req, res) => {
   const { uid } = req.body;
@@ -1105,6 +1177,7 @@ app.post("/api/user/initStats", async (req, res) => {
     tiempoTotalRecorridoMin: 0,
     misionesCompletas: 0,
     insigniasGanadas: 0,
+    coins:0,
     userId: uid,
     ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
   };
@@ -1120,11 +1193,11 @@ app.post("/api/user/initStats", async (req, res) => {
   }
 });
 
-app.get('/api/userStats/:uid', async (req, res) => {
+app.get("/api/userStats/:uid", async (req, res) => {
   try {
     const { uid } = req.params;
-    const doc = await db.collection('userStats').doc(uid).get();
-    if (!doc.exists) return res.status(404).send('Stats no encontradas');
+    const doc = await db.collection("userStats").doc(uid).get();
+    if (!doc.exists) return res.status(404).send("Stats no encontradas");
 
     const stats = doc.data();
     const progreso = calcularProgresoNivel(stats.puntos || 0);
@@ -1133,11 +1206,11 @@ app.get('/api/userStats/:uid', async (req, res) => {
       ...stats,
       nivelActual: progreso.nivelActual,
       nivelSiguiente: progreso.nivelSiguiente,
-      puntosParaSiguienteNivel: progreso.puntosParaSiguienteNivel
+      puntosParaSiguienteNivel: progreso.puntosParaSiguienteNivel,
     });
   } catch (error) {
     console.error("Error obteniendo stats:", error);
-    res.status(500).send('Error interno al obtener stats');
+    res.status(500).send("Error interno al obtener stats");
   }
 });
 
@@ -1192,37 +1265,45 @@ app.post(
   }
 );
 
-app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
+app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   const { missionId } = req.body;
 
   try {
-    const userMissionRef = db.collection('user_missions').doc(userId);
+    const userMissionRef = db.collection("user_missions").doc(userId);
     const doc = await userMissionRef.get();
 
     if (!doc.exists) return res.status(404).send("No hay misiones asignadas.");
 
     const data = doc.data();
-    const missionToClaim = data.missions.find(m => m.id === missionId && m.completed);
+    const missionToClaim = data.missions.find(
+      (m) => m.id === missionId && m.completed
+    );
 
     if (!missionToClaim) {
       return res.status(400).send("La misión no está completada o no existe.");
     }
 
     // Eliminar misión reclamada
-    const updatedMissions = data.missions.filter(m => m.id !== missionId);
+    const updatedMissions = data.missions.filter((m) => m.id !== missionId);
     await userMissionRef.set({
       ...data,
       missions: updatedMissions,
-      assignedAt: admin.firestore.FieldValue.serverTimestamp()
+      assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     // Actualizar stats
-    const userStatsRef = db.collection('userStats').doc(userId);
-    const statsDoc = await userStatsRef.get();
+    
 
     const rewardPoints = missionToClaim.reward || 0;
+    const rewardCoins = missionToClaim.coinReward || 0;
+
+    const userStatsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    
     let nuevosPuntos = rewardPoints;
+    let nuevasCoins = rewardCoins;
     let nivelActual = 1;
     let nivelSiguiente = 2;
     let puntosParaSiguienteNivel = 1000;
@@ -1230,17 +1311,19 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
     if (statsDoc.exists) {
       const stats = statsDoc.data();
       nuevosPuntos = (stats.puntos || 0) + rewardPoints;
-
+      nuevasCoins = (stats.coins || 0) + rewardCoins;
       const progreso = calcularProgresoNivel(nuevosPuntos);
       nivelActual = progreso.nivelActual;
       nivelSiguiente = progreso.nivelSiguiente;
       puntosParaSiguienteNivel = progreso.puntosParaSiguienteNivel;
 
       await userStatsRef.update({
-        
         puntos: nuevosPuntos,
-        nivel: nivelActual,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+        coins: nuevasCoins,
+        nivelActual,
+        nivelSiguiente,
+        puntosParaSiguienteNivel,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     } else {
       const progreso = calcularProgresoNivel(nuevosPuntos);
@@ -1253,11 +1336,11 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
         tiempoTotalRecorridoMin: 0,
         velocidadMaximaKmh: 0,
         velocidadPromedioKmh: 0,
-        
+        coins:rewardCoins,
         insigniasGanadas: 0,
         puntos: nuevosPuntos,
         nivel: nivelActual,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp()
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
@@ -1265,10 +1348,11 @@ app.post('/api/user-missions/claim', verifyToken, async (req, res) => {
       missions: updatedMissions,
       stats: {
         puntos: nuevosPuntos,
+        coins: rewardCoins,
         nivelActual,
         nivelSiguiente,
-        puntosParaSiguienteNivel
-      }
+        puntosParaSiguienteNivel,
+      },
     });
   } catch (error) {
     console.error("Error reclamando recompensa:", error);
@@ -1291,19 +1375,21 @@ function calcularProgresoNivel(puntos) {
   return {
     nivelActual: nivel,
     nivelSiguiente: nivel + 1,
-    puntosParaSiguienteNivel
+    puntosParaSiguienteNivel,
   };
 }
 
-
-app.get('/api/user-locations', verifyToken, async (req, res) => {
+app.get("/api/user-locations", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   try {
-    const snapshot = await db.collection('activities').where('id_user', '==', userId).get();
+    const snapshot = await db
+      .collection("activities")
+      .where("id_user", "==", userId)
+      .get();
     if (snapshot.empty) return res.status(200).json([]);
 
     const uniqueLocations = new Set();
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc) => {
       const data = doc.data();
       if (data.regionInicio && data.comunaInicio) {
         uniqueLocations.add(`${data.regionInicio} - ${data.comunaInicio}`);
@@ -1320,23 +1406,22 @@ app.get('/api/user-locations', verifyToken, async (req, res) => {
   }
 });
 
-
-app.get('/api/ranking', async (req, res) => {
+app.get("/api/ranking", async (req, res) => {
   try {
-    const statsSnapshot = await db.collection('userStats').get();
-    const usersSnapshot = await db.collection('users').get();
+    const statsSnapshot = await db.collection("userStats").get();
+    const usersSnapshot = await db.collection("users").get();
 
     const usersMap = new Map();
-    usersSnapshot.forEach(doc => usersMap.set(doc.id, doc.data()));
+    usersSnapshot.forEach((doc) => usersMap.set(doc.id, doc.data()));
 
     const ranking = [];
-    statsSnapshot.forEach(doc => {
+    statsSnapshot.forEach((doc) => {
       const stats = doc.data();
       const userInfo = usersMap.get(doc.id) || {};
       ranking.push({
         uid: doc.id,
         name: userInfo.name || "Usuario",
-        nivel: stats.nivel || 1
+        nivel: stats.nivel || 1,
       });
     });
 

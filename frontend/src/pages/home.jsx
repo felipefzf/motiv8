@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,} from "react";
 import axios from "axios";
 import "./Home.css"; // Importa el CSS externo
 import { Link } from "react-router-dom";
@@ -7,20 +7,28 @@ import { useAuth } from "../context/authContext";
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
 
-  const { token } = useAuth();
+  const { token,  } = useAuth();
   
 
   
-const reclamarRecompensa = (id) => {
-  axios.post("http://localhost:5000/api/user-missions/claim", { missionId: id }, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  .then(res => {
+const reclamarRecompensa = async (id) => {
+  try {
+    const res = await axios.post(
+      "http://localhost:5000/api/user-missions/claim",
+      { missionId: id },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
     setMisiones(res.data.missions);
     alert("🎉 Recompensa reclamada");
-  })
-  .catch(err => console.error("Error reclamando recompensa:", err));
+
+    // 👇 Aquí refrescas las coins en el perfil
+    
+  } catch (err) {
+    console.error("Error reclamando recompensa:", err);
+  }
 };
+
 
 
   const agregarTresMisiones = () => {
@@ -103,7 +111,7 @@ const reclamarRecompensa = (id) => {
                     <p>
                       Objetivo: {mision.targetValue} {mision.unit}
                     </p>
-                    <p>Recompensa: {mision.reward} pts</p>
+                    <p>Recompensa: {mision.reward} XP / {mision.coinReward} Coins</p>
 
                     {mision.completed ? (
                       // ✅ Si está completada, solo muestra el botón de recompensa

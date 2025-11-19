@@ -26,6 +26,25 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   // --- Carga de Datos Adicionales (Equipos, Stats, Ubicaciones) ---
   // Estos SÍ vale la pena traerlos aparte si no están dentro del objeto usuario
+  const fetchStats = async () => {
+    if (!user) return;
+    const token = localStorage.getItem("firebaseToken");
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/userStats/${user.uid}`,
+        config
+      );
+      setStats(res.data);
+    } catch (err) {
+      console.error("Error stats:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [user]);
 
   useEffect(() => {
     if (equipo && typeof setTeamColor === "function") {
@@ -106,7 +125,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     }
   };
 
-  
   // Renderizado seguro (ya no esperamos a 'perfil')
   if (!user) return <p>Cargando...</p>;
 
@@ -118,7 +136,9 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
       <h1 className="profile-title">MOTIV8</h1>
       <h2 className="profile-subtitle">Perfil</h2>
-
+      <p>
+        Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
+      </p>
       <div className="profile-content">
         <img
           // Usamos user.profile_image_url DIRECTAMENTE del contexto
@@ -163,7 +183,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           {user.name || "Sin nombre"}{" "}
           <span className="profile-level">Lvl: {stats?.nivelActual || 1}</span>
         </h4>
-          <h4 className="profile-name">
+        <h4 className="profile-name">
           {perfil?.name || "Sin nombre"}{" "}
           <span className="profile-level">
             Lvl: {stats?.nivelActual || 1} xp {stats?.puntos || 0} /{" "}
