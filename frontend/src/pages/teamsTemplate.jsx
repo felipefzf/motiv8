@@ -45,6 +45,7 @@ export default function Teams() {
         `http://localhost:5000/teams/user/${user.uid}`
       );
       setTeam(response.data);
+      
 
       // Obtener información de los miembros
       const membersRes = await axios.post(

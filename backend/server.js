@@ -653,7 +653,7 @@ app.post("/api/teams/:teamId/join", verifyToken, async (req, res) => {
       });
     });
 
-    res.status(200).send("Te has unido al equipo correctamente.");
+    res.status(200).json({ message: "Te has unido al equipo correctamente." });
   } catch (error) {
     console.error("Error joining team:", error);
     // Send specific error messages (like "Team not found") or a generic one

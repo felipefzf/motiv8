@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { auth } from '../firebaseConfig';
-// import './Teams.css';
 import { Link } from 'react-router-dom';
-
 
 export default function JoinTeam() {
   const [teams, setTeams] = useState([]);
@@ -11,15 +9,15 @@ export default function JoinTeam() {
   const [joiningTeamId, setJoiningTeamId] = useState(null);
 
   const fetchTeams = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/teams');
-        setTeams(response.data);
-      } catch (error) {
-        console.error('Error al obtener equipos:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const response = await axios.get('http://localhost:5000/teams');
+      setTeams(response.data);
+    } catch (error) {
+      console.error('Error al obtener equipos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTeams();
@@ -35,13 +33,19 @@ export default function JoinTeam() {
     setJoiningTeamId(teamId);
 
     try {
-      await axios.post(`http://localhost:5000/teams/${teamId}/join`, {
-        uid: user.uid
-      });
+      const token = localStorage.getItem('firebaseToken'); // 👈 Asegúrate de tener el token
+      const response = await axios.post(
+        `http://localhost:5000/api/teams/${teamId}/join`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      alert('Te has unido al equipo con éxito.');
-      await fetchTeams();
-      window.location.href = "/";
+      alert(response.data.message); // ✅ Lee el mensaje JSON correctamente
+      window.location.href = '/';   // ✅ Redirige después del alert
     } catch (error) {
       console.error('Error al unirse al equipo:', error);
       alert(error.response?.data?.error || 'Error al unirse al equipo.');
@@ -53,17 +57,13 @@ export default function JoinTeam() {
   return (
     <div className="container mt-5">
       <div className="container text-center">
-            <div className="row row-cols-2">
-              <button
-                style={{
-                }}
-              >
-                <Link to="/createTeam">
-                  Crear Equipo
-                </Link>
-              </button>
-            </div>
-          </div>
+        <div className="row row-cols-2">
+          <button>
+            <Link to="/createTeam">Crear Equipo</Link>
+          </button>
+        </div>
+      </div>
+
       <h2>Unirse a un equipo</h2>
       {loading ? (
         <p>Cargando equipos...</p>
