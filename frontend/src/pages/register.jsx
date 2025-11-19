@@ -1,9 +1,20 @@
 // frontend/src/App.jsx
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Register.css'; // 👈 Importamos los estilos externos
 import { regionesYcomunas } from "../utils/funcionUtils"
 import axios from 'axios';
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+import { canvasPreview, getCanvasBlob } from '../utils/canvasPreview';
+import styles from '../components/CreateTeamForm.module.css';
+
+function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
+  return centerCrop(
+    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
+    mediaWidth, mediaHeight
+  );
+}
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -12,8 +23,43 @@ export default function Register() {
   const [error, setError] = useState('');
   const [region, setRegion] = useState(''); 
   const [comuna, setComuna] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const [main_sport, setMain_sport] = useState('');
 
+  const [imgSrc, setImgSrc] = useState('');
+  const [crop, setCrop] = useState();
+  const [completedCrop, setCompletedCrop] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [blobToSend, setBlobToSend] = useState(null);
+  const imgRef = useRef(null);
+  const canvasRef = useRef(null);
 
+  const onSelectFile = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setCrop(undefined);
+      const reader = new FileReader();
+      reader.addEventListener('load', () => setImgSrc(reader.result.toString()));
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const onImageLoad = (e) => {
+    const { width, height } = e.currentTarget;
+    const newCrop = centerAspectCrop(width, height, 1);
+    setCrop(newCrop);
+    setCompletedCrop(newCrop);
+  };
+
+  const handleSaveCrop = async () => {
+    if (completedCrop && imgRef.current && canvasRef.current) {
+      canvasPreview(imgRef.current, canvasRef.current, completedCrop);
+      const blob = await getCanvasBlob(canvasRef.current);
+      setBlobToSend(blob);
+      setPreviewUrl(URL.createObjectURL(blob));
+      setImgSrc(''); // Ocultar cropper
+    }
+  };
 
   const handleRegionChange = (e) => {
     const selectedRegion = e.target.value;
@@ -36,14 +82,33 @@ export default function Register() {
         setError('Por favor, selecciona una Región y una Comuna.');
         return;
     }
+
+    setIsLoading(true);
+
+    console.log("Preparando FormData")
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
+    formData.append('name', name);
+    formData.append('region', region);
+    formData.append('comuna', comuna);
+    formData.append('main_sport', main_sport);
+
+    console.log("Estado del Blob de imagen:", blobToSend);
+
+    if (blobToSend) {
+      formData.append('profile_image_file', blobToSend, 'avatar.jpg');
+    }
+
     try {
+      console.log("Enviando fetch al backend...");
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name, region, comuna}),
+        body: formData,
       });
+
+      console.log("Respuesta recibida, status:", response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -98,6 +163,53 @@ export default function Register() {
             placeholder="Contraseña"
           />
         </div>
+        
+        <div className="form-group">
+          <select
+            id="main_sport"
+            value={main_sport}
+            onChange={(e) => setMain_sport(e.target.value)}
+            required
+            className='register-select'
+          >
+            <option value="">cuál es tu Deporte Principal?</option>
+            <option value="running">Running</option>
+            <option value="cycling">Cycling</option>
+          </select>
+        </div>
+        
+        <div>
+          <label style={{fontWeight: 'bold'}}>Foto de Perfil (Opcional):</label>
+          <input type="file" accept="image/*" onChange={onSelectFile} />
+        </div>
+
+        {/* Cropper UI (Reutilizando clases de CreateTeamForm si las importaste, o inline) */}
+        {!!imgSrc && (
+          <div className={styles.cropContainer}>
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={1}
+              circularCrop
+            >
+              <img ref={imgRef} alt="Crop me" src={imgSrc} onLoad={onImageLoad} style={{ maxHeight: '300px' }} />
+            </ReactCrop>
+            <button type="button" onClick={handleSaveCrop} style={{marginTop: 10, padding: '5px 10px', background: 'green', color: 'white', border: 'none'}}>
+              Confirmar Recorte
+            </button>
+          </div>
+        )}
+
+        {/* Vista Previa Final */}
+        {!!previewUrl && !imgSrc && (
+          <div style={{textAlign: 'center'}}>
+            <img src={previewUrl} alt="Avatar Previo" style={{width: 100, height: 100, borderRadius: '50%', border: '2px solid #ccc'}} />
+          </div>
+        )}
+
+        {/* Canvas Oculto */}
+        <canvas ref={canvasRef} style={{ display: 'none', width: completedCrop?.width, height: completedCrop?.height }} />
 
         <div className="form-group">
           <select

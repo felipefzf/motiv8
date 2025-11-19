@@ -41,9 +41,10 @@ app.use("/api", testRoutes);
 
 // FUNCIONES login y register usuarios
 // Register: Registrar un nuevo usuario
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", upload.single("profile_image_file"), async (req, res) => {
   try {
-    const { email, password, name, region, comuna } = req.body;
+    const { email, password, name, region, comuna, main_sport } = req.body;
+    const file = req.file
 
     // --- PASO 1: Crear el usuario en Firebase Authentication ---
     // Esto crea el registro de email/contraseña
@@ -51,7 +52,37 @@ app.post("/api/auth/register", async (req, res) => {
       email: email,
       password: password,
       displayName: name,
+      main_sport: main_sport || '',
     });
+
+    let profile_image_url = null;
+    
+    if (file) {
+      // Guardamos en una carpeta 'user_avatars'
+      const fileName = `profile_pictures/${userRecord.uid}-${file.originalname}`;
+      const blob = bucket.file(fileName);
+      
+      const blobStream = blob.createWriteStream({
+        metadata: { contentType: file.mimetype },
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on('error', (err) => reject(err));
+        blobStream.on('finish', async () => {
+          try {
+            const [url] = await blob.getSignedUrl({
+              action: 'read',
+              expires: '03-09-2491'
+            });
+            profile_image_url = url;
+            resolve(url);
+          } catch (err) {
+            reject(new Error("Error al firmar URL."));
+          }
+        });
+        blobStream.end(file.buffer);
+      });
+    }
 
     // --- PASO 2: Crear el documento en Firestore ---
     // Aquí es donde defines el rol por defecto
@@ -61,8 +92,10 @@ app.post("/api/auth/register", async (req, res) => {
       role: "user", // <--- ¡AQUÍ ESTÁ LA MAGIA!
       team_member: false,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      profile_image_url: profile_image_url,
       region: region,
       comuna: comuna,
+      main_sport: main_sport,
     };
 
     // Usamos el UID del usuario de Auth como ID del documento en Firestore
@@ -78,6 +111,7 @@ app.post("/api/auth/register", async (req, res) => {
       team_member: false,
       region: region,
       comuna: comuna,
+      profile_image_url: profile_image_url,
     });
 
     // navigate('/login');
@@ -106,6 +140,89 @@ app.get("/api/auth/me", verifyToken, (req, res) => {
 
   // Simplemente devolvemos el objeto 'user' que el middleware adjuntó
   res.status(200).json(req.user);
+});
+
+// Ruta para actualizar la foto de perfil
+app.post('/api/users/avatar', verifyToken, upload.single('profileImageFile'), async (req, res) => {
+  const user = req.user;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).send('No se subió ninguna imagen.');
+  }
+
+  try {
+    const fileName = `profile_pictures/${user.uid}-${Date.now()}.png`; // Nombre único con timestamp
+    const blob = bucket.file(fileName);
+    
+    const blobStream = blob.createWriteStream({
+      metadata: { contentType: file.mimetype },
+    });
+
+    await new Promise((resolve, reject) => {
+      blobStream.on('error', (err) => reject(err));
+      blobStream.on('finish', async () => {
+        try {
+          // Generar URL firmada de larga duración
+          const [url] = await blob.getSignedUrl({
+            action: 'read',
+            expires: '03-09-2491' 
+          });
+          resolve(url);
+
+          // Actualizar el usuario en Firestore
+          await db.collection('users').doc(user.uid).update({
+            profile_image_url: url
+          });
+
+          // Devolver la nueva URL al frontend
+          res.status(200).json({ message: 'Avatar actualizado', profile_image_url: url });
+
+        } catch (err) {
+          reject(new Error("Error al firmar URL."));
+        }
+      });
+      blobStream.end(file.buffer);
+    });
+
+  } catch (error) {
+    console.error("Error al actualizar avatar:", error);
+    res.status(500).send('Error interno al actualizar avatar.');
+  }
+});
+
+// Ruta para actualizar información del perfil (Texto)
+app.put('/api/users/profile', verifyToken, express.json(), async (req, res) => {
+  const user = req.user;
+  const { name, comuna, region, main_sport } = req.body;
+
+  // Validaciones simples
+  if (!name) {
+    return res.status(400).send('El nombre es obligatorio.');
+  }
+
+  try {
+    // Actualizar documento en Firestore
+    await db.collection('users').doc(user.uid).update({
+      name: name,
+      comuna: comuna || '',
+      region: region || '',
+      main_sport: main_sport || ''
+    });
+
+    // Devolver los datos actualizados
+    res.status(200).json({ 
+      message: 'Perfil actualizado correctamente',
+      user: { 
+        ...user, // Datos anteriores
+        name, comuna, region, main_sport // Datos nuevos
+      }
+    });
+
+  } catch (error) {
+    console.error("Error al actualizar perfil:", error);
+    res.status(500).send('Error interno al actualizar el perfil.');
+  }
 });
 
 // CRUD Misiones
@@ -952,6 +1069,31 @@ app.get("/api/users/:uid", async (req, res) => {
     res.status(500).send("Error interno al obtener usuario.");
   }
 });
+
+app.post("/api/users/avatar", verifyToken, upload.single("avatarFile"), async (req, res) => {
+  try {
+    const user = req.user
+    const file = req.file
+    if (!file) {
+      return res.status(400).send("Archivo requerido")
+    }
+
+    const fileName = `profile/picture/${user.uid}-${Date.now()}-${file.originalname}`
+    const fileUpload = bucket.file(fileName)
+    await fileUpload.save(file.buffer, {
+      metadata: { contentType: file.mimetype },
+    })
+    await fileUpload.makePublic()
+    const avatarUrl = fileUpload.publicUrl()
+
+    await db.collection("users").doc(user.uid).update({ avatar_url: avatarUrl })
+
+    res.status(200).json({ avatar_url: avatarUrl })
+  } catch (error) {
+    console.error("Error actualizando avatar:", error)
+    res.status(500).send("Error interno al actualizar avatar.")
+  }
+})
 
 app.post("/api/user/initStats", async (req, res) => {
   const { uid } = req.body;
