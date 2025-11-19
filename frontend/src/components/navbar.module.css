@@ -1,7 +1,8 @@
 /* === VARIABLES DE NAVBAR === */
+/* Ya NO fijamos colores acá, solo derivamos de las globales */
 :root {
-  /* 🌞 Modo claro */
-  --navbar-bg: #0066cc;
+  /* Valores por defecto basados en accent global */
+  --navbar-bg: var(--accent-color);
   --navbar-shadow: rgba(0, 0, 0, 0.1);
   --nav-icon-glow: #fefefe;
   --nav-bubble: #fefefe;
@@ -9,8 +10,8 @@
 }
 
 [data-theme="dark"] {
-  /* 🌙 Modo oscuro */
-  --navbar-bg: #ffd000ff;
+  /* En oscuro también derivamos del accent (que ya es amarillo en tu index.css) */
+  --navbar-bg: var(--accent-color);
   --navbar-shadow: rgba(255, 255, 255, 0.1);
   --nav-icon-glow: #fefefe;
   --nav-bubble: #fefefe;
@@ -41,8 +42,6 @@
 
   transition: background-color 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
 }
-
-
 
 /* === Burbuja animada === */
 .bubble {

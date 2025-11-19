@@ -18,19 +18,44 @@ import ActivityCreator from "./pages/activityCreator";
 import ActivityTracker from "./pages/activityTracker";
 
 function App() {
-  // 1️⃣ Estado del tema
   const [theme, setTheme] = useState(() => {
-    // Intenta obtener el tema guardado, o usa "dark" por defecto
     return localStorage.getItem("theme") || "dark";
   });
 
-  // 2️⃣ Cada vez que cambia el tema, actualiza <html> y guarda en localStorage
+  // 🎨 color del equipo global
+  const [teamColor, setTeamColor] = useState(() => {
+    return localStorage.getItem("teamColor") || "";
+  });
+
+  // aplicar tema y color de equipo cada vez que cambie theme o teamColor
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+
+    if (teamColor) {
+      document.documentElement.style.setProperty("--accent-color", teamColor);
+      document.documentElement.style.setProperty("--shadow-color", teamColor);
+    } else {
+      // color por defecto según tema
+      if (theme === "light") {
+        document.documentElement.style.setProperty("--accent-color", "#0066cc");
+        document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+      } else {
+        document.documentElement.style.setProperty(
+          "--accent-color",
+          "#ffd000ff"
+        );
+        document.documentElement.style.setProperty(
+          "--shadow-color",
+          "#ffd000ff"
+        );
+      }
+    }
+  }, [theme, teamColor]);
+
+  useEffect(() => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // 3️⃣ Función para cambiar tema
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
@@ -50,9 +75,24 @@ function App() {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="/about" element={<About />} />
-            {/* 🔆 Pasamos toggleTheme solo al perfil */}
-            <Route path="/profile" element={<Profile toggleTheme={toggleTheme} />} />
-            <Route path="/teams" element={<Teams />} />
+
+            {/* Profile recibe toggleTheme y setTeamColor para limpiar al cerrar sesión */}
+            <Route
+              path="/profile"
+              element={
+                <Profile
+                  toggleTheme={toggleTheme}
+                  setTeamColor={setTeamColor}
+                />
+              }
+            />
+
+            {/* Teams recibe setTeamColor para aplicar color según equipo */}
+            <Route
+              path="/teams"
+              element={<Teams setTeamColor={setTeamColor} />}
+            />
+
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/activityCreator" element={<ActivityCreator />} />
             <Route path="/activityTracker" element={<ActivityTracker />} />

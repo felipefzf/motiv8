@@ -24,7 +24,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  
 }
 
 .profile-image {
@@ -43,13 +42,11 @@
 
 .profile-level {
   color: var(--accent-color);
-  
 }
 
 .section-title {
   color: var(--accent-color);
   margin-top: 20px;
-  
 }
 
 .highlight {
@@ -110,6 +107,7 @@
   margin: 2px;
   font-size: 14px;
 }
+
 .profile-highlight {
   color: var(--accent-color);
   font-weight: bold;
