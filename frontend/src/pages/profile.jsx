@@ -7,16 +7,16 @@ import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
 // (No necesitas signOut ni auth aquí, el contexto lo maneja)
 import axios from "axios";
-import EditAvatarModal from '../components/editAvatarModal.jsx'; 
-import EditProfileModal from '../components/editProfileModal.jsx'; 
+import EditAvatarModal from "../components/editAvatarModal.jsx";
+import EditProfileModal from "../components/editProfileModal.jsx";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [theme, setTheme] = useState("dark");
-  
+
   // const [perfil, setPerfil] = useState(null); // <-- BORRADO (Redundante)
-  
+
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [equipo, setEquipo] = useState(null);
@@ -25,6 +25,23 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   // --- Carga de Datos Adicionales (Equipos, Stats, Ubicaciones) ---
   // Estos SÍ vale la pena traerlos aparte si no están dentro del objeto usuario
+
+  useEffect(() => {
+    if (equipo && typeof setTeamColor === "function") {
+      setTeamColor(equipo.team_color || "#ffd000ff"); // fallback si no hay color
+
+      // Aplicar color del equipo como variables CSS
+      document.documentElement.style.setProperty(
+        "--accent-color",
+        equipo.team_color || "#ffd000ff"
+      );
+      document.documentElement.style.setProperty(
+        "--shadow-color",
+        equipo.team_color || "#ffd000ff"
+      );
+    }
+  }, [equipo]);
+
   useEffect(() => {
     if (!user) return;
 
@@ -32,7 +49,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     // 1. Cargar Equipo
-    axios.get("http://localhost:5000/api/teams/my-team", config)
+    axios
+      .get("http://localhost:5000/api/teams/my-team", config)
       .then((res) => setEquipo(res.data))
       .catch((err) => {
         if (err.response?.status === 404) {
@@ -43,17 +61,18 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       });
 
     // 2. Cargar Estadísticas
-    axios.get(`http://localhost:5000/api/userStats/${user.uid}`, config) // Asumo que esto necesita token
+    axios
+      .get(`http://localhost:5000/api/userStats/${user.uid}`, config) // Asumo que esto necesita token
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error stats:", err));
 
     // 3. Cargar Ubicaciones
-    axios.get("http://localhost:5000/api/user-locations", config)
+    axios
+      .get("http://localhost:5000/api/user-locations", config)
       .then((res) => setUbicaciones(res.data))
       .catch((err) => console.error("Error ubicaciones:", err));
-      
-    // --- NOTA: BORRAMOS LA LLAMADA A /api/users/${user.uid} ---
 
+    // --- NOTA: BORRAMOS LA LLAMADA A /api/users/${user.uid} ---
   }, [user]);
 
   // Lógica del tema (sin cambios)
@@ -75,36 +94,18 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   };
 
   const handleLogout = async () => {
-      try {
-        await signOut(auth);
-        localStorage.removeItem("firebaseToken");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("teamColor");
-        navigate("/login", { replace: true });
-      } catch (error) {
-        console.error("Error al cerrar sesión:", error);
-      }
-    };
+    try {
+      await signOut(auth);
+      localStorage.removeItem("firebaseToken");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("teamColor");
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
-    if (typeof setTeamColor === "function") {
-        setTeamColor("");
-      }
-
-      const currentTheme =
-        document.documentElement.getAttribute("data-theme") || "dark";
-      if (currentTheme === "light") {
-        document.documentElement.style.setProperty("--accent-color", "#0066cc");
-        document.documentElement.style.setProperty("--shadow-color", "#0066cc");
-      } else {
-        document.documentElement.style.setProperty(
-          "--accent-color",
-          "#ffd000ff"
-        );
-        document.documentElement.style.setProperty(
-          "--shadow-color",
-          "#ffd000ff"
-        );
-      }
+  
   // Renderizado seguro (ya no esperamos a 'perfil')
   if (!user) return <p>Cargando...</p>;
 
@@ -120,24 +121,38 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <div className="profile-content">
         <img
           // Usamos user.profile_image_url DIRECTAMENTE del contexto
-          src={user.profile_image_url || tomy} 
+          src={user.profile_image_url || tomy}
           className="profile-image rounded-circle border"
           alt="Perfil de usuario"
-          style={{ objectFit: 'cover', width: '150px', height: '150px', display: 'block', margin: '0 auto' }} 
+          style={{
+            objectFit: "cover",
+            width: "150px",
+            height: "150px",
+            display: "block",
+            margin: "0 auto",
+          }}
         />
 
         <div style={{ marginTop: 15, marginBottom: 15 }}>
-          <button 
-            className="btn btn-primary btn-sm" 
+          <button
+            className="btn btn-primary btn-sm"
             onClick={() => setAvatarModalOpen(true)}
           >
             Cambiar foto
           </button>
         </div>
-        
-        <button 
-          onClick={() => setInfoModalOpen(true)} 
-          style={{ background: 'none', border: 'none', color: '#007bff', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.9em', marginBottom: '10px' }}
+
+        <button
+          onClick={() => setInfoModalOpen(true)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#007bff",
+            textDecoration: "underline",
+            cursor: "pointer",
+            fontSize: "0.9em",
+            marginBottom: "10px",
+          }}
         >
           Editar información
         </button>
@@ -145,13 +160,11 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <h4 className="profile-name">
           {/* Usamos user.name DIRECTAMENTE */}
           {user.name || "Sin nombre"}{" "}
-          <span className="profile-level">
-            Lvl: {stats?.nivelActual || 1}
-          </span>
+          <span className="profile-level">Lvl: {stats?.nivelActual || 1}</span>
         </h4>
-        
+
         <br />
-        
+
         <p>
           Ubicación:{" "}
           <span className="profile-level">
@@ -228,8 +241,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </div>
 
         <h3 className="section-title">Logros y Medallas</h3>
-        <div className="achievements">
-        </div>
+        <div className="achievements"></div>
 
         <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">
@@ -237,13 +249,13 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </button>
       </div>
 
-      <EditAvatarModal 
-        isOpen={isAvatarModalOpen} 
-        onClose={() => setAvatarModalOpen(false)} 
+      <EditAvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setAvatarModalOpen(false)}
       />
-      <EditProfileModal 
-        isOpen={isInfoModalOpen} 
-        onClose={() => setInfoModalOpen(false)} 
+      <EditProfileModal
+        isOpen={isInfoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
       />
     </div>
   );
