@@ -1,35 +1,59 @@
-import { useEffect, useState,} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import "./Home.css"; // Importa el CSS externo
+import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
+  const [emparejados, setEmparejados] = useState({});
+  const { token, user } = useAuth();
 
-  const { token,  } = useAuth();
-  
+  // Reclamar recompensa y disolver emparejamiento
+  const reclamarRecompensa = async (id) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/user-missions/claim",
+        { missionId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  
-const reclamarRecompensa = async (id) => {
-  try {
-    const res = await axios.post(
-      "http://localhost:5000/api/user-missions/claim",
-      { missionId: id },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+      setMisiones(res.data.missions);
+      alert("🎉 Recompensa reclamada");
 
-    setMisiones(res.data.missions);
-    alert("🎉 Recompensa reclamada");
+      // disolver emparejamiento al completar misión
+      await axios.post(
+        "http://localhost:5000/api/match/stop",
+        { missionId: id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEmparejados((prev) => ({ ...prev, [id]: [] }));
+    } catch (err) {
+      console.error("Error reclamando recompensa:", err);
+    }
+  };
 
-    // 👇 Aquí refrescas las coins en el perfil
-    
-  } catch (err) {
-    console.error("Error reclamando recompensa:", err);
-  }
-};
-
-
+  // Alternar emparejamiento
+  const toggleEmparejar = async (missionId, isEmparejando) => {
+    try {
+      if (!isEmparejando) {
+        await axios.post(
+          "http://localhost:5000/api/match/start",
+          { missionId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        await axios.post(
+          "http://localhost:5000/api/match/stop",
+          { missionId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEmparejados((prev) => ({ ...prev, [missionId]: [] }));
+      }
+    } catch (err) {
+      console.error("Error en emparejamiento:", err);
+    }
+  };
 
   const agregarTresMisiones = () => {
     // Si el usuario aún tiene misiones activas, no permitir agregar nuevas
@@ -58,31 +82,33 @@ const reclamarRecompensa = async (id) => {
       });
   };
 
+  // Polling para obtener usuarios emparejados
   useEffect(() => {
-    if (!token) return; // Espera a que el token esté disponible
+    const interval = setInterval(async () => {
+      for (const m of misiones) {
+        try {
+          const res = await axios.get(
+            `http://localhost:5000/api/match/${m.id}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setEmparejados((prev) => ({ ...prev, [m.id]: res.data }));
+        } catch (err) {
+          console.error("Error obteniendo emparejados:", err);
+        }
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [misiones, token]);
 
+  // Cargar misiones
+  useEffect(() => {
+    if (!token) return;
     axios
       .get("http://localhost:5000/api/user-missions", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => setMisiones(res.data))
-      .catch((err) => {
-        if (err.response?.status === 404) {
-          // Si no hay misiones asignadas, asignar nuevas
-          axios
-            .post(
-              "http://localhost:5000/api/user-missions/assign-3",
-              {},
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
-            )
-            .then((res) => setMisiones(res.data.missions))
-            .catch((err) => console.error("Error asignando misiones:", err));
-        } else {
-          console.error("Error obteniendo misiones:", err);
-        }
-      });
+      .catch((err) => console.error("Error obteniendo misiones:", err));
   }, [token]);
 
   return (
@@ -92,46 +118,51 @@ const reclamarRecompensa = async (id) => {
 
       <div className="missions-section">
         <h3 className="missions-title">Misiones asignadas</h3>
-        <br />
         <div className="container text-center">
           <div className="row row-cols-2">
             {misiones.map((mision, index) => {
               const progreso = mision.progressValue || 0;
-              const porcentaje = Math.min(
-                (progreso / mision.targetValue) * 100,
-                100
-              );
+              const porcentaje = Math.min((progreso / mision.targetValue) * 100, 100);
               const restante = Math.max(mision.targetValue - progreso, 0);
+              const isEmparejando = emparejados[mision.id]?.some(u => u.uid === user.uid);
 
               return (
                 <div className="card-home" key={index}>
                   <div className="card-body">
                     <p className="mission-text">{mision.name}</p>
                     <p>Descripción: {mision.description}</p>
-                    <p>
-                      Objetivo: {mision.targetValue} {mision.unit}
-                    </p>
+                    <p>Objetivo: {mision.targetValue} {mision.unit}</p>
                     <p>Recompensa: {mision.reward} XP / {mision.coinReward} Coins</p>
 
                     {mision.completed ? (
-                      // ✅ Si está completada, solo muestra el botón de recompensa
-                      <button className="btn-recompensa" onClick={() => reclamarRecompensa(mision.id)}>Recoger recompensa</button>
+                      <button className="btn-recompensa" onClick={() => reclamarRecompensa(mision.id)}>
+                        Recoger recompensa
+                      </button>
                     ) : (
-                      // ✅ Si NO está completada, muestra barra y controles
                       <>
-                        <progress value={progreso} max={mision.targetValue}>
-                          {porcentaje.toFixed(1)}% completado
-                        </progress>
+                        <progress value={progreso} max={mision.targetValue}></progress>
                         <p>{porcentaje.toFixed(1)}% completado</p>
+                        <p>Te faltan {restante.toFixed(1)} {mision.unit}</p>
 
-                        {/* Mostrar unidad correcta */}
-                        <p>
-                          Te faltan {restante.toFixed(1)} {mision.unit}
-                        </p>
-
-                        {/* Botones de acción */}
                         <button className="btn-solo">HACER EN SOLITARIO</button>
-                        <button className="btn-emparejar">EMPAREJAR</button>
+                        <button
+                          className="btn-emparejar"
+                          onClick={() => toggleEmparejar(mision.id, isEmparejando)}
+                        >
+                          {isEmparejando ? "STOP" : "EMPAREJAR"}
+                        </button>
+
+                        {/* Mostrar usuarios emparejados */}
+                        {emparejados[mision.id]?.length > 0 && (
+                          <div className="emparejados-list">
+                            <h5>Usuarios emparejados:</h5>
+                            <ul>
+                              {emparejados[mision.id].map((u) => (
+                                <li key={u.uid}>{u.name} (Nivel {u.nivel})</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
@@ -143,15 +174,12 @@ const reclamarRecompensa = async (id) => {
       </div>
 
       {misiones.length === 0 && (
-        <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
+        <button className="btn btn-dark mb-3" onClick={() => agregarTresMisiones()}>
           AGREGAR 3 MISIONES
         </button>
       )}
 
-      <br />
-      <Link to="/activityCreator" className="btn-registrar">
-        Registrar Actividad
-      </Link>
+      <Link to="/activityCreator" className="btn-registrar">Registrar Actividad</Link>
     </div>
   );
 }

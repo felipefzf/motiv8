@@ -1493,6 +1493,92 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
   }
 });
 
+//--- MATCH
+
+// Iniciar emparejamiento
+app.post("/api/match/start", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId } = req.body;
+
+  try {
+    const userStatsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await userStatsRef.get();
+    const stats = statsDoc.exists ? statsDoc.data() : {};
+
+    const userRef = db.collection("users").doc(userId);
+    const userDoc = await userRef.get();
+    const userInfo = userDoc.exists ? userDoc.data() : {};
+
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    let users = [];
+    if (matchDoc.exists) {
+      users = matchDoc.data().users || [];
+    }
+
+    // Evitar duplicados
+    if (!users.find((u) => u.uid === userId)) {
+      users.push({
+        uid: userId,
+        name: userInfo.name || "Usuario",
+        nivel: stats.nivelActual || stats.nivel || 1,
+      });
+    }
+
+    await matchRef.set({ missionId, users });
+    res.status(200).json({ message: "Emparejamiento iniciado", users });
+  } catch (error) {
+    console.error("Error iniciando emparejamiento:", error);
+    res.status(500).send("Error interno al iniciar emparejamiento.");
+  }
+});
+
+// Detener emparejamiento
+app.post("/api/match/stop", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId } = req.body;
+
+  try {
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (!matchDoc.exists) {
+      return res.status(200).json({ message: "No había emparejamiento activo" });
+    }
+
+    let users = matchDoc.data().users || [];
+    users = users.filter((u) => u.uid !== userId);
+
+    await matchRef.set({ missionId, users });
+    res.status(200).json({ message: "Emparejamiento detenido", users });
+  } catch (error) {
+    console.error("Error deteniendo emparejamiento:", error);
+    res.status(500).send("Error interno al detener emparejamiento.");
+  }
+});
+
+// Obtener usuarios emparejados
+app.get("/api/match/:missionId", verifyToken, async (req, res) => {
+  const { missionId } = req.params;
+
+  try {
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (!matchDoc.exists) {
+      return res.status(200).json([]);
+    }
+
+    res.status(200).json(matchDoc.data().users || []);
+  } catch (error) {
+    console.error("Error obteniendo emparejados:", error);
+    res.status(500).send("Error interno al obtener emparejados.");
+  }
+});
+
+// 👇 Ajuste en /claim para disolver emparejamiento
+// Dentro de tu ruta /api/user-missions/claim, después de actualizar stats:
 
 
 
