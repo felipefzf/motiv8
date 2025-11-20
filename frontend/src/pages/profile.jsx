@@ -24,6 +24,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
 
+  // 1. Nuevo Estado para Actividades
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+
   // --- Carga de Datos Adicionales (Equipos, Stats, Ubicaciones) ---
   // Estos SÍ vale la pena traerlos aparte si no están dentro del objeto usuario
   const fetchStats = async () => {
@@ -61,6 +65,32 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       );
     }
   }, [equipo]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchActivities = async () => {
+      const token = localStorage.getItem('firebaseToken');
+      if (!token) return;
+
+      try {
+        const response = await fetch('/api/activities', { // (Recuerda usar tu IP/proxy)
+           headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setActivities(data);
+        }
+      } catch (error) {
+        console.error("Error cargando actividades:", error);
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    fetchActivities();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -265,6 +295,58 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
         <h3 className="section-title">Logros y Medallas</h3>
         <div className="achievements"></div>
+
+        <h3 className="section-title">Historial de Actividades</h3>
+       
+       <div className="activities-list">
+         {loadingActivities ? (
+           <p>Cargando actividades...</p>
+         ) : activities.length === 0 ? (
+           <p style={{ color: '#666', fontStyle: 'italic' }}>Aún no tienes actividades registradas.</p>
+         ) : (
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+             {activities.map(activity => (
+               <div key={activity.id} className="activity-card" style={{ 
+                 border: '1px solid #ddd', 
+                 borderRadius: '8px', 
+                 padding: '15px',
+                 backgroundColor: 'white', // O usa variables de tema
+                 textAlign: 'left'
+               }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                   <span style={{ fontWeight: 'bold', textTransform: 'capitalize', color: '#007bff' }}>
+                     {activity.title || 'Actividad'}
+                   </span>
+                   <span style={{ fontWeight: 'bold', textTransform: 'capitalize', color: '#007bff' }}>
+                     {activity.type || 'Actividad'} activity
+                   </span>
+                   <span style={{ fontSize: '0.9em', color: '#666' }}>
+                     {new Date(activity.date).toLocaleDateString()}
+                   </span>
+                 </div>
+
+                 <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '10px' }}>
+                   <div>
+                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Distancia</span>
+                     <strong>{activity.distance.toFixed(2)} km</strong>
+                   </div>
+                   <div>
+                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Tiempo</span>
+                     <strong>{(activity.time / 60).toFixed(0)} min</strong>
+                   </div>
+                   <div>
+                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Velocidad</span>
+                     <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
+                   </div>
+                 </div>
+                 
+                 {/* (Opcional) Botón para ver detalles o mapa */}
+                 {/* <button style={{ width: '100%', padding: '5px' }}>Ver Ruta</button> */}
+               </div>
+             ))}
+           </div>
+         )}
+       </div>
 
         <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">

@@ -393,6 +393,7 @@ app.post('/api/activities', verifyToken, express.json(), async (req, res) => {
   
   // 1. Desestructuramos los datos que envía el frontend
   const { 
+    title,
     type, 
     distance, // en km
     time,     // en segundos
@@ -425,6 +426,7 @@ app.post('/api/activities', verifyToken, express.json(), async (req, res) => {
     }
     // 3. Prepara el objeto de la actividad
     const newActivity = {
+      title: title || 'Actividad',
       userId: user.uid, // Vinculamos la actividad al usuario
       userName: user.name || 'Usuario', // Opcional: útil para leaderboards
       type: type || 'running',

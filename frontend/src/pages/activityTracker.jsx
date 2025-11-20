@@ -12,6 +12,8 @@ function ActivityTracker() {
   const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'finished'
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0); // Segundos
+  const [activityType, setActivityType] = useState('Running');
+  const [title, setTitle] = useState('');
   
   // Datos Geográficos
   const [startPos, setStartPos] = useState(null);
@@ -95,8 +97,12 @@ function ActivityTracker() {
     const token = localStorage.getItem('firebaseToken');
     const avgSpeed = (routeData.distanceKm / (elapsedTime / 3600)); // km/h
 
+    const defaultTitle = `${activityType} - ${new Date().toLocaleDateString()}`;
+    const finalTitle = title.trim() === '' ? defaultTitle : title;
+
     const activityPayload = {
-      type: 'running', // O podrías poner un selector
+      title: finalTitle,
+      type: activityType, // O podrías poner un selector
       distance: routeData.distanceKm,
       time: elapsedTime, // segundos
       avgSpeed: avgSpeed,
@@ -127,6 +133,7 @@ function ActivityTracker() {
       setEndPos(null);
       setRouteData(null);
       setElapsedTime(0);
+      setTitle('');
 
     } catch (e) {
       setError(e.message);
@@ -145,6 +152,27 @@ function ActivityTracker() {
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
       <h2>Registrar Actividad</h2>
+      {status === 'idle' && (
+        <div style={{ marginBottom: '20px', textAlign: 'center' }}>
+          <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Elige tu deporte:</label>
+          <select 
+            value={activityType} 
+            onChange={(e) => setActivityType(e.target.value)}
+            style={{ padding: '10px', fontSize: '1rem', borderRadius: '5px' }}
+          >
+            <option value="Running">🏃‍♂️ Correr</option>
+            <option value="Cycling">🚴‍♀️ Ciclismo</option>
+            <option value="Walking">🚶 Caminata</option>
+          </select>
+        </div>
+      )}
+
+      {/* Muestra el deporte elegido mientras corre */}
+      {status !== 'idle' && (
+        <div style={{ textAlign: 'center', marginBottom: '10px', color: '#666' }}>
+          Actividad: <strong>{activityType === 'Running' ? 'Corriendo' : activityType === 'Cycling' ? 'Ciclismo' : 'Caminata'}</strong>
+        </div>
+      )}
       
       {/* Cronómetro Gigante */}
       <div style={{ fontSize: '3rem', textAlign: 'center', margin: '20px 0', fontFamily: 'monospace' }}>
@@ -171,10 +199,33 @@ function ActivityTracker() {
       {/* Resumen Final y Mapa */}
       {status === 'finished' && routeData && (
         <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '15px', background: '#f9f9f9' }}>
-          <h3>Resumen</h3>
-          <p><strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km</p>
-          <p><strong>Ritmo:</strong> {(routeData.distanceKm / (elapsedTime/3600)).toFixed(1)} km/h</p>
+          <h3>Resumen de Actividad</h3>
           
+          {/* --- 3. AQUÍ AGREGAMOS EL INPUT DEL TÍTULO --- */}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#333' }}>
+              Nombre de la actividad:
+            </label>
+            <input 
+              type="text" 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              placeholder={`Ej: ${activityType} por el parque`}
+              style={{ 
+                width: '100%', 
+                padding: '10px', 
+                borderRadius: '5px', 
+                border: '1px solid #ccc',
+                fontSize: '1rem'
+              }} 
+            />
+          </div>
+          {/* --------------------------------------------- */}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+             <p><strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km</p>
+             <p><strong>Ritmo:</strong> {(routeData.distanceKm / (elapsedTime/3600)).toFixed(1)} km/h</p>
+          </div>
           {/* Mapa de Resultados */}
           <div style={{ height: '250px', margin: '15px 0' }}>
              <ActivityMap 
