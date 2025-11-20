@@ -1260,6 +1260,8 @@ app.post(
   }
 );
 
+
+
 app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   const { missionId } = req.body;
@@ -1279,7 +1281,7 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
       return res.status(400).send("La misión no está completada o no existe.");
     }
 
-    // Eliminar misión reclamada del usuario actual
+    // --- Eliminar misión reclamada del usuario actual ---
     const updatedMissions = data.missions.filter((m) => m.id !== missionId);
     await userMissionRef.set({
       ...data,
@@ -1287,11 +1289,11 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
       assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Recompensas
+    // --- Recompensas ---
     const rewardPoints = missionToClaim.reward || 0;
     const rewardCoins = missionToClaim.coinReward || 0;
 
-    // Actualizar stats del usuario actual
+    // --- Actualizar stats del usuario actual ---
     const userStatsRef = db.collection("userStats").doc(userId);
     const statsDoc = await userStatsRef.get();
 
@@ -1316,6 +1318,7 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
         nivelActual,
         nivelSiguiente,
         puntosParaSiguienteNivel,
+        misionesCompletas: (stats.misionesCompletas || 0) + 1, // ✅ contador actualizado
         ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     } else {
@@ -1333,11 +1336,12 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
         insigniasGanadas: 0,
         puntos: nuevosPuntos,
         nivel: nivelActual,
+        misionesCompletas: 1, // ✅ inicializado en 1
         ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
 
-    // ✅ Emparejamiento cooperativo
+    // --- Emparejamiento cooperativo ---
     const matchRef = db.collection("mission_matches").doc(missionId);
     const matchDoc = await matchRef.get();
 
@@ -1363,15 +1367,16 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
           await otherStatsRef.update({
             puntos: admin.firestore.FieldValue.increment(rewardPoints),
             coins: admin.firestore.FieldValue.increment(rewardCoins),
+            misionesCompletas: admin.firestore.FieldValue.increment(1), // ✅ también para los emparejados
             ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
           });
         }
       }
 
-      // Disolver emparejamiento al completar la misión
+      // --- Disolver emparejamiento ---
       await matchRef.delete();
 
-      // 🔥 Emitir evento en tiempo real a todos los sockets en la sala de esa misión
+      // --- Emitir evento en tiempo real ---
       io.to(missionId).emit("missionCompleted", { missionId });
     }
 
@@ -1410,6 +1415,7 @@ function calcularProgresoNivel(puntos) {
     puntosParaSiguienteNivel,
   };
 }
+
 
 
 
@@ -1724,6 +1730,87 @@ app.post("/api/user-missions/mark-completed", verifyToken, async (req, res) => {
     res.status(500).send("Error interno.");
   }
 });
+//--RECOMPENSAS DE NIVEL 
+
+app.post("/api/profile/reward", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { option } = req.body; // "coins", "xp", "cupon"
+
+  try {
+    const userStatsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    if (!statsDoc.exists) {
+      return res.status(404).send("No se encontraron estadísticas del usuario.");
+    }
+
+    const stats = statsDoc.data();
+    const nivelActual = stats.nivelActual || 1;
+    const ultimoNivelRecompensado = stats.ultimoNivelRecompensado || 0;
+
+    // ✅ Validación: solo niveles múltiplos de 2 y no repetidos
+    if (nivelActual % 2 !== 0 || nivelActual <= ultimoNivelRecompensado) {
+      return res.status(403).send("Ya reclamaste recompensa en este nivel o no corresponde.");
+    }
+
+    let recompensa = null;
+
+    if (option === "coins") {
+      const cantidad = recompensaCoins();
+      await userStatsRef.update({
+        coins: (stats.coins || 0) + cantidad,
+        ultimoNivelRecompensado: nivelActual, // ✅ guardar nivel reclamado
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      recompensa = `${cantidad} Coins`;
+    }
+
+    if (option === "xp") {
+      const boost = recompensaBoost();
+      await userStatsRef.update({
+        xpBoost: { factor: boost, misionesRestantes: 3 },
+        ultimoNivelRecompensado: nivelActual,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      recompensa = `Boost XP x${boost} en próximas 3 misiones`;
+    }
+
+    if (option === "cupon") {
+      const cupon = recompensaCupon();
+      recompensa = cupon;
+      const updateData = {
+        ultimoNivelRecompensado: nivelActual,
+        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      if (cupon.includes("Cupón")) {
+        updateData.cuponPremium = true;
+      }
+      await userStatsRef.update(updateData);
+    }
+
+    res.status(200).json({ message: "Recompensa otorgada", recompensa });
+  } catch (error) {
+    console.error("Error otorgando recompensa:", error);
+    res.status(500).send("Error interno al otorgar recompensa.");
+  }
+});
+
+// Funciones auxiliares
+function recompensaCoins() {
+  const valores = Array.from({ length: 16 }, (_, i) => (i + 1) * 50);
+  return valores[Math.floor(Math.random() * valores.length)];
+}
+
+function recompensaBoost() {
+  const boosts = [1.5, 3, 5];
+  return boosts[Math.floor(Math.random() * boosts.length)];
+}
+
+function recompensaCupon() {
+  const prob = Math.random();
+  return prob <= 0.2 ? "Cupón 20% PREMIUM" : "Sigue intentándolo en el próximo nivel";
+}
+
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
