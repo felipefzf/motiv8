@@ -1613,6 +1613,8 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
 //--- MATCH
 const missionGroups = {};
 const missionEvents = {}; // { missionId: [ { uid, message, timestamp } ] }
+
+
 // Iniciar emparejamiento
 app.post("/api/match/start", verifyToken, async (req, res) => {
   const userId = req.user.uid;
@@ -1654,19 +1656,35 @@ app.post("/api/match/start", verifyToken, async (req, res) => {
 
 // Detener emparejamiento
 // POST /api/match/stop
-app.post("/api/match/stop", (req, res) => {
+app.post("/api/match/stop", async (req, res) => {
   const { missionId, uid, name } = req.body;
 
+  // ✅ Eliminar del grupo en memoria
   if (missionGroups[missionId]) {
     missionGroups[missionId] = missionGroups[missionId].filter(u => u.uid !== uid);
   }
 
+  // ✅ Eliminar del grupo en Firestore
+  try {
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (matchDoc.exists) {
+      const users = matchDoc.data().users || [];
+      const updatedUsers = users.filter(u => u.uid !== uid);
+      await matchRef.set({ missionId, users: updatedUsers });
+    }
+  } catch (err) {
+    console.error("Error eliminando usuario de Firestore:", err);
+  }
+
+  // ✅ Registrar evento de salida
   if (!missionEvents[missionId]) missionEvents[missionId] = [];
   missionEvents[missionId].push({
     uid,
     message: `${name} abandonó el grupo`,
     timestamp: Date.now(),
-    type: "userLeft",
+    type: "userLeft"
   });
 
   res.json({ success: true });
@@ -1675,8 +1693,13 @@ app.post("/api/match/stop", (req, res) => {
 
 app.get("/api/match/:missionId/events", (req, res) => {
   const { missionId } = req.params;
-  res.json(missionEvents[missionId] || []);
+  const now = Date.now();
+  const recentEvents = (missionEvents[missionId] || []).filter(
+    (e) => now - e.timestamp < 10000 // últimos 10 segundos
+  );
+  res.json(recentEvents);
 });
+
 
 
 // Obtener usuarios emparejados

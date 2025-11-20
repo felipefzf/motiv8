@@ -13,37 +13,41 @@ export default function Home() {
   const [emparejandoEnCurso, setEmparejandoEnCurso] = useState({});
   const [eventosVistos, setEventosVistos] = useState({});
 
-
-
-
+  useEffect(() => {
+    misiones.forEach((m) => {
+      const estaEmparejado = emparejados[m.id]?.some((u) => u.uid === user.uid);
+      if (estaEmparejado) {
+        socket.emit("joinMission", m.id);
+      }
+    });
+  }, [emparejados, misiones, user]);
 
   useEffect(() => {
-  const interval = setInterval(async () => {
-    for (const m of misiones) {
-      try {
-        const res = await axios.get(
-          `http://localhost:5000/api/match/${m.id}/events`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+    const interval = setInterval(async () => {
+      for (const m of misiones) {
+        try {
+          const res = await axios.get(
+            `http://localhost:5000/api/match/${m.id}/events`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
 
-        res.data.forEach((event) => {
-          const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
-          if (!yaVisto) {
-            alert(event.message); // ✅ solo una vez
-            setEventosVistos((prev) => ({
-              ...prev,
-              [m.id]: [...(prev[m.id] || []), event.timestamp],
-            }));
-          }
-        });
-      } catch (err) {
-        console.error("Error obteniendo eventos:", err);
+          res.data.forEach((event) => {
+            const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
+            if (!yaVisto) {
+              alert(event.message); // ✅ solo una vez
+              setEventosVistos((prev) => ({
+                ...prev,
+                [m.id]: [...(prev[m.id] || []), event.timestamp],
+              }));
+            }
+          });
+        } catch (err) {
+          console.error("Error obteniendo eventos:", err);
+        }
       }
-    }
-  }, 5000);
-  return () => clearInterval(interval);
-}, [misiones, token, eventosVistos]);
-
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [misiones, token, eventosVistos]);
 
   // 🔑 Cargar misiones
   const fetchMisiones = async () => {
@@ -56,7 +60,6 @@ export default function Home() {
       console.error("Error obteniendo misiones:", err);
     }
   };
-  
 
   // ✅ Conectar socket una vez
   useEffect(() => {
@@ -113,7 +116,10 @@ export default function Home() {
         { missionId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setEmparejados((prev) => ({ ...prev, [id]: [] }));
+      setEmparejados((prev) => ({
+        ...prev,
+        [id]: prev[id]?.filter((u) => u.uid !== user.uid) || [],
+      }));
 
       await fetchMisiones();
     } catch (err) {
@@ -137,14 +143,18 @@ export default function Home() {
         await axios.post(
           "http://localhost:5000/api/match/stop",
           {
-    missionId,
-    uid: user.uid,
-    name: user.name,
-  },
-  { headers: { Authorization: `Bearer ${token}` } }
+            missionId,
+            uid: user.uid,
+            name: user.name,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        setEmparejados((prev) => ({ ...prev, [missionId]: [] }));
+        setEmparejados((prev) => ({
+          ...prev,
+          [missionId]: prev[missionId]?.filter((u) => u.uid !== user.uid) || [],
+        }));
+        setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
         setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
       }
     } catch (err) {
@@ -152,13 +162,15 @@ export default function Home() {
     }
   };
   useEffect(() => {
+    if (!socket) return;
+
     misiones.forEach((m) => {
-  const estaEmparejado = emparejados[m.id]?.some(u => u.uid === user.uid);
-  if (estaEmparejado) {
-    socket.emit("joinMission", m.id);
-  }
-});
-  }, [emparejados, misiones, user]);
+      const estaEmparejado = emparejados[m.id]?.some((u) => u.uid === user.uid);
+      if (estaEmparejado) {
+        socket.emit("joinMission", m.id);
+      }
+    });
+  }, [socket, misiones, emparejados, user]);
 
   const agregarTresMisiones = () => {
     if (misiones.length > 0) {
