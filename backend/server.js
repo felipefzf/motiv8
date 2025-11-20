@@ -1408,30 +1408,65 @@ app.get("/api/user-locations", verifyToken, async (req, res) => {
 
 app.get("/api/ranking", async (req, res) => {
   try {
+    const { comuna } = req.query; // opcional: filtrar por comuna
+
     const statsSnapshot = await db.collection("userStats").get();
     const usersSnapshot = await db.collection("users").get();
 
     const usersMap = new Map();
     usersSnapshot.forEach((doc) => usersMap.set(doc.id, doc.data()));
 
-    const ranking = [];
+    let ranking = [];
     statsSnapshot.forEach((doc) => {
       const stats = doc.data();
       const userInfo = usersMap.get(doc.id) || {};
       ranking.push({
         uid: doc.id,
         name: userInfo.name || "Usuario",
-        nivel: stats.nivel || 1,
+        nivel: stats.nivelActual || stats.nivel || 1,
+        distancia: stats.distanciaTotalKm || 0,
+        misiones: stats.misionesCompletas || 0,
+        comuna: userInfo.comuna || stats.comuna || null,
       });
     });
 
-    ranking.sort((a, b) => b.nivel - a.nivel); // Ordenar por nivel descendente
-    res.status(200).json(ranking);
+    // --- Filtrar por comuna si se pasa en query ---
+    if (comuna) {
+      ranking = ranking.filter((u) => u.comuna === comuna);
+    }
+
+    // --- Comunas disponibles (solo las que tienen usuarios) ---
+    const comunasDisponibles = [
+      ...new Set(ranking.filter((u) => u.comuna).map((u) => u.comuna)),
+    ];
+
+    // --- Calcular máximos ---
+    const maxNivel = ranking.reduce((a, b) => (a.nivel > b.nivel ? a : b));
+    const maxDistancia = ranking.reduce((a, b) =>
+      a.distancia > b.distancia ? a : b
+    );
+    const maxMisiones = ranking.reduce((a, b) =>
+      a.misiones > b.misiones ? a : b
+    );
+
+    // --- Ordenar por filtro principal (nivel por defecto) ---
+    ranking.sort((a, b) => b.nivel - a.nivel);
+
+    res.status(200).json({
+      usuarios: ranking,
+      comunasDisponibles,
+      destacados: {
+        maxNivel,
+        maxDistancia,
+        maxMisiones,
+      },
+    });
   } catch (error) {
     console.error("Error obteniendo ranking:", error);
     res.status(500).send("Error interno al obtener ranking.");
   }
 });
+
 
 // --- SHOP ---
 
@@ -1519,6 +1554,7 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
     res.status(500).send("Error interno al procesar la compra.");
   }
 });
+
 
 
 
