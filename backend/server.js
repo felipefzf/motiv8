@@ -8,12 +8,27 @@ import admin from "firebase-admin";
 import { createRequire } from "module"; // Importa createRequire
 import { verifyToken, isAdmin } from "./middlewares/authMiddleware.js"; // <-- IMPORTA
 import multer from "multer";
-
+import 'dotenv/config'
 
 
 const require = createRequire(import.meta.url);
-const serviceAccount = require("./config/motiv8-b965b-firebase-adminsdk-fbsvc-4489c9f191.json");
 
+const serviceAccount = {
+  type: "service_account",
+  project_id: process.env.FIREBASE_PROJECT_ID,
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+  // ¡TRUCO IMPORTANTE! Las claves privadas tienen saltos de línea (\n)
+  // que a veces se rompen en las variables de entorno. Esto lo arregla:
+  private_key: process.env.FIREBASE_PRIVATE_KEY
+    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    : undefined,
+  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_id: process.env.FIREBASE_CLIENT_ID,
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+};
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -54,14 +69,14 @@ io.on("connection", (socket) => {
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173", // ¡IMPORTANTE! Asegúrate de que este sea el puerto donde corre tu frontend
+    origin: "*", // ¡IMPORTANTE! Asegúrate de que este sea el puerto donde corre tu frontend
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.urlencoded({ extended: true }));
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // <--- OBLIGATORIO para Render
 
 const upload = multer({
   storage: multer.memoryStorage(),
