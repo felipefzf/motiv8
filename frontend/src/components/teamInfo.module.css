@@ -9,12 +9,18 @@
   max-width: 400px;
 
   /* Centrado absoluto */
-  position: absolute;
-  top: 52%;
+  position: fixed;
+  top: 130px;
+  bottom: 80px; /* altura del navbar o footer */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
+  flex-direction: column;
+  overflow: auto;
+    /* Tamaño adaptable */
+  width: clamp(280px, 80vw, 450px); /* se agranda y achica según pantalla */
+  padding: clamp(20px, 4vw, 40px); /* padding responsivo */
 
-  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 /* === Lista de equipos === */

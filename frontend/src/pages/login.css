@@ -80,10 +80,6 @@
   transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
-.login-button:hover {
-  background-color: var(--btn-hover);
-  transform: scale(1.03);
-}
 
 /* Sección de registro */
 .register-section {

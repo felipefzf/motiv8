@@ -13,17 +13,18 @@
   transform: translate(-50%, -50%);
   z-index: 100;
 
-  /* Tamaño totalmente adaptable */
+  /* Tamaño adaptativo pero controlado */
   width: clamp(280px, 80vw, 500px);   /* se adapta al ancho del dispositivo */
-  height: clamp(300px, 70vh, 600px);  /* se adapta al alto del dispositivo */
+  max-height: 90vh;                   /* nunca supera el alto visible */
   padding: clamp(20px, 4vw, 40px);    /* padding responsivo */
 
   display: flex;
   flex-direction: column;
-  justify-content: center; /* centra el contenido verticalmente dentro */
+  /* El contenido se organiza en columna y se scrollea si no cabe */
+  overflow-y: auto;
+
   transition: all 0.3s ease;
 }
-
 
 /* Título principal */
 .register-title {
@@ -82,10 +83,7 @@
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.register-button:hover {
-  background-color: var(--btn-hover);
-  transform: scale(1.03);
-}
+
 
 /* Link de regreso */
 .back-link {
@@ -95,10 +93,6 @@
   color: var(--accent-color);
   font-weight: bold;
   transition: color 0.3s ease;
-}
-
-.back-link:hover {
-  color: var(--btn-hover);
 }
 
 /* Mensaje de error */
@@ -111,8 +105,15 @@
   border: 1px solid #cc0000;
   font-weight: bold;
 }
+
+/* Ajustes móviles */
 @media (max-width: 400px) {
   .register-container {
     border-radius: 8px;
+    padding: 20px;      /* un poco menos de padding en móviles */
+  }
+
+  .register-title {
+    font-size: 1.6rem;
   }
 }

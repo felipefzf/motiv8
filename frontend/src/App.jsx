@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import MainLayout from "./components/mainLayout";
 import ActivityCreator from "./pages/activityCreator";
 import ActivityTracker from "./pages/activityTracker";
+import Shop from "./pages/shop";
 
 function App() {
   const [theme, setTheme] = useState(() => {
@@ -96,6 +97,8 @@ function App() {
             <Route path="/rankings" element={<Rankings />} />
             <Route path="/activityCreator" element={<ActivityCreator />} />
             <Route path="/activityTracker" element={<ActivityTracker />} />
+            <Route path="/shop" element={<Shop />} />
+
             <Route element={<AdminRoute />}>
               <Route path="/admindashboard" element={<AdminDashboard />} />
               <Route path="/missionDashboard" element={<MissionDashboard />} />
