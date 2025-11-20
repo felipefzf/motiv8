@@ -1596,7 +1596,8 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
 });
 
 //--- MATCH
-
+const missionGroups = {};
+const missionEvents = {}; // { missionId: [ { uid, message, timestamp } ] }
 // Iniciar emparejamiento
 app.post("/api/match/start", verifyToken, async (req, res) => {
   const userId = req.user.uid;
@@ -1637,28 +1638,31 @@ app.post("/api/match/start", verifyToken, async (req, res) => {
 });
 
 // Detener emparejamiento
-app.post("/api/match/stop", verifyToken, async (req, res) => {
-  const userId = req.user.uid;
-  const { missionId } = req.body;
+// POST /api/match/stop
+app.post("/api/match/stop", (req, res) => {
+  const { missionId, uid, name } = req.body;
 
-  try {
-    const matchRef = db.collection("mission_matches").doc(missionId);
-    const matchDoc = await matchRef.get();
-
-    if (!matchDoc.exists) {
-      return res.status(200).json({ message: "No había emparejamiento activo" });
-    }
-
-    let users = matchDoc.data().users || [];
-    users = users.filter((u) => u.uid !== userId);
-
-    await matchRef.set({ missionId, users });
-    res.status(200).json({ message: "Emparejamiento detenido", users });
-  } catch (error) {
-    console.error("Error deteniendo emparejamiento:", error);
-    res.status(500).send("Error interno al detener emparejamiento.");
+  if (missionGroups[missionId]) {
+    missionGroups[missionId] = missionGroups[missionId].filter(u => u.uid !== uid);
   }
+
+  if (!missionEvents[missionId]) missionEvents[missionId] = [];
+  missionEvents[missionId].push({
+    uid,
+    message: `${name} abandonó el grupo`,
+    timestamp: Date.now(),
+    type: "userLeft",
+  });
+
+  res.json({ success: true });
 });
+
+
+app.get("/api/match/:missionId/events", (req, res) => {
+  const { missionId } = req.params;
+  res.json(missionEvents[missionId] || []);
+});
+
 
 // Obtener usuarios emparejados
 app.get("/api/match/:missionId", verifyToken, async (req, res) => {
