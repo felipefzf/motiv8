@@ -385,190 +385,128 @@ app.delete("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// FUNCIONES Actividades
-// Crear actividad (sólo admin)
-app.post("/api/activities", verifyToken, async (req, res) => {
+
+// FUNCIONES Actividades:
+// Guardar  nueva actividad y actualizar estadísticas
+app.post('/api/activities', verifyToken, express.json(), async (req, res) => {
+  const user = req.user;
+  
+  // 1. Desestructuramos los datos que envía el frontend
+  const { 
+    type, 
+    distance, // en km
+    time,     // en segundos
+    avgSpeed, 
+    path,     // Array de coordenadas o GeoJSON
+    startLocation, 
+    endLocation, 
+    date 
+  } = req.body;
+
+  // 2. Validaciones básicas
+  if (distance === undefined || time === undefined) {
+    return res.status(400).send('Faltan datos obligatorios (distancia o tiempo).');
+  }
+
   try {
-    const userId = req.user.uid;
-    const {
-      path,
-      distance,
-      time,
-      avg_speed,
-      max_speed,
-      comunaInicio,
-      comunaTermino,
-      regionInicio,
-      regionTermino,
-    } = req.body;
-
-    if (
-      !distance ||
-      !time ||
-      !avg_speed ||
-      !max_speed ||
-      !comunaInicio ||
-      !comunaTermino
-    ) {
-      return res.status(400).send("Faltan datos de la actividad.");
+    let firestorePath = [];
+    
+    if (Array.isArray(path) && path.length > 0) {
+      // Verificamos si el primer elemento es un array (formato OSRM)
+      if (Array.isArray(path[0])) {
+         firestorePath = path.map(coord => ({
+           lng: coord[0],
+           lat: coord[1]
+         }));
+      } else {
+         // Si ya son objetos (formato manual), lo dejamos igual
+         firestorePath = path;
+      }
     }
-
-    // 1. Guardar actividad
+    // 3. Prepara el objeto de la actividad
     const newActivity = {
-      id_user: userId,
-      distance: Number(distance),
-      time: Number(time),
-      avg_speed: Number(avg_speed),
-      max_speed: Number(max_speed),
-      regionInicio: req.body.regionInicio || null,
-      regionTermino: req.body.regionTermino || null,
-      comunaInicio: req.body.comunaInicio || null,
-      comunaTermino: req.body.comunaTermino || null,
+      userId: user.uid, // Vinculamos la actividad al usuario
+      userName: user.name || 'Usuario', // Opcional: útil para leaderboards
+      type: type || 'running',
+      distance: parseFloat(distance),
+      time: parseInt(time),
+      avgSpeed: parseFloat(avgSpeed),
+      path: firestorePath || [],
+      startLocation: startLocation || null,
+      endLocation: endLocation || null,
+      date: date || new Date().toISOString(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    const docRef = await db.collection("activities").add(newActivity);
+    // 4. Usamos un "Batch" (Lote) o escritura atómica para hacer dos cosas a la vez:
+    //    a) Guardar la actividad en la colección 'activities'
+    //    b) Actualizar las estadísticas totales del usuario en 'users' (o 'user_stats')
+    
+    const batch = db.batch();
 
-    // 2. Actualizar progreso en misiones
-    const userMissionRef = db.collection("user_missions").doc(userId);
-    const missionDoc = await userMissionRef.get();
+    // a) Referencia para la nueva actividad
+    const activityRef = db.collection('activities').doc(); // Genera ID automático
+    batch.set(activityRef, newActivity);
 
-    let updatedMissions = [];
-    let nuevasCompletadas = 0;
+    // b) Referencia para las estadísticas del usuario
+    // (Asumimos que guardas stats en el documento del usuario, o en una subcolección)
+    // Aquí actualizaremos el documento principal del usuario en 'users'
+    const userStatsRef = db.collection('users').doc(user.uid);
 
-    if (missionDoc.exists) {
-      const data = missionDoc.data();
-
-      updatedMissions = data.missions.map((m) => {
-        let progresoActual = Number(m.progressValue || 0);
-
-        if (m.unit.toLowerCase() === "km") {
-          progresoActual += Number(distance);
-        } else if (m.unit.toLowerCase() === "min") {
-          progresoActual += Number(time);
-        }
-
-        const completadaAntes = m.completed;
-        const completadaAhora = progresoActual >= Number(m.targetValue);
-
-        if (!completadaAntes && completadaAhora) {
-          nuevasCompletadas += 1; // ✅ Contamos solo las nuevas completadas
-        }
-
-        return {
-          ...m,
-          progressValue: progresoActual,
-          completed: completadaAhora,
-        };
-      });
-
-      await userMissionRef.set({
-        ...data,
-        missions: updatedMissions,
-        assignedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
-
-    // 3. Actualizar estadísticas del usuario
-    const userStatsRef = db.collection("userStats").doc(userId);
-    const statsDoc = await userStatsRef.get();
-
-    if (statsDoc.exists) {
-      const stats = statsDoc.data();
-
-      const nuevaDistancia = (stats.distanciaTotalKm || 0) + Number(distance);
-      const nuevoTiempo = (stats.tiempoTotalRecorridoMin || 0) + Number(time);
-      const nuevaVelocidadMax = Math.max(
-        stats.velocidadMaximaKmh || 0,
-        Number(max_speed)
-      );
-      const nuevaVelocidadPromedio =
-        nuevaDistancia > 0
-          ? nuevaDistancia / (nuevoTiempo / 60)
-          : stats.velocidadPromedioKmh || 0;
-
-      await userStatsRef.update({
-        distanciaTotalKm: nuevaDistancia,
-        tiempoTotalRecorridoMin: nuevoTiempo,
-        velocidadMaximaKmh: nuevaVelocidadMax,
-        velocidadPromedioKmh: nuevaVelocidadPromedio,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
-
-    // 4. Actualizar lugares visitados (sin duplicados)
-    const userPlacesRef = db.collection("user_places").doc(userId);
-    const placesDoc = await userPlacesRef.get();
-
-    let lugaresVisitados = placesDoc.exists
-      ? placesDoc.data().lugares || []
-      : [];
-
-    // Añadir comunaInicio si no existe
-    if (!lugaresVisitados.includes(comunaInicio)) {
-      lugaresVisitados.push(comunaInicio);
-    }
-
-    // Añadir comunaTermino si no existe
-    if (!lugaresVisitados.includes(comunaTermino)) {
-      lugaresVisitados.push(comunaTermino);
-    }
-
-    await userPlacesRef.set({
-      lugares: lugaresVisitados,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    batch.update(userStatsRef, {
+      // Usamos FieldValue.increment para sumar sin leer primero (es atómico y seguro)
+      "stats.distanciaTotalKm": admin.firestore.FieldValue.increment(parseFloat(distance)),
+      "stats.tiempoTotalRecorridoMin": admin.firestore.FieldValue.increment(Math.floor(parseInt(time) / 60)),
+      "stats.misionesCompletas": admin.firestore.FieldValue.increment(1), // Cuenta como 1 actividad más
+      // Opcional: Actualizar última actividad
+      "lastActivityDate": new Date().toISOString()
     });
 
-    // 5. Responder al frontend
-    // 3. Actualizar estadísticas del usuario
+    // 5. Ejecutar ambas operaciones
+    await batch.commit();
 
-    if (statsDoc.exists) {
-      const stats = statsDoc.data();
+    console.log(`Actividad guardada para ${user.email}: ${distance}km en ${time}s`);
 
-      const nuevaDistancia = (stats.distanciaTotalKm || 0) + Number(distance);
-      const nuevoTiempo = (stats.tiempoTotalRecorridoMin || 0) + Number(time);
-      const nuevaVelocidadMax = Math.max(
-        stats.velocidadMaximaKmh || 0,
-        Number(max_speed)
-      );
-
-      const nuevaVelocidadPromedio =
-        nuevaDistancia > 0
-          ? nuevaDistancia / (nuevoTiempo / 60) // km/h
-          : stats.velocidadPromedioKmh || 0;
-
-      await userStatsRef.update({
-        distanciaTotalKm: nuevaDistancia,
-        tiempoTotalRecorridoMin: nuevoTiempo,
-        velocidadMaximaKmh: nuevaVelocidadMax,
-        velocidadPromedioKmh: nuevaVelocidadPromedio,
-        misionesCompletas: (stats.misionesCompletas || 0) + nuevasCompletadas,
-        ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
-
-    // 4. Responder al frontend
-    res.status(201).json({
-      activity: {
-        id: docRef.id,
-        id_user: userId,
-        distance: Number(distance),
-        time: Number(time),
-        avg_speed: Number(avg_speed),
-        max_speed: Number(max_speed),
-        comunaInicio,
-        comunaTermino,
-        regionInicio,
-        regionTermino,
-      },
-      missions: updatedMissions,
-      lugaresVisitados,
+    res.status(201).json({ 
+      message: 'Actividad guardada exitosamente', 
+      id: activityRef.id,
+      ...newActivity 
     });
+
   } catch (error) {
-    console.error("Error al guardar actividad:", error);
-    res.status(500).send("Error interno al guardar la actividad.");
+    console.error("Error al guardar la actividad:", error);
+    res.status(500).send(error.message || 'Error interno al procesar la actividad.');
   }
 });
+
+// Ruta para obtener el historial de actividades del usuario
+app.get('/api/activities', verifyToken, async (req, res) => {
+  const user = req.user;
+
+  try {
+    const snapshot = await db.collection('activities')
+      .where('userId', '==', user.uid) // Filtra por usuario
+      .orderBy('createdAt', 'desc')     // Ordena por fecha (más reciente primero)
+      .limit(20)                        // Trae solo las últimas 20 (paginación básica)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(200).json([]); // Devuelve array vacío si no hay nada
+    }
+
+    const activities = [];
+    snapshot.forEach(doc => {
+      activities.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(activities);
+
+  } catch (error) {
+    console.error("Error fetching activities:", error);
+    res.status(500).send("Error al obtener el historial de actividades.");
+  }
+});
+
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo

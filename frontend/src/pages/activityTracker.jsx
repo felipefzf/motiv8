@@ -1,227 +1,196 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+// src/pages/ActivityTracker.jsx
+
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import haversineDistance from '../utils/haversineDistance'; // Crearemos este archivo
-import ActivityMap from '../components/activityMap';
-
-
+import ActivityMap from '../components/ActivityMap';
+// import styles from './ActivityTracker.module.css'; // (Crea este archivo o usa inline)
 
 function ActivityTracker() {
   const { user } = useAuth();
-  const [isTracking, setIsTracking] = useState(false);
-  const [error, setError] = useState(null);
-
-  // Datos en vivo
-  const [elapsedTime, setElapsedTime] = useState(0); // en segundos
-  const [distance, setDistance] = useState(0); // en km
-  const [currentSpeed, setCurrentSpeed] = useState(0); // en km/h
-  const [maxSpeed, setMaxSpeed] = useState(0); // en km/h
-
-  // Datos para guardar
-  const [path, setPath] = useState([]); // Array de { lat, lng }
-
-  const [initialPosition, setInitialPosition] = useState(null);
   
-  const startTimeRef = useRef(null);
-  const watchIdRef = useRef(null);
-  const intervalIdRef = useRef(null);
+  // Estados de la Actividad
+  const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'finished'
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0); // Segundos
+  
+  // Datos Geográficos
+  const [startPos, setStartPos] = useState(null);
+  const [endPos, setEndPos] = useState(null);
+  const [routeData, setRouteData] = useState(null); // Aquí guardamos lo que nos da OSRM
+  
+  const [error, setError] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const timerRef = useRef(null);
 
-    useEffect(() => {
-        // Pedir la ubicación actual solo para centrar el mapa
-        navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const { latitude, longitude } = position.coords;
-            setInitialPosition({ lat: latitude, lng: longitude });
-        },
-        (err) => {
-            // No es un error fatal, solo no podremos centrar el mapa.
-            console.warn(`Error al obtener ubicación inicial: ${err.message}`);
-        },
-        { enableHighAccuracy: true }
-        );
-    }, []); // El array vacío [] asegura que solo se ejecute al montar
-
-
-  // --- Funciones de Seguimiento ---
-  const handlePositionUpdate = (position) => {
-    const { latitude, longitude, speed } = position.coords;
-    const newPoint = { lat: latitude, lng: longitude };
-    
-    // 1. Calcular Velocidad (speed viene en m/s, convertir a km/h)
-    const newSpeedKmH = (speed || 0) * 3.6;
-    setCurrentSpeed(newSpeedKmH);
-    if (newSpeedKmH > maxSpeed) {
-      setMaxSpeed(newSpeedKmH);
-    }
-
-    // 2. Calcular Distancia (usando Haversine)
-    setPath((prevPath) => {
-
-      const pathStart = prevPath.length === 0 && initialPosition ? [initialPosition] : prevPath;
-      if (pathStart.length > 0) {
-        const lastPoint = pathStart[pathStart.length - 1];
-        const newDistance = haversineDistance(lastPoint, newPoint); // Distancia en km
-        setDistance((prevDistance) => prevDistance + newDistance);
-      }
-      return [...prevPath, newPoint];
-    });
-  };
-
-  const handlePositionError = (err) => {
-    setError(`Error de GPS: ${err.message}. Asegúrate de dar permisos.`);
-    stopTracking(); // Detener si hay un error
-  };
-
-  const startTracking = () => {
-    // Pedir permiso primero
+  // --- 1. INICIAR ACTIVIDAD ---
+  const handleStart = () => {
+    setError(null);
     navigator.geolocation.getCurrentPosition(
-      () => {
-        // Éxito, reiniciar estados
-        setPath([]);
-        setDistance(0);
-        setCurrentSpeed(0);
-        setMaxSpeed(0);
-        setElapsedTime(0);
-        setError(null);
-        startTimeRef.current = Date.now();
-        setIsTracking(true);
-
-        // Iniciar el "watcher" de GPS
-        watchIdRef.current = navigator.geolocation.watchPosition(
-          handlePositionUpdate,
-          handlePositionError,
-          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-        );
-
-        // Iniciar el cronómetro
-        intervalIdRef.current = setInterval(() => {
-          setElapsedTime(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setStartPos(coords);
+        setStartTime(Date.now());
+        setStatus('running');
+        
+        // Iniciar Cronómetro Visual
+        timerRef.current = setInterval(() => {
+          setElapsedTime(prev => prev + 1);
         }, 1000);
       },
-      (err) => {
-        setError(`PERMISO DENEGADO: ${err.message}`);
-      },
+      (err) => setError("Error al obtener ubicación inicial. Activa el GPS."),
       { enableHighAccuracy: true }
     );
   };
 
-  // Usamos useCallback para que 'stopTracking' sea estable
-  const stopTracking = useCallback(() => {
-    setIsTracking(false);
-    
-    // Detener watchers e intervalos
-    if (watchIdRef.current) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-    if (intervalIdRef.current) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
-    
-    // Guardar la actividad (si hay datos)
-    if (path.length > 1 && distance > 0) {
-      const avgSpeed = (distance / (elapsedTime / 3600)) || 0; // km/h
-      
-      const activityData = {
-        path: path,
-        distance: distance, // km
-        time: elapsedTime, // segundos
-        avgSpeed: avgSpeed, // km/h
-        maxSpeed: maxSpeed, // km/h
-      };
-      
-      console.log("Actividad guardada:", activityData);
-      saveActivityToBackend(activityData);
-    }
-  }, [path, distance, elapsedTime, maxSpeed]); // Dependencias para la función
+  // --- 2. TERMINAR ACTIVIDAD Y CALCULAR RUTA ---
+  const handleStop = () => {
+    // Detener cronómetro
+    clearInterval(timerRef.current);
+    const finalTime = Math.floor((Date.now() - startTime) / 1000);
+    setElapsedTime(finalTime);
 
-  // Limpieza: Asegura que el watcher se detenga si el usuario sale de la página
-  useEffect(() => {
-    return () => {
-      if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-      }
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
-      }
-    };
-  }, []);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setEndPos(coords);
+        setStatus('finished');
+        
+        // ¡LA MAGIA! Calcular ruta con OSRM
+        await calculateRoute(startPos, coords);
+      },
+      (err) => setError("Error al obtener ubicación final.")
+    );
+  };
 
-  // --- Función de Guardado ---
-  const saveActivityToBackend = async (activityData) => {
+  // --- 3. CONEXIÓN CON OSRM (Servicio de Rutas) ---
+  const calculateRoute = async (start, end) => {
+    try {
+      // OSRM usa formato: longitud,latitud (al revés que Google/Leaflet)
+      const url = `https://router.project-osrm.org/route/v1/foot/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.code !== 'Ok') throw new Error('No se pudo calcular la ruta');
+
+      const route = data.routes[0];
+      
+      setRouteData({
+        distanceKm: route.distance / 1000, // OSRM devuelve metros
+        geometry: route.geometry, // Esto es el dibujo del mapa (GeoJSON)
+        duration: route.duration // Estimado de OSRM (no lo usamos, usamos tu cronómetro)
+      });
+
+    } catch (e) {
+      setError("Error calculando la ruta: " + e.message);
+    }
+  };
+
+  // --- 4. GUARDAR EN BASE DE DATOS ---
+  const handleSave = async () => {
+    if (!routeData) return;
+    setIsSaving(true);
+
     const token = localStorage.getItem('firebaseToken');
-    if (!token) {
-      setError("No autenticado. No se pudo guardar.");
-      return;
-    }
+    const avgSpeed = (routeData.distanceKm / (elapsedTime / 3600)); // km/h
+
+    const activityPayload = {
+      type: 'running', // O podrías poner un selector
+      distance: routeData.distanceKm,
+      time: elapsedTime, // segundos
+      avgSpeed: avgSpeed,
+      path: routeData.geometry.coordinates, // Guardamos el array de coordenadas de OSRM
+      date: new Date().toISOString(),
+      startLocation: startPos,
+      endLocation: endPos
+    };
 
     try {
-      const response = await fetch('/api/activities', { // Ruta del Backend
+      // (Asegúrate de usar tu URL de producción o local según corresponda)
+      // Para producción, usa import.meta.env.VITE_API_URL o ruta relativa si están en el mismo dominio
+      const response = await fetch('/api/activities', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(activityData)
+        body: JSON.stringify(activityPayload)
       });
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
+
+      if (!response.ok) throw new Error("Error al guardar en servidor");
+      
       alert("¡Actividad guardada con éxito!");
-    } catch (err) {
-      setError(`Error al guardar: ${err.message}`);
+      // Reiniciar todo
+      setStatus('idle');
+      setStartPos(null);
+      setEndPos(null);
+      setRouteData(null);
+      setElapsedTime(0);
+
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // --- Renderizado del Componente ---
+  // Formato de tiempo (MM:SS)
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Nueva Actividad</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+      <h2>Registrar Actividad</h2>
       
-      <div style={styles.statsContainer}>
-        <div style={styles.statBox}>
-          <div>Distancia</div>
-          <span>{distance.toFixed(2)}</span> km
-        </div>
-        <div style={styles.statBox}>
-          <div>Tiempo</div>
-          <span>{new Date(elapsedTime * 1000).toISOString().substr(11, 8)}</span>
-        </div>
-        <div style={styles.statBox}>
-          <div>Veloc. Actual</div>
-          <span>{currentSpeed.toFixed(1)}</span> km/h
-        </div>
-        <div style={styles.statBox}>
-          <div>Veloc. Máx</div>
-          <span>{maxSpeed.toFixed(1)}</span> km/h
-        </div>
+      {/* Cronómetro Gigante */}
+      <div style={{ fontSize: '3rem', textAlign: 'center', margin: '20px 0', fontFamily: 'monospace' }}>
+        {formatTime(elapsedTime)}
       </div>
-      
-      {!isTracking ? (
-        <button onClick={startTracking} style={styles.startButton}>
-          Iniciar
-        </button>
-      ) : (
-        <button onClick={stopTracking} style={styles.stopButton}>
-          Detener y Guardar
-        </button>
+
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
+      {/* Botones de Control */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
+        {status === 'idle' && (
+          <button onClick={handleStart} style={{ padding: '15px 30px', fontSize: '1.2rem', background: 'green', color: 'white', border: 'none', borderRadius: '50px' }}>
+            ▶ Iniciar
+          </button>
+        )}
+
+        {status === 'running' && (
+          <button onClick={handleStop} style={{ padding: '15px 30px', fontSize: '1.2rem', background: 'red', color: 'white', border: 'none', borderRadius: '50px' }}>
+            ⏹ Terminar
+          </button>
+        )}
+      </div>
+
+      {/* Resumen Final y Mapa */}
+      {status === 'finished' && routeData && (
+        <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '15px', background: '#f9f9f9' }}>
+          <h3>Resumen</h3>
+          <p><strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km</p>
+          <p><strong>Ritmo:</strong> {(routeData.distanceKm / (elapsedTime/3600)).toFixed(1)} km/h</p>
+          
+          {/* Mapa de Resultados */}
+          <div style={{ height: '250px', margin: '15px 0' }}>
+             <ActivityMap 
+                start={startPos} 
+                end={endPos} 
+                routeGeoJSON={routeData.geometry} 
+             />
+          </div>
+
+          <button onClick={handleSave} disabled={isSaving} style={{ width: '100%', padding: '10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>
+            {isSaving ? 'Guardando...' : '💾 Guardar Actividad'}
+          </button>
+        </div>
       )}
-      
-      {/* Aquí es donde iría el mapa */}
-      <div style={{ height: '300px', width: '100%', marginTop: '20px' }}>
-        <ActivityMap path={path} initialPosition={initialPosition} />
-      </div>
     </div>
   );
 }
-
-// Estilos rápidos (puedes moverlos a un CSS Module)
-const styles = {
-  statsContainer: { display: 'flex', justifyContent: 'space-around', margin: '20px 0' },
-  statBox: { textAlign: 'center' },
-  startButton: { width: '100%', padding: '15px', fontSize: '1.2rem', background: 'green', color: 'white', border: 'none', borderRadius: '8px' },
-  stopButton: { width: '100%', padding: '15px', fontSize: '1.2rem', background: 'red', color: 'white', border: 'none', borderRadius: '8px' },
-};
 
 export default ActivityTracker;
