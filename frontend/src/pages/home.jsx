@@ -301,9 +301,8 @@ export default function Home() {
         </button>
       )}
 
-      <Link to="/activityCreator" className="btn-registrar">
-        Registrar Actividad
-      </Link>
+      <Link to="/activityTracker" className="btn-registrar">Registrar Actividad</Link>
+      
     </div>
   );
 }
