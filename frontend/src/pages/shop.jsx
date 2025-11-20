@@ -1,59 +1,82 @@
+import { useEffect, useState } from "react";
 import "./Shop.css";
+import { useAuth } from "../context/authContext";
+import axios from "axios";
+
+// Imágenes locales de fallback (si no hay imageUrl en el ítem)
 import boostImg from "../assets/boost.png";
 import cuponImg from "../assets/cupon.png";
 import coinsImg from "../assets/coins.png";
 
 export default function Shop() {
+  const { token } = useAuth();
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchItems = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/shop/items", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setItems(res.data);
+      } catch (err) {
+        console.error("Error cargando ítems de tienda:", err);
+      }
+    };
+
+    fetchItems();
+  }, [token]);
+
+  const handlePurchase = async (item) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/shop/purchase",
+        { itemName: item.name, cost: item.price },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert(res.data.message); // "Compraste este item"
+    } catch (err) {
+      if (err.response?.status === 400) {
+        alert(err.response.data.message); // "Te faltan X coins..."
+      } else {
+        alert("❌ Error al procesar la compra.");
+      }
+    }
+  };
+  // Fallback de imágenes según tipo
+  const getImage = (item) => {
+    if (item.imageUrl) return item.imageUrl;
+    if (item.type === "xp_boost") return boostImg;
+    if (item.type === "discount") return cuponImg;
+    if (item.type === "coin_boost") return coinsImg;
+    return coinsImg;
+  };
+
   return (
     <div className="shop-container">
       <h1 className="shop-title">MOTIV8</h1>
       <h3 className="shop-subtitle">Tienda</h3>
 
-      {/* El scroll estará solo aquí */}
       <div className="shop-grid">
-        <div className="card-shop">
-          <img src={boostImg} className="card-img" alt="Boost x1.5" />
-          <div className="card-body">
-            <h5 className="card-title">Boost x1.5 de XP</h5>
-            <p className="card-description">
-              Recibes un boost X1.5 de experiencia durante 15min.
-            </p>
-            <button className="btn-comprar">Comprar</button>
+        {items.map((item) => (
+          <div className="card-shop" key={item.id}>
+            <img src={getImage(item)} className="card-img" alt={item.name} />
+            <div className="card-body">
+              <h5 className="card-title">{item.name}</h5>
+              <p className="card-description">{item.description}</p>
+              <p className="card-description">{item.price} Coins</p>
+              <button
+                className="btn-comprar"
+                onClick={() => handlePurchase(item)}
+              >
+                Comprar
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="card-shop">
-          <img src={cuponImg} className="card-img" alt="Cupón de descuento" />
-          <div className="card-body">
-            <h5 className="card-title">Cupón de descuento</h5>
-            <p className="card-description">
-              Recibes un cupón de descuento del 10% en tu próxima compra.
-            </p>
-            <button className="btn-comprar">Comprar</button>
-          </div>
-        </div>
-
-        <div className="card-shop">
-          <img src={cuponImg} className="card-img" alt="Cupón de descuento" />
-          <div className="card-body">
-            <h5 className="card-title">Cupón de descuento</h5>
-            <p className="card-description">
-              Recibes un cupón de descuento del 20% en tu próxima compra.
-            </p>
-            <button className="btn-comprar">Comprar</button>
-          </div>
-        </div>
-
-        <div className="card-shop">
-          <img src={coinsImg} className="card-img" alt="Multiplicador de Monedas" />
-          <div className="card-body">
-            <h5 className="card-title">Multiplicador de Monedas</h5>
-            <p className="card-description">
-              Recibes un multiplicador X1.5 de monedas durante 10min.
-            </p>
-            <button className="btn-comprar">Comprar</button>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

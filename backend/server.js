@@ -1433,6 +1433,95 @@ app.get("/api/ranking", async (req, res) => {
   }
 });
 
+// --- SHOP ---
+
+app.post("/api/shop/items", verifyToken, isAdmin, async (req, res) => {
+  const { name, description, price, imageUrl, type, durationMin } = req.body;
+
+  if (!name || !description || !price || !type) {
+    return res.status(400).send("Faltan campos obligatorios.");
+  }
+
+  try {
+    const newItem = {
+      name,
+      description,
+      price: Number(price),
+      imageUrl: imageUrl || null,
+      type,
+      durationMin: durationMin || null,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    const docRef = await db.collection("shop_items").add(newItem);
+    res.status(201).json({ message: "Ítem creado con éxito", id: docRef.id });
+  } catch (error) {
+    console.error("Error creando ítem de tienda:", error);
+    res.status(500).send("Error interno al crear ítem.");
+  }
+});
+
+app.get("/api/shop/items", async (req, res) => {
+  try {
+    const snapshot = await db.collection("shop_items").get();
+    const items = [];
+
+    snapshot.forEach((doc) => {
+      items.push({ id: doc.id, ...doc.data() });
+    });
+
+    res.status(200).json(items);
+  } catch (error) {
+    console.error("Error obteniendo ítems de tienda:", error);
+    res.status(500).send("Error interno al obtener ítems.");
+  }
+});
+
+app.post("/api/shop/purchase", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { itemName, cost } = req.body;
+
+  try {
+    const userStatsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await userStatsRef.get();
+
+    if (!statsDoc.exists) {
+      return res.status(404).send("No se encontraron estadísticas del usuario.");
+    }
+
+    const stats = statsDoc.data();
+    const coinsActuales = stats.coins || 0;
+
+    if (coinsActuales < cost) {
+      const faltan = cost - coinsActuales;
+      return res.status(400).json({
+        message: `Te faltan ${faltan} coins para comprar este item`,
+        coinsActuales,
+      });
+    }
+
+    const nuevasCoins = coinsActuales - cost;
+
+    await userStatsRef.update({
+      coins: nuevasCoins,
+      ultimaCompra: {
+        item: itemName,
+        fecha: admin.firestore.FieldValue.serverTimestamp(),
+      },
+    });
+
+    return res.status(200).json({
+      message: `Compraste este item: ${itemName}`,
+      coinsRestantes: nuevasCoins,
+    });
+  } catch (error) {
+    console.error("Error en compra:", error);
+    res.status(500).send("Error interno al procesar la compra.");
+  }
+});
+
+
+
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
   console.log(`✅ SV corriendo en http://localhost:${PORT}`);
