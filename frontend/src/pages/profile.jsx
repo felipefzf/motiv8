@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import EditAvatarModal from "../components/editAvatarModal.jsx";
 import EditProfileModal from "../components/editProfileModal.jsx";
+import Modal from "../components/modal.jsx";
+import ProfileRewardModal from "../components/profileRewardModal.jsx";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -222,7 +224,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
         <h4 className="profile-name">
           {user?.name || "Sin nombre"}{" "}
-          <span className="profile-level">Lvl: {stats?.nivelActual || 1} {stats?.nivelActual % 2 === 0 && " 🎁"}</span>
+          <span className="profile-level">
+            Lvl: {stats?.nivelActual || 1}{" "}
+            {stats?.nivelActual % 2 === 0 && " 🎁"}
+          </span>
         </h4>
 
         {stats && (
@@ -232,7 +237,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
               max={stats.puntosParaSiguienteNivel + stats.puntos}
             ></progress>{" "}
             Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1}
-            
             {stats?.nivelSiguiente % 2 === 0 && " 🎁"}
             <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
           </div>
@@ -245,25 +249,13 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           stats.ultimoNivelRecompensado !== stats.nivelActual && (
             <button
               className="btn-recompensa"
-              onClick={() => setRewardModalOpen(true)}
+              onClick={() => setRewardModalOpen(true)} // ✅ abre el modal
               style={{ marginTop: "10px" }}
             >
               Reclama tu recompensa 🎁
             </button>
           )}
-
-        {/* ✅ Modal de recompensa */}
-        {isRewardModalOpen && (
-          <div className="reward-modal">
-            <h3>Elige tu recompensa</h3>
-            <button onClick={() => reclamarRecompensa("coins")}>Coins</button>
-            <button onClick={() => reclamarRecompensa("xp")}>Boost XP</button>
-            <button onClick={() => reclamarRecompensa("cupon")}>
-              Cupón Premium
-            </button>
-            <button onClick={() => setRewardModalOpen(false)}>Cancelar</button>
-          </div>
-        )}
+        <br />
         <p>
           Ubicación:{" "}
           <span className="profile-level">
@@ -463,6 +455,11 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <EditProfileModal
         isOpen={isInfoModalOpen}
         onClose={() => setInfoModalOpen(false)}
+      />
+      <ProfileRewardModal
+        isOpen={isRewardModalOpen}
+        onClose={() => setRewardModalOpen(false)}
+        onClaim={reclamarRecompensa}
       />
     </div>
   );
