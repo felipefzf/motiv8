@@ -107,7 +107,6 @@ button {
 }
 
 .btn:hover {
-  background-color: var(--accent-color);
   transform: scale(1.03);
 }
 

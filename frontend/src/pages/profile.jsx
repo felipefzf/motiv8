@@ -179,12 +179,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </button>
 
         <h4 className="profile-name">
-          {/* Usamos user.name DIRECTAMENTE */}
-          {user.name || "Sin nombre"}{" "}
-          <span className="profile-level">Lvl: {stats?.nivelActual || 1}</span>
-        </h4>
-        <h4 className="profile-name">
-          {perfil?.name || "Sin nombre"}{" "}
+          {user?.name || "Sin nombre"}{" "}
           <span className="profile-level">
             Lvl: {stats?.nivelActual || 1} xp {stats?.puntos || 0} /{" "}
             {stats?.puntosParaSiguienteNivel || 0} lvl:{" "}

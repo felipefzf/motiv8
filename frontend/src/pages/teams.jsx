@@ -48,15 +48,6 @@ function Teams({ setTeamColor }) {
       ) : (
         <>
           <JoinTeamView setTeamColor={setTeamColor} />
-          <div className={styles.createTeamWrapper}>
-            <button
-              type="button"
-              className={styles.createTeamButton}
-              onClick={handleOpenCreate}
-            >
-              + Crear nuevo equipo
-            </button>
-          </div>
         </>
       )}
 

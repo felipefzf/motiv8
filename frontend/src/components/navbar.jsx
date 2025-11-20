@@ -8,7 +8,7 @@ import styles from "./Navbar.module.css";
 import homeImg from "../assets/home.png";
 import profileImg from "../assets/profile.png";
 import aboutImg from "../assets/about.png";
-import loginImg from "../assets/login.png";
+import shopImg from "../assets/shop.png";
 import teamImg from "../assets/team.png";
 
 // ... (tus imports de imágenes) ...
@@ -17,7 +17,7 @@ export default function Navbar() {
   const links = [
     
     { to: "/rankings", img: aboutImg, alt: "Rankings" },
-    { to: "/login", img: loginImg, alt: "Login" },
+    { to: "/shop", img: shopImg, alt: "Tienda" },
     { to: "/", img: homeImg, alt: "Inicio" },
     { to: "/teams", img: teamImg, alt: "Equipos" },
     { to: "/profile", img: profileImg, alt: "Perfil" },
