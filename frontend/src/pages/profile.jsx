@@ -5,7 +5,6 @@ import { useAuth } from "../context/authContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebaseConfig";
 import { useNavigate } from "react-router-dom";
-// (No necesitas signOut ni auth aquí, el contexto lo maneja)
 import axios from "axios";
 import EditAvatarModal from "../components/editAvatarModal.jsx";
 import EditProfileModal from "../components/editProfileModal.jsx";
@@ -15,8 +14,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const navigate = useNavigate();
   const [theme, setTheme] = useState("dark");
 
-  // const [perfil, setPerfil] = useState(null); // <-- BORRADO (Redundante)
-
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [equipo, setEquipo] = useState(null);
@@ -24,12 +21,13 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
 
-  // 1. Nuevo Estado para Actividades
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
-  // --- Carga de Datos Adicionales (Equipos, Stats, Ubicaciones) ---
-  // Estos SÍ vale la pena traerlos aparte si no están dentro del objeto usuario
+  // Estado para modal de recompensa
+  const [isRewardModalOpen, setRewardModalOpen] = useState(false);
+  // ✅ Estado para controlar si ya reclamó en este nivel
+
   const fetchStats = async () => {
     if (!user) return;
     const token = localStorage.getItem("firebaseToken");
@@ -52,9 +50,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   useEffect(() => {
     if (equipo && typeof setTeamColor === "function") {
-      setTeamColor(equipo.team_color || "#ffd000ff"); // fallback si no hay color
-
-      // Aplicar color del equipo como variables CSS
+      setTeamColor(equipo.team_color || "#ffd000ff");
       document.documentElement.style.setProperty(
         "--accent-color",
         equipo.team_color || "#ffd000ff"
@@ -70,14 +66,14 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     if (!user) return;
 
     const fetchActivities = async () => {
-      const token = localStorage.getItem('firebaseToken');
+      const token = localStorage.getItem("firebaseToken");
       if (!token) return;
 
       try {
-        const response = await fetch('/api/activities', { // (Recuerda usar tu IP/proxy)
-           headers: { 'Authorization': `Bearer ${token}` }
+        const response = await fetch("/api/activities", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setActivities(data);
@@ -98,7 +94,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     const token = localStorage.getItem("firebaseToken");
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
-    // 1. Cargar Equipo
     axios
       .get("http://localhost:5000/api/teams/my-team", config)
       .then((res) => setEquipo(res.data))
@@ -110,23 +105,17 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         }
       });
 
-    // 2. Cargar Estadísticas
     axios
-      .get(`http://localhost:5000/api/userStats/${user.uid}`, config) // Asumo que esto necesita token
+      .get(`http://localhost:5000/api/userStats/${user.uid}`, config)
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error stats:", err));
 
-    // 3. Cargar Ubicaciones
     axios
       .get("http://localhost:5000/api/user-locations", config)
       .then((res) => setUbicaciones(res.data))
       .catch((err) => console.error("Error ubicaciones:", err));
-
-    // --- NOTA: BORRAMOS LA LLAMADA A /api/users/${user.uid} ---
   }, [user]);
 
-  // Lógica del tema (sin cambios)
-  // Tema inicial
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
@@ -155,9 +144,32 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     }
   };
 
-  // Renderizado seguro (ya no esperamos a 'perfil')
-  if (!user) return <p>Cargando...</p>;
+  // Reclamar recompensa
+  const reclamarRecompensa = async (option) => {
+    const token = localStorage.getItem("firebaseToken");
+    const config = { headers: { Authorization: `Bearer ${token}` } };
 
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/profile/reward",
+        { option },
+        config
+      );
+      alert(`🎉 ${res.data.recompensa}`);
+      setRewardModalOpen(false);
+      fetchStats();
+    } catch (err) {
+      if (err.response?.status === 403) {
+        alert("Ya reclamaste la recompensa en este nivel o no corresponde.");
+        setRewardModalOpen(false);
+      } else {
+        console.error("Error reclamando recompensa:", err);
+      }
+    }
+  };
+  // ✅ Resetear hasClaimedReward cuando cambie el nivel
+
+  if (!user) return <p>Cargando...</p>;
   return (
     <div className="profile-container">
       <button onClick={handleToggleTheme} className="theme-toggle-btn">
@@ -210,14 +222,48 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
         <h4 className="profile-name">
           {user?.name || "Sin nombre"}{" "}
-          <span className="profile-level">
-            Lvl: {stats?.nivelActual || 1} xp {stats?.puntos || 0} /{" "}
-            {stats?.puntosParaSiguienteNivel || 0} lvl:{" "}
-            {stats?.nivelSiguiente || stats?.nivelActual + 1}{" "}
-          </span>
+          <span className="profile-level">Lvl: {stats?.nivelActual || 1} {stats?.nivelActual % 2 === 0 && " 🎁"}</span>
         </h4>
+
+        {stats && (
+          <div className="progress-bar-container" style={{ marginTop: "10px" }}>
+            <progress
+              value={stats.puntos}
+              max={stats.puntosParaSiguienteNivel + stats.puntos}
+            ></progress>{" "}
+            Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1}
+            
+            {stats?.nivelSiguiente % 2 === 0 && " 🎁"}
+            <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
+          </div>
+        )}
         <br />
 
+        {/* ✅ Botón de recompensa solo si no ha reclamado */}
+        {stats &&
+          stats.nivelActual % 2 === 0 &&
+          stats.ultimoNivelRecompensado !== stats.nivelActual && (
+            <button
+              className="btn-recompensa"
+              onClick={() => setRewardModalOpen(true)}
+              style={{ marginTop: "10px" }}
+            >
+              Reclama tu recompensa 🎁
+            </button>
+          )}
+
+        {/* ✅ Modal de recompensa */}
+        {isRewardModalOpen && (
+          <div className="reward-modal">
+            <h3>Elige tu recompensa</h3>
+            <button onClick={() => reclamarRecompensa("coins")}>Coins</button>
+            <button onClick={() => reclamarRecompensa("xp")}>Boost XP</button>
+            <button onClick={() => reclamarRecompensa("cupon")}>
+              Cupón Premium
+            </button>
+            <button onClick={() => setRewardModalOpen(false)}>Cancelar</button>
+          </div>
+        )}
         <p>
           Ubicación:{" "}
           <span className="profile-level">
@@ -297,56 +343,112 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <div className="achievements"></div>
 
         <h3 className="section-title">Historial de Actividades</h3>
-       
-       <div className="activities-list">
-         {loadingActivities ? (
-           <p>Cargando actividades...</p>
-         ) : activities.length === 0 ? (
-           <p style={{ color: '#666', fontStyle: 'italic' }}>Aún no tienes actividades registradas.</p>
-         ) : (
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-             {activities.map(activity => (
-               <div key={activity.id} className="activity-card" style={{ 
-                 border: '1px solid #ddd', 
-                 borderRadius: '8px', 
-                 padding: '15px',
-                 backgroundColor: 'white', // O usa variables de tema
-                 textAlign: 'left'
-               }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                   <span style={{ fontWeight: 'bold', textTransform: 'capitalize', color: '#007bff' }}>
-                     {activity.title || 'Actividad'}
-                   </span>
-                   <span style={{ fontWeight: 'bold', textTransform: 'capitalize', color: '#007bff' }}>
-                     {activity.type || 'Actividad'} activity
-                   </span>
-                   <span style={{ fontSize: '0.9em', color: '#666' }}>
-                     {new Date(activity.date).toLocaleDateString()}
-                   </span>
-                 </div>
 
-                 <div style={{ display: 'flex', justifyContent: 'space-around', marginBottom: '10px' }}>
-                   <div>
-                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Distancia</span>
-                     <strong>{activity.distance.toFixed(2)} km</strong>
-                   </div>
-                   <div>
-                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Tiempo</span>
-                     <strong>{(activity.time / 60).toFixed(0)} min</strong>
-                   </div>
-                   <div>
-                     <span style={{ fontSize: '0.8em', display: 'block', color: '#888' }}>Velocidad</span>
-                     <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
-                   </div>
-                 </div>
-                 
-                 {/* (Opcional) Botón para ver detalles o mapa */}
-                 {/* <button style={{ width: '100%', padding: '5px' }}>Ver Ruta</button> */}
-               </div>
-             ))}
-           </div>
-         )}
-       </div>
+        <div className="activities-list">
+          {loadingActivities ? (
+            <p>Cargando actividades...</p>
+          ) : activities.length === 0 ? (
+            <p style={{ color: "#666", fontStyle: "italic" }}>
+              Aún no tienes actividades registradas.
+            </p>
+          ) : (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
+            >
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="activity-card"
+                  style={{
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "15px",
+                    backgroundColor: "white", // O usa variables de tema
+                    textAlign: "left",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        textTransform: "capitalize",
+                        color: "#007bff",
+                      }}
+                    >
+                      {activity.title || "Actividad"}
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: "bold",
+                        textTransform: "capitalize",
+                        color: "#007bff",
+                      }}
+                    >
+                      {activity.type || "Actividad"} activity
+                    </span>
+                    <span style={{ fontSize: "0.9em", color: "#666" }}>
+                      {new Date(activity.date).toLocaleDateString()}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-around",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <div>
+                      <span
+                        style={{
+                          fontSize: "0.8em",
+                          display: "block",
+                          color: "#888",
+                        }}
+                      >
+                        Distancia
+                      </span>
+                      <strong>{activity.distance.toFixed(2)} km</strong>
+                    </div>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: "0.8em",
+                          display: "block",
+                          color: "#888",
+                        }}
+                      >
+                        Tiempo
+                      </span>
+                      <strong>{(activity.time / 60).toFixed(0)} min</strong>
+                    </div>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: "0.8em",
+                          display: "block",
+                          color: "#888",
+                        }}
+                      >
+                        Velocidad
+                      </span>
+                      <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
+                    </div>
+                  </div>
+
+                  {/* (Opcional) Botón para ver detalles o mapa */}
+                  {/* <button style={{ width: '100%', padding: '5px' }}>Ver Ruta</button> */}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">
