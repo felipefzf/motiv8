@@ -3,13 +3,49 @@ import axios from "axios";
 import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import { io } from "socket.io-client"; // ✅ frontend client
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
   const [emparejados, setEmparejados] = useState({});
+  const [socket, setSocket] = useState(null); // ✅ socket separado
   const { token, user } = useAuth();
 
-  // Reclamar recompensa y disolver emparejamiento
+  // 🔑 Cargar misiones
+  const fetchMisiones = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/user-missions", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMisiones(res.data);
+    } catch (err) {
+      console.error("Error obteniendo misiones:", err);
+    }
+  };
+
+  // ✅ Conectar socket una vez
+  useEffect(() => {
+    if (!token) return;
+    const s = io("http://localhost:5000", { auth: { token } });
+    setSocket(s);
+
+    s.on("missionCompleted", ({ missionId }) => {
+      console.log("Misión completada en grupo:", missionId);
+      fetchMisiones(); // refrescar misiones al instante
+    });
+
+    return () => s.disconnect();
+  }, [token]);
+
+  // ✅ Unirse a salas cuando cambian las misiones
+  useEffect(() => {
+    if (!socket || misiones.length === 0) return;
+    misiones.forEach((m) => {
+      socket.emit("joinMission", m.id);
+    });
+  }, [socket, misiones]);
+
+  // Reclamar recompensa
   const reclamarRecompensa = async (id) => {
     try {
       const res = await axios.post(
@@ -21,13 +57,14 @@ export default function Home() {
       setMisiones(res.data.missions);
       alert("🎉 Recompensa reclamada");
 
-      // disolver emparejamiento al completar misión
       await axios.post(
         "http://localhost:5000/api/match/stop",
         { missionId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setEmparejados((prev) => ({ ...prev, [id]: [] }));
+
+      await fetchMisiones();
     } catch (err) {
       console.error("Error reclamando recompensa:", err);
     }
@@ -56,22 +93,15 @@ export default function Home() {
   };
 
   const agregarTresMisiones = () => {
-    // Si el usuario aún tiene misiones activas, no permitir agregar nuevas
     if (misiones.length > 0) {
-      alert(
-        "❌ No puedes agregar nuevas misiones hasta completar todas las actuales."
-      );
+      alert("❌ No puedes agregar nuevas misiones hasta completar todas las actuales.");
       return;
     }
 
     axios
-      .post(
-        "http://localhost:5000/api/user-missions/assign-3",
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
+      .post("http://localhost:5000/api/user-missions/assign-3", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
         setMisiones(res.data.missions);
         alert("✅ Se asignaron 3 nuevas misiones");
@@ -82,7 +112,7 @@ export default function Home() {
       });
   };
 
-  // Polling para obtener usuarios emparejados
+  // Polling para emparejados
   useEffect(() => {
     const interval = setInterval(async () => {
       for (const m of misiones) {
@@ -100,15 +130,9 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [misiones, token]);
 
-  // Cargar misiones
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("http://localhost:5000/api/user-missions", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setMisiones(res.data))
-      .catch((err) => console.error("Error obteniendo misiones:", err));
+    fetchMisiones();
   }, [token]);
 
   return (
@@ -144,15 +168,13 @@ export default function Home() {
                         <p>{porcentaje.toFixed(1)}% completado</p>
                         <p>Te faltan {restante.toFixed(1)} {mision.unit}</p>
 
-                        <button className="btn-solo">HACER EN SOLITARIO</button>
                         <button
                           className="btn-emparejar"
                           onClick={() => toggleEmparejar(mision.id, isEmparejando)}
                         >
-                          {isEmparejando ? "STOP" : "EMPAREJAR"}
+                          {isEmparejando ? "DISOLVER" : "EMPAREJAR"}
                         </button>
 
-                        {/* Mostrar usuarios emparejados */}
                         {emparejados[mision.id]?.length > 0 && (
                           <div className="emparejados-list">
                             <h5>Usuarios emparejados:</h5>
@@ -174,7 +196,7 @@ export default function Home() {
       </div>
 
       {misiones.length === 0 && (
-        <button className="btn btn-dark mb-3" onClick={() => agregarTresMisiones()}>
+        <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
           AGREGAR 3 MISIONES
         </button>
       )}

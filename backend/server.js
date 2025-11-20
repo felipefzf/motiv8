@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import { Server } from "socket.io";
+import http from "http";
 import axios from "axios";
 import testRoutes from "./routes/test.js";
 import admin from "firebase-admin";
@@ -7,8 +9,11 @@ import { createRequire } from "module"; // Importa createRequire
 import { verifyToken, isAdmin } from "./middlewares/authMiddleware.js"; // <-- IMPORTA
 import multer from "multer";
 
+
+
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./config/motiv8-b965b-firebase-adminsdk-fbsvc-4489c9f191.json");
+
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -20,6 +25,32 @@ const auth = admin.auth();
 const bucket = admin.storage().bucket("gs://motiv8-b965b.firebasestorage.app");
 
 const app = express();
+const server = http.createServer(app); // 👈 servidor HTTP base
+
+
+export const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // tu frontend
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  },
+});
+
+// ✅ Socket.IO listeners
+io.on("connection", (socket) => {
+  console.log("Socket conectado:", socket.id);
+
+  socket.on("joinMission", (missionId) => {
+    socket.join(missionId);
+    console.log(`Socket ${socket.id} se unió a la misión ${missionId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Socket desconectado:", socket.id);
+  });
+});
+
+
 app.use(express.json());
 app.use(
   cors({
@@ -983,7 +1014,7 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
       return res.status(404).send("Misión no encontrada.");
     }
 
-    // --- Eliminar misión completada ---
+    // --- Eliminar misión completada del usuario actual ---
     const updatedMissions = data.missions.filter((m) => m.id !== missionId);
     await userMissionRef.set({
       ...data,
@@ -997,17 +1028,41 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
 
     if (statsDoc.exists) {
       const stats = statsDoc.data();
-
-      // Sumar XP y Coins
-      const nuevasCoins = (stats.coins || 0) + (mission.coinReward || 0);
-      const nuevasXp = (stats.xp || 0) + (mission.reward || 0);
-
       await userStatsRef.update({
-        coins: nuevasCoins,
-        xp: nuevasXp,
+        coins: (stats.coins || 0) + (mission.coinReward || 0),
+        xp: (stats.xp || 0) + (mission.reward || 0),
         misionesCompletas: (stats.misionesCompletas || 0) + 1,
         ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
       });
+    }
+
+    // --- Emparejamiento cooperativo: marcar como completada para todos ---
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (matchDoc.exists) {
+      const users = matchDoc.data().users || [];
+
+      for (const u of users) {
+        if (u.uid !== userId) {
+          const otherRef = db.collection("user_missions").doc(u.uid);
+          const otherDoc = await otherRef.get();
+
+          if (otherDoc.exists) {
+            const otherData = otherDoc.data();
+            const otherUpdated = otherData.missions.map((m) =>
+              m.id === missionId ? { ...m, completed: true } : m
+            );
+            await otherRef.update({ missions: otherUpdated });
+          }
+        }
+      }
+
+      // 🔥 Emitir evento en tiempo real
+      io.to(missionId).emit("missionCompleted", { missionId });
+
+      // ✅ Disolver emparejamiento
+      await matchRef.delete();
     }
 
     res.status(200).json({
@@ -1224,7 +1279,7 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
       return res.status(400).send("La misión no está completada o no existe.");
     }
 
-    // Eliminar misión reclamada
+    // Eliminar misión reclamada del usuario actual
     const updatedMissions = data.missions.filter((m) => m.id !== missionId);
     await userMissionRef.set({
       ...data,
@@ -1232,16 +1287,14 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
       assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    // Actualizar stats
-    
-
+    // Recompensas
     const rewardPoints = missionToClaim.reward || 0;
     const rewardCoins = missionToClaim.coinReward || 0;
 
+    // Actualizar stats del usuario actual
     const userStatsRef = db.collection("userStats").doc(userId);
     const statsDoc = await userStatsRef.get();
 
-    
     let nuevosPuntos = rewardPoints;
     let nuevasCoins = rewardCoins;
     let nivelActual = 1;
@@ -1276,7 +1329,7 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
         tiempoTotalRecorridoMin: 0,
         velocidadMaximaKmh: 0,
         velocidadPromedioKmh: 0,
-        coins:rewardCoins,
+        coins: rewardCoins,
         insigniasGanadas: 0,
         puntos: nuevosPuntos,
         nivel: nivelActual,
@@ -1284,11 +1337,50 @@ app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
       });
     }
 
+    // ✅ Emparejamiento cooperativo
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (matchDoc.exists) {
+      const users = matchDoc.data().users || [];
+
+      for (const u of users) {
+        if (u.uid !== userId) {
+          const otherMissionRef = db.collection("user_missions").doc(u.uid);
+          const otherDoc = await otherMissionRef.get();
+
+          if (otherDoc.exists) {
+            const otherData = otherDoc.data();
+            const otherMissions = otherData.missions.map((m) =>
+              m.id === missionId ? { ...m, completed: true } : m
+            );
+
+            await otherMissionRef.update({ missions: otherMissions });
+          }
+
+          // Actualizar stats de los otros usuarios
+          const otherStatsRef = db.collection("userStats").doc(u.uid);
+          await otherStatsRef.update({
+            puntos: admin.firestore.FieldValue.increment(rewardPoints),
+            coins: admin.firestore.FieldValue.increment(rewardCoins),
+            ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      // Disolver emparejamiento al completar la misión
+      await matchRef.delete();
+
+      // 🔥 Emitir evento en tiempo real a todos los sockets en la sala de esa misión
+      io.to(missionId).emit("missionCompleted", { missionId });
+    }
+
     res.status(200).json({
+      message: "Misión reclamada y completada para el grupo",
       missions: updatedMissions,
       stats: {
         puntos: nuevosPuntos,
-        coins: rewardCoins,
+        coins: nuevasCoins,
         nivelActual,
         nivelSiguiente,
         puntosParaSiguienteNivel,
@@ -1307,7 +1399,7 @@ function calcularProgresoNivel(puntos) {
 
   while (puntos >= requerido) {
     nivel++;
-    incremento += 500; // cada nivel requiere más puntos
+    incremento += 500;
     requerido += incremento;
   }
 
@@ -1318,6 +1410,8 @@ function calcularProgresoNivel(puntos) {
     puntosParaSiguienteNivel,
   };
 }
+
+
 
 app.get("/api/user-locations", verifyToken, async (req, res) => {
   const userId = req.user.uid;
@@ -1582,7 +1676,54 @@ app.get("/api/match/:missionId", verifyToken, async (req, res) => {
 // 👇 Ajuste en /claim para disolver emparejamiento
 // Dentro de tu ruta /api/user-missions/claim, después de actualizar stats:
 
+app.post("/api/user-missions/mark-completed", verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const { missionId } = req.body;
 
+  try {
+    const userMissionRef = db.collection("user_missions").doc(userId);
+    const doc = await userMissionRef.get();
+
+    if (!doc.exists) return res.status(404).send("No hay misiones asignadas.");
+
+    const data = doc.data();
+    const missions = data.missions.map((m) =>
+      m.id === missionId ? { ...m, completed: true } : m
+    );
+    await userMissionRef.update({ missions });
+
+    // ✅ Emparejamiento cooperativo
+    const matchRef = db.collection("mission_matches").doc(missionId);
+    const matchDoc = await matchRef.get();
+
+    if (matchDoc.exists) {
+      const users = matchDoc.data().users || [];
+
+      for (const u of users) {
+        if (u.uid !== userId) {
+          const otherRef = db.collection("user_missions").doc(u.uid);
+          const otherDoc = await otherRef.get();
+
+          if (otherDoc.exists) {
+            const otherData = otherDoc.data();
+            const otherUpdated = otherData.missions.map((m) =>
+              m.id === missionId ? { ...m, completed: true } : m
+            );
+            await otherRef.update({ missions: otherUpdated });
+          }
+        }
+      }
+
+      // 🔥 Emitir evento en tiempo real
+      io.to(missionId).emit("missionCompleted", { missionId });
+    }
+
+    res.status(200).json({ message: "Misión marcada como completada para el grupo." });
+  } catch (error) {
+    console.error("Error marcando misión como completada:", error);
+    res.status(500).send("Error interno.");
+  }
+});
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
