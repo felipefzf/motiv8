@@ -232,6 +232,10 @@
   gap: 15px;
 }
 
+.activity-card{
+  background-color: var(--accent-color);
+}
+
 /* Tarjeta interna con borde y fondo blanco */
 .activity-card-inner {
   border: 1px solid #ddd;
@@ -272,6 +276,7 @@
   display: block;
   color: #888;
 }
+
 
 /* Botón cerrar sesión (si lo tenías ya, mantenlo igual) */
 .btn-cerrarsesion {
