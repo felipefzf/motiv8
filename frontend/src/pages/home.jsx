@@ -4,6 +4,7 @@ import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { io } from "socket.io-client"; // ✅ frontend client
+import LiveToast from "../components/liveToast";
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
@@ -12,6 +13,9 @@ export default function Home() {
   const { token, user } = useAuth();
   const [emparejandoEnCurso, setEmparejandoEnCurso] = useState({});
   const [eventosVistos, setEventosVistos] = useState({});
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+ 
 
   useEffect(() => {
     misiones.forEach((m) => {
@@ -34,7 +38,7 @@ export default function Home() {
           res.data.forEach((event) => {
             const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
             if (!yaVisto) {
-              alert(event.message); // ✅ solo una vez
+              setToastMessage(event.message); // ✅ activa el toast
               setEventosVistos((prev) => ({
                 ...prev,
                 [m.id]: [...(prev[m.id] || []), event.timestamp],
@@ -109,7 +113,8 @@ export default function Home() {
       );
 
       setMisiones(res.data.missions);
-      alert("🎉 Recompensa reclamada");
+      setToastMessage("🎉 Recompensa reclamada");
+      setToastKey((prev) => prev + 1);
 
       await axios.post(
         "http://localhost:5000/api/match/stop",
@@ -127,40 +132,59 @@ export default function Home() {
     }
   };
 
+
+  useEffect(() => {
+  misiones.forEach((m) => {
+    const lista = emparejados[m.id];
+    const yaEmparejado = lista?.some((u) => u.uid === user.uid);
+
+    if (yaEmparejado) {
+      setEmparejandoEnCurso((prev) => ({ ...prev, [m.id]: false }));
+    }
+  });
+}, [emparejados, misiones, user]);
+
+
   // Alternar emparejamiento
   const toggleEmparejar = async (missionId, isEmparejado) => {
-    try {
-      if (!isEmparejado) {
-        // ✅ Marca como "emparejando"
-        setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: true }));
+  try {
+    setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: true }));
 
-        await axios.post(
-          "http://localhost:5000/api/match/start",
-          { missionId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      } else {
-        await axios.post(
-          "http://localhost:5000/api/match/stop",
-          {
-            missionId,
-            uid: user.uid,
-            name: user.name,
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+    if (!isEmparejado) {
+      await axios.post(
+        "http://localhost:5000/api/match/start",
+        { missionId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // ❌ No ponemos false aquí, esperamos confirmación del backend
+    } else {
+      await axios.post(
+        "http://localhost:5000/api/match/stop",
+        {
+          missionId,
+          uid: user.uid,
+          name: user.name,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-        setEmparejados((prev) => ({
-          ...prev,
-          [missionId]: prev[missionId]?.filter((u) => u.uid !== user.uid) || [],
-        }));
-        setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
-        setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
-      }
-    } catch (err) {
-      console.error("Error en emparejamiento:", err);
+      // ✅ Eliminar al usuario del grupo localmente
+      setEmparejados((prev) => ({
+        ...prev,
+        [missionId]: prev[missionId]?.filter((u) => u.uid !== user.uid) || [],
+      }));
+      
+      setToastKey((prev) => prev + 1);
+      // ✅ Aquí sí podemos apagar el estado porque ya sabemos que salió
+      setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
     }
-  };
+  } catch (err) {
+    console.error("Error en emparejamiento:", err);
+    setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: false }));
+  }
+};
+
+
   useEffect(() => {
     if (!socket) return;
 
@@ -174,9 +198,10 @@ export default function Home() {
 
   const agregarTresMisiones = () => {
     if (misiones.length > 0) {
-      alert(
+      setToastMessage(
         "❌ No puedes agregar nuevas misiones hasta completar todas las actuales."
       );
+      setToastKey((prev) => prev + 1);
       return;
     }
 
@@ -190,11 +215,13 @@ export default function Home() {
       )
       .then((res) => {
         setMisiones(res.data.missions);
-        alert("✅ Se asignaron 3 nuevas misiones");
+        setToastMessage("✅ Se asignaron 3 nuevas misiones");
+        setToastKey((prev) => prev + 1);
       })
       .catch((err) => {
         console.error("Error al agregar 3 misiones:", err);
-        alert("No se pudieron asignar 3 misiones.");
+        setToastMessage("No se pudieron asignar 3 misiones.");
+        setToastKey((prev) => prev + 1);
       });
   };
 
@@ -222,99 +249,98 @@ export default function Home() {
   }, [token]);
 
   return (
-    <div className="home-container">
-      <h1 className="home-title">MOTIV8</h1>
-      <h3 className="home-subtitle">Inicio</h3>
+  <div className="home-container">
+    <h1 className="home-title">MOTIV8</h1>
+    <h3 className="home-subtitle">Inicio</h3>
 
-      <div className="missions-section">
-        <h3 className="missions-title">Misiones asignadas</h3>
-        <div className="container text-center">
-          <div className="row row-cols-2">
-            {misiones.map((mision, index) => {
-              const progreso = mision.progressValue || 0;
-              const porcentaje = Math.min(
-                (progreso / mision.targetValue) * 100,
-                100
-              );
-              const restante = Math.max(mision.targetValue - progreso, 0);
-              const isEmparejando = emparejados[mision.id]?.some(
-                (u) => u.uid === user.uid
-              );
+    <div className="missions-section">
+      <h3 className="missions-title">Misiones asignadas</h3>
+      <div className="container text-center">
+        <div className="row row-cols-2">
+          {misiones.map((mision, index) => {
+            const progreso = mision.progressValue || 0;
+            const porcentaje = Math.min((progreso / mision.targetValue) * 100, 100);
+            const restante = Math.max(mision.targetValue - progreso, 0);
 
-              return (
-                <div className="card-home" key={index}>
-                  <div className="card-body">
-                    <p className="mission-text">{mision.name}</p>
-                    <p>Descripción: {mision.description}</p>
-                    <p>
-                      Objetivo: {mision.targetValue} {mision.unit}
-                    </p>
-                    <p>
-                      Recompensa: {mision.reward} XP / {mision.coinReward} Coins
-                    </p>
+            const estaEmparejado = emparejados[mision.id]?.some(
+              (u) => u.uid === user.uid
+            );
+            const estaEsperando = emparejandoEnCurso[mision.id];
 
-                    {mision.completed ? (
+            return (
+              <div className="card-home" key={index}>
+                <div className="card-body">
+                  <p className="mission-text">{mision.name}</p>
+                  <p>Descripción: {mision.description}</p>
+                  <p>
+                    Objetivo: {mision.targetValue} {mision.unit}
+                  </p>
+                  <p>
+                    Recompensa: {mision.reward} XP / {mision.coinReward} Coins
+                  </p>
+
+                  {mision.completed ? (
+                    <button
+                      className="btn-recompensa"
+                      onClick={() => reclamarRecompensa(mision.id)}
+                    >
+                      Recoger recompensa
+                    </button>
+                  ) : (
+                    <>
+                      <progress value={progreso} max={mision.targetValue}></progress>
+                      <p>{porcentaje.toFixed(1)}% completado</p>
+                      <p>
+                        Te faltan {restante.toFixed(1)} {mision.unit}
+                      </p>
+
                       <button
-                        className="btn-recompensa"
-                        onClick={() => reclamarRecompensa(mision.id)}
+                        className="btn-emparejar"
+                        onClick={() => toggleEmparejar(mision.id, estaEmparejado)}
+                        disabled={estaEsperando}
                       >
-                        Recoger recompensa
+                        {estaEsperando
+                          ? "EMPAREJANDO..."
+                          : estaEmparejado
+                          ? "DISOLVER"
+                          : "EMPAREJAR"}
                       </button>
-                    ) : (
-                      <>
-                        <progress
-                          value={progreso}
-                          max={mision.targetValue}
-                        ></progress>
-                        <p>{porcentaje.toFixed(1)}% completado</p>
-                        <p>
-                          Te faltan {restante.toFixed(1)} {mision.unit}
-                        </p>
 
-                        <button
-                          className="btn-emparejar"
-                          onClick={() =>
-                            toggleEmparejar(mision.id, isEmparejando)
-                          }
-                          disabled={emparejandoEnCurso[mision.id]}
-                        >
-                          {emparejandoEnCurso[mision.id]
-                            ? "EMPAREJANDO..."
-                            : isEmparejando
-                            ? "DISOLVER"
-                            : "EMPAREJAR"}
-                        </button>
-
-                        {emparejados[mision.id]?.length > 0 && (
-                          <div className="emparejados-list">
-                            <h5>Usuarios emparejados:</h5>
-                            <ul>
-                              {emparejados[mision.id].map((u) => (
-                                <li key={u.uid}>
-                                  {u.name} (Nivel {u.nivel})
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
+                      {emparejados[mision.id]?.length > 0 && (
+                        <div className="emparejados-list">
+                          <h5>Usuarios emparejados:</h5>
+                          <ul>
+                            {emparejados[mision.id].map((u) => (
+                              <li key={u.uid}>
+                                {u.name} (Nivel {u.nivel})
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      {misiones.length === 0 && (
-        <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
-          AGREGAR 3 MISIONES
-        </button>
-      )}
-
-      <Link to="/activityTracker" className="btn-registrar">Registrar Actividad</Link>
-      
     </div>
-  );
+
+    {misiones.length === 0 && (
+      <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
+        AGREGAR 3 MISIONES
+      </button>
+    )}
+
+    <Link to="/activityCreator" className="btn-registrar">
+      Registrar Actividad
+    </Link>
+
+    
+    {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+  </div>
+);
+
 }

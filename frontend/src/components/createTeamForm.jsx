@@ -3,6 +3,7 @@ import { useAuth } from "../context/authContext";
 import styles from "./CreateTeamForm.module.css";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import LiveToast from "../components/liveToast";
 
 import { canvasPreview, getCanvasBlob } from "../utils/canvasPreview";
 
@@ -22,7 +23,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   );
 }
 
-function CreateTeamForm({ onClose, onTeamCreated }) {
+function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
   const { user } = useAuth();
   const [team_name, setTeamName] = useState("");
   const [sport_type, setSportType] = useState("");
@@ -104,12 +105,12 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
         throw new Error(errData || "Error al crear equipo");
       }
       const data = await response.json();
-      alert("Equipo creado con éxito!");
-
+      if (typeof showToast === "function") {
+        showToast("✅ Equipo creado con éxito!");
+      }
       if (typeof onTeamCreated === "function") {
         onTeamCreated(data);
       }
-
     } catch (err) {
       setError(err.message || "Error al crear equipo");
     } finally {
@@ -232,6 +233,7 @@ function CreateTeamForm({ onClose, onTeamCreated }) {
         <button
           type="button"
           onClick={onClose}
+          showToast
           className={styles.cancelButton}
         >
           Cancelar

@@ -14,7 +14,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   );
 }
 
-function EditAvatarModal({ isOpen, onClose }) {
+function EditAvatarModal({ isOpen, onClose , showToast}) {
   const { refreshUser } = useAuth(); // Para actualizar la UI al terminar
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState();
@@ -64,14 +64,15 @@ function EditAvatarModal({ isOpen, onClose }) {
       if (!response.ok) throw new Error('Error al subir imagen');
 
       // 4. Éxito
-      alert('Foto de perfil actualizada!');
+      
       await refreshUser(); // Actualiza el contexto para mostrar la nueva foto
       onClose(); // Cierra el modal
+      showToast('Foto de perfil actualizada!');
       setImgSrc(''); // Limpia
 
     } catch (error) {
       console.error(error);
-      alert('Error al actualizar la foto.');
+      showToast('Error al actualizar la foto.');
     } finally {
       setIsLoading(false);
     }
