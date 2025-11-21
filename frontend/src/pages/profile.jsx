@@ -272,13 +272,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           )}
 
         <br />
-
-        <p>
-          Performance:{" "}
-          <span className="profile-level">
-            {JSON.stringify(user.performance || {})}
-          </span>
-        </p>
         <p>
           Ubicación:{" "}
           <span className="profile-level">

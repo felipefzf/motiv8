@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import styles from './HamburgerMenu.module.css';
 // Necesitarás react-icons para los iconos
 // Instálalo con: npm install react-icons
@@ -9,6 +9,8 @@ import { FaBars, FaTimes } from 'react-icons/fa';
 function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+
+  const location = useLocation();
 
   // 2. Función para abrir/cerrar el menú
   const toggleMenu = () => {
@@ -21,7 +23,7 @@ function HamburgerMenu() {
   };
 
   // 4. Si el usuario no es admin, no renderiza nada.
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'admin' || location.pathname === '/profile') {
     return null;
   }
 
