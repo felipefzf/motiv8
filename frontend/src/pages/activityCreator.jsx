@@ -82,8 +82,7 @@ export default function ActivityCreator() {
       <h1 className="act-title">MOTIV8</h1>
       <form className="activity-form" onSubmit={handleSubmit}>
         <h2>Registrar Actividad</h2>
-
-        <label>Nombre de la Actividad:</label>
+<br />        <label>Nombre de la Actividad:</label>
         <input
           type="text"
           name="nombreActividad"
