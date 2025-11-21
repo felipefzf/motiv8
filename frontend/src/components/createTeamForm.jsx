@@ -1,11 +1,11 @@
+// src/pages/CreateTeamForm.jsx
+
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/authContext";
 import styles from "./CreateTeamForm.module.css";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import LiveToast from "../components/liveToast";
 import API_URL from "../config";
-
 import { canvasPreview, getCanvasBlob } from "../utils/canvasPreview";
 
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
@@ -105,6 +105,7 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
         const errData = await response.text();
         throw new Error(errData || "Error al crear equipo");
       }
+
       const data = await response.json();
       if (typeof showToast === "function") {
         showToast("✅ Equipo creado con éxito!");
@@ -121,131 +122,132 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h2 className={styles.title}>Crear Nuevo Equipo</h2>
-      {error && <p className={styles.error}>{error}</p>}
+      <div className={styles.formInner}>
+        <h2 className={styles.title}>Crear Nuevo Equipo</h2>
+        {error && <p className={styles.error}>{error}</p>}
 
-      <div className={styles.inputGroup}>
-        <label htmlFor="team_name">Nombre del Equipo</label>
-        <input
-          className={styles.inputFull}
-          type="text"
-          id="team_name"
-          value={team_name}
-          onChange={(e) => setTeamName(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className={styles.inputGroup}>
-        <label>Descripción</label>
-        <textarea
-          className={styles.textareaFull}
-          id="description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className={styles.inputGroup}>
-        <label htmlFor="sport_type">Deporte</label>
-        <select
-          id="sport_type"
-          value={sport_type}
-          onChange={(e) => setSportType(e.target.value)}
-          required
-          disabled={isLoading}
-        >
-          <option value="">Selecciona un deporte</option>
-          <option value="Running">Running</option>
-          <option value="Cycling">Cycling</option>
-        </select>
-      </div>
-
-      <div className={styles.inputGroup}>
-        <label htmlFor="team_color">Color del equipo</label>
-        <input
-          className={styles.inputFull}
-          type="color"
-          id="team_color"
-          value={team_color}
-          onChange={(e) => setTeamColor(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-
-      <div className={styles.inputGroup}>
-        <label htmlFor="teamImageFile">Logo del Equipo</label>
-        <input type="file" accept="image/*" onChange={onSelectFile} />
-      </div>
-
-      {!!imgSrc && (
-        <div className={styles.cropContainer}>
-          <ReactCrop
-            crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
-            aspect={1}
-            circularCrop
-          >
-            <img
-              ref={imgRef}
-              alt="Crop me"
-              src={imgSrc}
-              onLoad={onImageLoad}
-              className={styles.cropImage}
-            />
-          </ReactCrop>
-
-          <button
-            type="button"
-            onClick={handleSaveCrop}
-            className={styles.saveCropButton}
-          >
-            Confirmar Recorte
-          </button>
-        </div>
-      )}
-
-      {!!previewUrl && !imgSrc && (
-        <div className={styles.previewContainer}>
-          <p>Imagen seleccionada:</p>
-          <img
-            src={previewUrl}
-            alt="Vista previa"
-            className={styles.previewImage}
+        <div className={styles.inputGroup}>
+          <label htmlFor="team_name">Nombre del Equipo</label>
+          <input
+            className={styles.inputFull}
+            type="text"
+            id="team_name"
+            value={team_name}
+            onChange={(e) => setTeamName(e.target.value)}
+            required
+            disabled={isLoading}
           />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label>Descripción</label>
+          <textarea
+            className={styles.textareaFull}
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="sport_type">Deporte</label>
+          <select
+            id="sport_type"
+            value={sport_type}
+            onChange={(e) => setSportType(e.target.value)}
+            required
+            disabled={isLoading}
+          >
+            <option value="">Selecciona un deporte</option>
+            <option value="Running">Running</option>
+            <option value="Cycling">Cycling</option>
+          </select>
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="team_color">Color del equipo</label>
+          <input
+            className={styles.inputFull}
+            type="color"
+            id="team_color"
+            value={team_color}
+            onChange={(e) => setTeamColor(e.target.value)}
+            required
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className={styles.inputGroup}>
+          <label htmlFor="teamImageFile">Logo del Equipo</label>
+          <input type="file" accept="image/*" onChange={onSelectFile} />
+        </div>
+
+        {!!imgSrc && (
+          <div className={styles.cropContainer}>
+            <ReactCrop
+              crop={crop}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
+              onComplete={(c) => setCompletedCrop(c)}
+              aspect={1}
+              circularCrop
+            >
+              <img
+                ref={imgRef}
+                alt="Crop me"
+                src={imgSrc}
+                onLoad={onImageLoad}
+                className={styles.cropImage}
+              />
+            </ReactCrop>
+
+            <button
+              type="button"
+              onClick={handleSaveCrop}
+              className={styles.saveCropButton}
+            >
+              Confirmar Recorte
+            </button>
+          </div>
+        )}
+
+        {!!previewUrl && !imgSrc && (
+          <div className={styles.previewContainer}>
+            <p>Imagen seleccionada:</p>
+            <img
+              src={previewUrl}
+              alt="Vista previa"
+              className={styles.previewImage}
+            />
+            <button
+              type="button"
+              onClick={() => setImgSrc(previewUrl)}
+              className={styles.editButton}
+            >
+              Editar
+            </button>
+          </div>
+        )}
+
+        <canvas ref={canvasRef} className={styles.hiddenCanvas} />
+
+        <div className={styles.buttonContainer}>
           <button
             type="button"
-            onClick={() => setImgSrc(previewUrl)}
-            className={styles.editButton}
+            onClick={onClose}
+            className={`${styles.buttonBase} ${styles.cancelButton}`}
           >
-            Editar
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className={`${styles.buttonBase} ${styles.submitButton}`}
+            disabled={isLoading}
+          >
+            {isLoading ? "Creando..." : "Crear Equipo"}
           </button>
         </div>
-      )}
-
-      <canvas ref={canvasRef} className={styles.hiddenCanvas} />
-
-      <div className={styles.buttonContainer}>
-        <button
-          type="button"
-          onClick={onClose}
-          showToast
-          className={styles.cancelButton}
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          className={styles.submitButton}
-          disabled={isLoading}
-        >
-          {isLoading ? "Creando..." : "Crear Equipo"}
-        </button>
       </div>
     </form>
   );
