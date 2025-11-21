@@ -22,8 +22,8 @@
   color: var(--text-color, #000);
 
   /* --- 2. SÍ debe manejar el scroll --- */
-  max-height: 70vh;  
-  overflow-y: auto;  /* ¡Añade la barra de scroll aquí! */
+  max-height: 70vh;
+  overflow-y: auto;
   overflow-x: hidden;
   
   /* --- 3. SÍ debe estar encima del backdrop --- */
