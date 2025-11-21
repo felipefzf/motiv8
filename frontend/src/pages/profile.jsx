@@ -9,7 +9,9 @@ import axios from "axios";
 import EditAvatarModal from "../components/editAvatarModal.jsx";
 import EditProfileModal from "../components/editProfileModal.jsx";
 import Modal from "../components/modal.jsx";
+import InventoryModal from "../components/inventoryModal.jsx";
 import ProfileRewardModal from "../components/profileRewardModal.jsx";
+import PencilImg from "../assets/pencil.png";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -22,13 +24,12 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [perfil, setPerfil] = useState(null);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [isInventoryModalOpen, setInventoryModalOpen] = useState(false);
 
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
-  // Estado para modal de recompensa
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
-  // ✅ Estado para controlar si ya reclamó en este nivel
 
   const fetchStats = async () => {
     if (!user) return;
@@ -62,7 +63,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         equipo.team_color || "#ffd000ff"
       );
     }
-  }, [equipo]);
+  }, [equipo, setTeamColor]);
 
   useEffect(() => {
     if (!user) return;
@@ -146,7 +147,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     }
   };
 
-  // Reclamar recompensa
   const reclamarRecompensa = async (option) => {
     const token = localStorage.getItem("firebaseToken");
     const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -169,13 +169,20 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       }
     }
   };
-  // ✅ Resetear hasClaimedReward cuando cambie el nivel
 
   if (!user) return <p>Cargando...</p>;
+
   return (
     <div className="profile-container">
       <button onClick={handleToggleTheme} className="theme-toggle-btn">
         {theme === "dark" ? "☀️ Tema Claro" : "🌙 Tema Oscuro"}
+      </button>
+
+      <button
+        className="btn-inventory"
+        onClick={() => setInventoryModalOpen(true)}
+      >
+        Inventario
       </button>
 
       <h1 className="profile-title">MOTIV8</h1>
@@ -183,44 +190,36 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <p>
         Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
       </p>
-      <div className="profile-content">
-        <img
-          // Usamos user.profile_image_url DIRECTAMENTE del contexto
-          src={user.profile_image_url || tomy}
-          className="profile-image rounded-circle border"
-          alt="Perfil de usuario"
-          style={{
-            objectFit: "cover",
-            width: "150px",
-            height: "150px",
-            display: "block",
-            margin: "0 auto",
-          }}
-        />
 
-        <div style={{ marginTop: 15, marginBottom: 15 }}>
+      <div className="profile-content">
+        {/* FOTO + BOTÓN FLOTANTE */}
+        <div className="profile-image-wrapper">
+          <img
+            src={user.profile_image_url || tomy}
+            className="profile-image"
+            alt="Perfil de usuario"
+          />
+
           <button
-            className="btn btn-primary btn-sm"
+            className="change-foto"
             onClick={() => setAvatarModalOpen(true)}
           >
-            Cambiar foto
+            <img
+              src={PencilImg}
+              alt="Icono lápiz"
+              className="change-foto-icon"
+            />
           </button>
         </div>
 
         <button
+          className="edit-info"
           onClick={() => setInfoModalOpen(true)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#007bff",
-            textDecoration: "underline",
-            cursor: "pointer",
-            fontSize: "0.9em",
-            marginBottom: "10px",
-          }}
         >
           Editar información
         </button>
+
+        <br />
 
         <h4 className="profile-name">
           {user?.name || "Sin nombre"}{" "}
@@ -241,25 +240,24 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
           </div>
         )}
-        <br />
 
-        {/* ✅ Botón de recompensa solo si no ha reclamado */}
         {stats &&
           stats.nivelActual % 2 === 0 &&
           stats.ultimoNivelRecompensado !== stats.nivelActual && (
             <button
               className="btn-recompensa"
-              onClick={() => setRewardModalOpen(true)} // ✅ abre el modal
+              onClick={() => setRewardModalOpen(true)}
               style={{ marginTop: "10px" }}
             >
               Reclama tu recompensa 🎁
             </button>
           )}
+
         <br />
+
         <p>
           Ubicación:{" "}
           <span className="profile-level">
-            {/* Usamos user.comuna DIRECTAMENTE */}
             {user.comuna || "No definida"}, {user.region || "Chile"}
           </span>
         </p>
@@ -267,10 +265,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <div>
           Deporte Principal:{" "}
           <span className="profile-level">
-            {/* Usamos user.main_sport DIRECTAMENTE (si lo agregaste al objeto user en backend)
-               Si no lo tienes en user, entonces sí necesitarías 'perfil', 
-               pero lo ideal es que /auth/me te devuelva todo. 
-            */}
             {user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}
           </span>
           {equipo && (
@@ -281,9 +275,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           )}
         </div>
 
-        {/* ... (El resto de estadísticas, logros y botón logout igual) ... */}
         <h3 className="section-title">Estadísticas</h3>
-        {/* ... */}
+
         <br />
         <div className="container text-center">
           <p>
@@ -355,7 +348,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
                     border: "1px solid #ddd",
                     borderRadius: "8px",
                     padding: "15px",
-                    backgroundColor: "white", // O usa variables de tema
+                    backgroundColor: "white",
                     textAlign: "left",
                   }}
                 >
@@ -433,9 +426,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
                       <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
                     </div>
                   </div>
-
-                  {/* (Opcional) Botón para ver detalles o mapa */}
-                  {/* <button style={{ width: '100%', padding: '5px' }}>Ver Ruta</button> */}
                 </div>
               ))}
             </div>
@@ -451,6 +441,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <EditAvatarModal
         isOpen={isAvatarModalOpen}
         onClose={() => setAvatarModalOpen(false)}
+      />
+      <InventoryModal
+        isOpen={isInventoryModalOpen}
+        onClose={() => setInventoryModalOpen(false)}
       />
       <EditProfileModal
         isOpen={isInfoModalOpen}

@@ -26,13 +26,22 @@
   align-items: center;
 }
 
+/* Contenedor de foto + botón */
+.profile-image-wrapper {
+  position: relative;        /* referencia para el botón */
+  width: 150px;              /* tamaño fijo para que sea consistente */
+  height: 150px;
+  margin: 0 auto 10px auto;
+}
+
+/* Imagen de perfil */
 .profile-image {
-  width: 200px;
-  height: 200px;
-  margin-bottom: 10px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   border: 3px solid var(--accent-color);
   box-shadow: 0 0 10px var(--shadow-color);
+  object-fit: cover;
 }
 
 .profile-name {
@@ -83,7 +92,7 @@
   top: 30px;
   right: 20px;
   padding: 10px 14px;
-  background-color: var(--btn-bg);
+  background-color: var(--accent-color);
   color: var(--btn-text);
   border: 2px solid var(--accent-color);
   border-radius: 8px;
@@ -94,6 +103,26 @@
 }
 
 .theme-toggle-btn:hover {
+  background-color: var(--accent-color);
+  color: var(--bg-color);
+}
+
+.btn-inventory {
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  margin-top: 15px;
+  padding: 10px 14px;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: 2px solid var(--accent-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-inventory:hover {
   background-color: var(--accent-color);
   color: var(--bg-color);
 }
@@ -128,3 +157,49 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
+
+/* === Botón cambiar foto como círculo con icono flotando en la foto === */
+.change-foto {
+  position: absolute;
+  bottom: -5px;           /* ajusta fino la posición vertical */
+  right: -5px;            /* ajusta fino la posición horizontal */
+  width: 50px;            /* tamaño del círculo */
+  height: 50px;
+  border-radius: 50%;     /* lo hace redondo */
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;   /* centrado del icono */
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  padding: 0;
+}
+
+.change-foto:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+/* Icono dentro del botón circular */
+.change-foto-icon {
+  width: 24px;   /* tamaño del icono */
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Botón editar info normal */
+.edit-info {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+/* Puedes mantener aquí tus otros estilos (btn-cerrarsesion, progress, etc.) */
