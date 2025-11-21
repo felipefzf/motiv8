@@ -4,10 +4,18 @@ import MyTeamInfo from "../components/teamInfo";
 import JoinTeamView from "../components/joinTeam";
 import CreateTeamForm from "../components/CreateTeamForm";
 import styles from "./teams.module.css";
+import LiveToast from "../components/liveToast";
 
 function Teams({ setTeamColor }) {
   const { user, isLoading } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToastKey((prev) => prev + 1);
+  };
 
   if (isLoading) {
     return <p className={styles.loading}>Cargando...</p>;
@@ -19,6 +27,8 @@ function Teams({ setTeamColor }) {
 
   const handleOpenCreate = () => setShowCreateModal(true);
   const handleCloseCreate = () => setShowCreateModal(false);
+
+  
 
   const handleTeamCreated = (newTeam) => {
     if (newTeam?.team_color && setTeamColor) {
@@ -57,10 +67,12 @@ function Teams({ setTeamColor }) {
             <CreateTeamForm
               onClose={handleCloseCreate}
               onTeamCreated={handleTeamCreated}
+              showToast={showToast}
             />
           </div>
         </div>
       )}
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
   );
 }
