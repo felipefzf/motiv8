@@ -113,7 +113,8 @@ export default function Home() {
       );
 
       setMisiones(res.data.missions);
-      alert("🎉 Recompensa reclamada");
+      setToastMessage("🎉 Recompensa reclamada");
+      setToastKey((prev) => prev + 1);
 
       await axios.post(
         "http://localhost:5000/api/match/stop",
@@ -197,9 +198,10 @@ export default function Home() {
 
   const agregarTresMisiones = () => {
     if (misiones.length > 0) {
-      alert(
+      setToastMessage(
         "❌ No puedes agregar nuevas misiones hasta completar todas las actuales."
       );
+      setToastKey((prev) => prev + 1);
       return;
     }
 
@@ -213,11 +215,13 @@ export default function Home() {
       )
       .then((res) => {
         setMisiones(res.data.missions);
-        alert("✅ Se asignaron 3 nuevas misiones");
+        setToastMessage("✅ Se asignaron 3 nuevas misiones");
+        setToastKey((prev) => prev + 1);
       })
       .catch((err) => {
         console.error("Error al agregar 3 misiones:", err);
-        alert("No se pudieron asignar 3 misiones.");
+        setToastMessage("No se pudieron asignar 3 misiones.");
+        setToastKey((prev) => prev + 1);
       });
   };
 

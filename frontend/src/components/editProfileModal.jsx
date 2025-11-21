@@ -4,7 +4,8 @@ import { useAuth } from "../context/authContext";
 import styles from "./CreateTeamForm.module.css"; // Reutilizamos estilos
 import { regionesYcomunas } from "../utils/funcionUtils";
 
-function EditProfileInfoModal({ isOpen, onClose }) {
+
+function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
   const { user, refreshUser } = useAuth();
 
   // Estados para los campos
@@ -16,6 +17,7 @@ function EditProfileInfoModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  
   // Cargar datos del usuario al abrir el modal
   useEffect(() => {
     if (user && isOpen) {
@@ -56,7 +58,7 @@ function EditProfileInfoModal({ isOpen, onClose }) {
       // Éxito
       await refreshUser(); // Actualiza el contexto
       onClose(); // Cierra el modal
-      alert("Perfil actualizado correctamente");
+      showToast("Perfil actualizado correctamente");
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -156,7 +158,9 @@ function EditProfileInfoModal({ isOpen, onClose }) {
           </button>
         </div>
       </form>
+      
     </Modal>
+    
   );
 }
 
