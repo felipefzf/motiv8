@@ -28,8 +28,8 @@
 
 /* Contenedor de foto + botón */
 .profile-image-wrapper {
-  position: relative;        /* referencia para el botón */
-  width: 150px;              /* tamaño fijo para que sea consistente */
+  position: relative;
+  width: 150px;
   height: 150px;
   margin: 0 auto 10px auto;
 }
@@ -149,28 +149,28 @@
 }
 
 .activity-card {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s;
 }
 
 .activity-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* === Botón cambiar foto como círculo con icono flotando en la foto === */
 .change-foto {
   position: absolute;
-  bottom: -5px;           /* ajusta fino la posición vertical */
-  right: -5px;            /* ajusta fino la posición horizontal */
-  width: 50px;            /* tamaño del círculo */
+  bottom: -5px;
+  right: -5px;
+  width: 50px;
   height: 50px;
-  border-radius: 50%;     /* lo hace redondo */
+  border-radius: 50%;
   background-color: var(--accent-color);
   color: var(--btn-text);
   border: none;
   cursor: pointer;
-  display: inline-flex;   /* centrado del icono */
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.3s ease, transform 0.2s ease;
@@ -184,7 +184,7 @@
 
 /* Icono dentro del botón circular */
 .change-foto-icon {
-  width: 24px;   /* tamaño del icono */
+  width: 24px;
   height: 24px;
   object-fit: contain;
 }
@@ -202,4 +202,85 @@
   transition: background-color 0.3s ease;
 }
 
-/* Puedes mantener aquí tus otros estilos (btn-cerrarsesion, progress, etc.) */
+/* Barra de progreso + texto */
+.progress-bar-container {
+  margin-top: 10px;
+  
+}
+
+.progress-bar-container progress {
+  width: 100%;
+  margin-bottom: 5px;
+  color: var(--accent-color);
+}
+
+/* Stats */
+.stats-container {
+  text-align: center;
+}
+
+/* Lista vacía de actividades */
+.activities-empty {
+  color: #666;
+  font-style: italic;
+}
+
+/* Wrapper de tarjetas de actividades */
+.activities-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Tarjeta interna con borde y fondo blanco */
+.activity-card-inner {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  background-color: white;
+  text-align: left;
+}
+
+/* Header de la tarjeta */
+.activity-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.activity-card-title,
+.activity-card-type {
+  font-weight: bold;
+  text-transform: capitalize;
+  color: var(--accent-color);
+}
+
+.activity-card-date {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* Stats dentro de la tarjeta */
+.activity-card-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 10px;
+}
+
+.activity-card-label {
+  font-size: 0.8em;
+  display: block;
+  color: #888;
+}
+
+/* Botón cerrar sesión (si lo tenías ya, mantenlo igual) */
+.btn-cerrarsesion {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background-color: crimson;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}

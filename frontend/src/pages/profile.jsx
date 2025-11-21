@@ -230,7 +230,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </h4>
 
         {stats && (
-          <div className="progress-bar-container" style={{ marginTop: "10px" }}>
+          <div className="progress-bar-container">
             <progress
               value={stats.puntos}
               max={stats.puntosParaSiguienteNivel + stats.puntos}
@@ -247,7 +247,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             <button
               className="btn-recompensa"
               onClick={() => setRewardModalOpen(true)}
-              style={{ marginTop: "10px" }}
             >
               Reclama tu recompensa 🎁
             </button>
@@ -278,7 +277,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <h3 className="section-title">Estadísticas</h3>
 
         <br />
-        <div className="container text-center">
+        <div className="stats-container">
           <p>
             Distancia total:{" "}
             <span className="profile-highlight">
@@ -333,96 +332,39 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           {loadingActivities ? (
             <p>Cargando actividades...</p>
           ) : activities.length === 0 ? (
-            <p style={{ color: "#666", fontStyle: "italic" }}>
+            <p className="activities-empty">
               Aún no tienes actividades registradas.
             </p>
           ) : (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
-            >
+            <div className="activities-wrapper">
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="activity-card"
-                  style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "8px",
-                    padding: "15px",
-                    backgroundColor: "white",
-                    textAlign: "left",
-                  }}
+                  className="activity-card activity-card-inner"
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        textTransform: "capitalize",
-                        color: "#007bff",
-                      }}
-                    >
+                  <div className="activity-card-header">
+                    <span className="activity-card-title">
                       {activity.title || "Actividad"}
                     </span>
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        textTransform: "capitalize",
-                        color: "#007bff",
-                      }}
-                    >
+                    <span className="activity-card-type">
                       {activity.type || "Actividad"} activity
                     </span>
-                    <span style={{ fontSize: "0.9em", color: "#666" }}>
+                    <span className="activity-card-date">
                       {new Date(activity.date).toLocaleDateString()}
                     </span>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-around",
-                      marginBottom: "10px",
-                    }}
-                  >
+                  <div className="activity-card-stats">
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Distancia
-                      </span>
+                      <span className="activity-card-label">Distancia</span>
                       <strong>{activity.distance.toFixed(2)} km</strong>
                     </div>
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Tiempo
-                      </span>
+                      <span className="activity-card-label">Tiempo</span>
                       <strong>{(activity.time / 60).toFixed(0)} min</strong>
                     </div>
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Velocidad
-                      </span>
+                      <span className="activity-card-label">Velocidad</span>
                       <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
                     </div>
                   </div>
