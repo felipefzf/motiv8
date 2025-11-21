@@ -3,6 +3,8 @@ import "./Shop.css";
 import { useAuth } from "../context/authContext";
 import axios from "axios";
 import API_URL from "../config"; // (Ajusta la ruta de importación)
+import LiveToast from "../components/liveToast";
+
 
 
 // Imágenes locales de fallback (si no hay imageUrl en el ítem)
@@ -13,6 +15,16 @@ import coinsImg from "../assets/coins.png";
 export default function Shop() {
   const { token } = useAuth();
   const [items, setItems] = useState([]);
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToastKey((k) => k + 1);
+  };
+
+
 
   useEffect(() => {
     if (!token) return;
@@ -39,12 +51,12 @@ export default function Shop() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(res.data.message); // "Compraste este item"
+      showToast(`✅ ${res.data.message}`); // "Compraste este item"
     } catch (err) {
       if (err.response?.status === 400) {
-        alert(err.response.data.message); // "Te faltan X coins..."
+        showToast(`⚠️ ${err.response.data.message}`); // "Te faltan X coins..."
       } else {
-        alert("❌ Error al procesar la compra.");
+        showToast("❌ Error al procesar la compra.");
       }
     }
   };
@@ -80,6 +92,8 @@ export default function Shop() {
           </div>
         ))}
       </div>
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+
     </div>
   );
 }

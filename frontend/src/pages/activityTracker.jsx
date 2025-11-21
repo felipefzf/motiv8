@@ -4,6 +4,8 @@ import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import ActivityMap from "../components/ActivityMap";
 import "./ActivityTracker.css"; // 👈 usamos el CSS externo
+import LiveToast from "../components/liveToast";
+import { useNavigate } from "react-router-dom";
 
 function ActivityTracker() {
   const { user } = useAuth();
@@ -20,7 +22,13 @@ function ActivityTracker() {
 
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
-
+  const navigate = useNavigate();
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToastKey((k) => k + 1);
+  };
   const timerRef = useRef(null);
 
   const handleStart = () => {
@@ -112,7 +120,8 @@ function ActivityTracker() {
 
       if (!response.ok) throw new Error("Error al guardar en servidor");
 
-      alert("¡Actividad guardada con éxito!");
+      showToast("✅ ¡Actividad guardada con éxito!");
+      setTimeout(() => navigate("/"), 1500);
       setStatus("idle");
       setStartPos(null);
       setEndPos(null);
@@ -141,9 +150,7 @@ function ActivityTracker() {
 
       {status === "idle" && (
         <div className="activity-select-wrapper">
-          <label className="activity-select-label">
-            Elige tu deporte:
-          </label>
+          <label className="activity-select-label">Elige tu deporte:</label>
           <select
             value={activityType}
             onChange={(e) => setActivityType(e.target.value)}
@@ -169,9 +176,7 @@ function ActivityTracker() {
         </div>
       )}
 
-      <div className="activity-timer">
-        {formatTime(elapsedTime)}
-      </div>
+      <div className="activity-timer">{formatTime(elapsedTime)}</div>
 
       {error && <p className="activity-error">{error}</p>}
 
@@ -214,8 +219,7 @@ function ActivityTracker() {
 
           <div className="activity-summary-row">
             <p>
-              <strong>Distancia:</strong>{" "}
-              {routeData.distanceKm.toFixed(2)} km
+              <strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km
             </p>
             <p>
               <strong>Ritmo:</strong>{" "}
@@ -240,6 +244,8 @@ function ActivityTracker() {
           </button>
         </div>
       )}
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+
     </div>
   );
 }
