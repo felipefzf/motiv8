@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
 import styles from "./teamInfo.module.css";
-<<<<<<< Updated upstream
 import LiveToast from "../components/liveToast";
 import Modal from "../components/modal.jsx";
-=======
 import API_URL from '../config'; 
->>>>>>> Stashed changes
 
 function MyTeamInfo({ setTeamColor }) {
   const { user, refreshUser } = useAuth();

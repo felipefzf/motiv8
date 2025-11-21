@@ -11,12 +11,9 @@ import EditProfileModal from "../components/editProfileModal.jsx";
 import Modal from "../components/modal.jsx";
 import InventoryModal from "../components/inventoryModal.jsx";
 import ProfileRewardModal from "../components/profileRewardModal.jsx";
-<<<<<<< Updated upstream
 import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
-=======
 import API_URL from "../config";
->>>>>>> Stashed changes
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();

@@ -4,11 +4,8 @@ import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { io } from "socket.io-client"; // ✅ frontend client
-<<<<<<< Updated upstream
 import LiveToast from "../components/liveToast";
-=======
 import API_URL from '../config'; 
->>>>>>> Stashed changes
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
@@ -22,50 +19,36 @@ export default function Home() {
  
 
   useEffect(() => {
-<<<<<<< Updated upstream
+    if (!socket || !user) return;
+
     misiones.forEach((m) => {
+      // Revisamos si el usuario actual está en la lista de emparejados de esta misión
       const estaEmparejado = emparejados[m.id]?.some((u) => u.uid === user.uid);
+      
       if (estaEmparejado) {
         socket.emit("joinMission", m.id);
-=======
-  const interval = setInterval(async () => {
-    for (const m of misiones) {
-      try {
-        const res = await axios.get(
-          `${API_URL}/api/match/${m.id}/events`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        res.data.forEach((event) => {
-          const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
-          if (!yaVisto) {
-            alert(event.message); // ✅ solo una vez
-            setEventosVistos((prev) => ({
-              ...prev,
-              [m.id]: [...(prev[m.id] || []), event.timestamp],
-            }));
-          }
-        });
-      } catch (err) {
-        console.error("Error obteniendo eventos:", err);
->>>>>>> Stashed changes
       }
     });
-  }, [emparejados, misiones, user]);
+  }, [emparejados, misiones, user, socket]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
+      // Usamos un for...of para poder usar await dentro
       for (const m of misiones) {
         try {
           const res = await axios.get(
-            `http://localhost:5000/api/match/${m.id}/events`,
+            `${API_URL}/api/match/${m.id}/events`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
 
           res.data.forEach((event) => {
+            // Verificamos si ya vimos este evento para no repetir la alerta
             const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
+            
             if (!yaVisto) {
-              setToastMessage(event.message); // ✅ activa el toast
+              alert(event.message); // Mostrar alerta
+              
+              // Marcar evento como visto
               setEventosVistos((prev) => ({
                 ...prev,
                 [m.id]: [...(prev[m.id] || []), event.timestamp],
@@ -73,10 +56,13 @@ export default function Home() {
             }
           });
         } catch (err) {
-          console.error("Error obteniendo eventos:", err);
+          // Ignoramos errores de consola para no saturar si no hay eventos
+          // console.error("Error obteniendo eventos:", err);
         }
       }
     }, 5000);
+
+    // Limpieza del intervalo al desmontar
     return () => clearInterval(interval);
   }, [misiones, token, eventosVistos]);
 
@@ -177,25 +163,7 @@ export default function Home() {
   try {
     setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: true }));
 
-<<<<<<< Updated upstream
     if (!isEmparejado) {
-      await axios.post(
-        "http://localhost:5000/api/match/start",
-        { missionId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      // ❌ No ponemos false aquí, esperamos confirmación del backend
-    } else {
-      await axios.post(
-        "http://localhost:5000/api/match/stop",
-        {
-          missionId,
-          uid: user.uid,
-          name: user.name,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-=======
         await axios.post(
           `${API_URL}/api/match/start`,
           { missionId },
@@ -211,7 +179,6 @@ export default function Home() {
   },
   { headers: { Authorization: `Bearer ${token}` } }
         );
->>>>>>> Stashed changes
 
       // ✅ Eliminar al usuario del grupo localmente
       setEmparejados((prev) => ({

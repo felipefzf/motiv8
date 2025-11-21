@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './MissionDashboard.module.css';
+import styles from './missionDashboard.module.css';
 import API_URL from '../config'; 
 
 const initialState = {
@@ -110,7 +110,7 @@ function MissionDashboard() {
     if (!token) return;
 
     const isUpdating = editingMission !== null;
-    const url = isUpdating ? `${API_URL}/missions/${editingMission.id}` : `${API_URL}/missions`;
+    const url = isUpdating ? `${API_URL}/api/missions/${editingMission.id}` : `${API_URL}/api/missions`;
     const method = isUpdating ? 'PUT' : 'POST';
 
     try {

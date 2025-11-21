@@ -1,16 +1,9 @@
-<<<<<<< Updated upstream
-import React, { useState, useEffect } from "react";
-import Modal from "./modal"; // Tu componente Modal genérico
-import { useAuth } from "../context/authContext";
-import styles from "./CreateTeamForm.module.css"; // Reutilizamos estilos
-import { regionesYcomunas } from "../utils/funcionUtils";
-=======
 import React, { useState, useEffect } from 'react';
 import Modal from './modal'; // Tu componente Modal genérico
 import { useAuth } from '../context/authContext';
 import styles from './CreateTeamForm.module.css'; // Reutilizamos estilos del form
+import { regionesYcomunas } from "../utils/funcionUtils";
 import API_URL from '../config'; 
->>>>>>> Stashed changes
 
 
 function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
@@ -45,19 +38,11 @@ function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
     if (!token) return;
 
     try {
-<<<<<<< Updated upstream
-      const response = await fetch("/api/users/profile", {
-        method: "PUT", // Usamos PUT para actualizaciones
-        headers: {
-          "Content-Type": "application/json", // Enviamos JSON
-          Authorization: `Bearer ${token}`,
-=======
       const response = await fetch(`${API_URL}/api/users/profile`, {
         method: 'PUT', // Usamos PUT para actualizaciones
         headers: { 
           'Content-Type': 'application/json', // Enviamos JSON
           'Authorization': `Bearer ${token}` 
->>>>>>> Stashed changes
         },
         body: JSON.stringify({
           name,

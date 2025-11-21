@@ -223,177 +223,11 @@ function AdminDashboard() {
   // --- 6. RENDERIZADO DEL COMPONENTE (con 'className' en lugar de 'style') ---
   return (
     <div className={styles.container}>
-      <h1>Panel de Administrador de Misiones</h1>
+      <h1>Panel administrador Ítems de la Tienda</h1>
 
-      {/* --- FORMULARIO DE CREAR / EDITAR --- */}
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <h3>{editingId ? "Actualizar Misión" : "Crear Nueva Misión"}</h3>
-
-        {/* Usamos clases de utilidad para los estilos 'dinámicos' */}
-        <div className={`${styles.inputGroup} ${styles.flex100}`}>
-          <label>Nombre</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={`${styles.inputGroup} ${styles.flex100}`}>
-          <label>Descripción</label>
-          <textarea
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            className={styles.input}
-          />
-        </div>
-
-        <div className={styles.inputGroup}>
-          <label>Tipo</label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleInputChange}
-            className={styles.input}
-          >
-            <option value="distance">Distancia</option>
-            <option value="time">Tiempo</option>
-            <option value="calories">Calorías</option>
-          </select>
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Objetivo (Valor)</label>
-          <input
-            type="number"
-            name="targetValue"
-            value={formData.targetValue}
-            onChange={handleInputChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Unidad (ej: km, min, kcal)</label>
-          <input
-            type="text"
-            name="unit"
-            value={formData.unit}
-            onChange={handleInputChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Recompensa (Puntos)</label>
-          <input
-            type="number"
-            name="reward"
-            value={formData.reward}
-            onChange={handleInputChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Recompensa (Coins)</label>
-          <input
-            type="number"
-            name="coinReward"
-            value={formData.coinReward}
-            onChange={handleInputChange}
-            required
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Fecha de Inicio</label>
-          <input
-            type="date"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleInputChange}
-            className={styles.input}
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label>Fecha de Fin</label>
-          <input
-            type="date"
-            name="endDate"
-            value={formData.endDate}
-            onChange={handleInputChange}
-            className={styles.input}
-          />
-        </div>
-
-        {/* Para clases combinadas, usamos un template literal. 
-          `${styles.baseClass} ${styles.modifierClass}` 
-        */}
-        <div
-          className={`${styles.inputGroup} ${styles.flex100} ${styles.formActions}`}
-        >
-          {editingId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className={`${styles.button} ${styles.cancelButton}`}
-            >
-              Cancelar
-            </button>
-          )}
-          <button
-            type="submit"
-            className={`${styles.button} ${
-              editingId ? styles.updateButton : styles.createButton
-            }`}
-          >
-            {editingId ? "Actualizar Misión" : "Crear Misión"}
-          </button>
-        </div>
-      </form>
-
-      {error && <p className={styles.error}>{error}</p>}
-
-      {/* --- LISTA DE MISIONES --- */}
-      <h2>Misiones Activas</h2>
-      {loading ? (
-        <p>Cargando misiones...</p>
-      ) : (
-        <ul className={styles.list}>
-          {missions.map((mission) => (
-            <li key={mission.id} className={styles.listItem}>
-              <div>
-                <strong>{mission.name}</strong> ({mission.type})
-                <p>{mission.description}</p>
-                <small>
-                  Recompensa: {mission.reward} XP | {mission.coinReward} Coins |
-                  Fin: {mission.endDate || "N/A"}
-                </small>
-              </div>
-              <div className={styles.listItemButtons}>
-                <button
-                  onClick={() => handleEditClick(mission)}
-                  className={`${styles.button} ${styles.editButton}`}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDelete(mission.id)}
-                  className={`${styles.button} ${styles.deleteButton}`}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
       {/* --- FORMULARIO DE ÍTEMS DE TIENDA --- */}
       <form onSubmit={handleItemSubmit} className={styles.form}>
-        <h3>Crear Ítem de Tienda</h3>
+        <h3>Crear Ítem</h3>
         <input
           name="name"
           placeholder="Nombre"
@@ -440,13 +274,13 @@ function AdminDashboard() {
           value={itemForm.durationMin}
           onChange={handleItemChange}
         />
-        <button type="submit">Crear Ítem</button>
+        <button className={styles.createButton} type="submit">Crear Ítem</button>
       </form>
 
       <h2>Ítems de Tienda</h2>
-      <ul>
+      <ul className={styles.list}>
         {items.map((i) => (
-          <li key={i.id}>
+          <li key={i.id} className={styles.listItem}>
             {i.name} - {i.price} Coins ({i.type})
           </li>
         ))}

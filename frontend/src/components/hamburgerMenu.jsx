@@ -42,7 +42,7 @@ function HamburgerMenu() {
               className={styles.navLink} 
               onClick={closeMenu}
             >
-              Usuarios
+              Crear Ítems
             </NavLink>
           </li>
           <li>

@@ -1,16 +1,7 @@
-<<<<<<< Updated upstream
-// src/pages/ActivityTracker.jsx
-
-import React, { useState, useRef } from "react";
-import { useAuth } from "../context/AuthContext";
-import ActivityMap from "../components/ActivityMap";
-import "./ActivityTracker.css"; // 👈 usamos el CSS externo
-=======
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ActivityMap from '../components/ActivityMap';
 import API_URL from '../config'; 
->>>>>>> Stashed changes
 
 function ActivityTracker() {
   const { user } = useAuth();
@@ -108,15 +99,10 @@ function ActivityTracker() {
     };
 
     try {
-<<<<<<< Updated upstream
-      const response = await fetch("/api/activities", {
-        method: "POST",
-=======
       // (Asegúrate de usar tu URL de producción o local según corresponda)
       // Para producción, usa import.meta.env.VITE_API_URL o ruta relativa si están en el mismo dominio
       const response = await fetch(`${API_URL}/api/activities`, { 
         method: 'POST',
->>>>>>> Stashed changes
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
