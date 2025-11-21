@@ -37,6 +37,7 @@ export const verifyToken = async (req, res, next) => {
       team_member: userDoc.data().team_member,
       id_team: userDoc.data().id_team || null,
       profile_image_url: userDoc.data().profile_image_url || null,
+      performance: userDoc.data().performance || null,
     };
 
     next(); // El usuario está verificado, puede continuar

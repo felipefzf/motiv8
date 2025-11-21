@@ -28,6 +28,13 @@ export default function Register() {
   const navigate = useNavigate();
   const [main_sport, setMain_sport] = useState('');
 
+  const [runPace, setRunPace] = useState(''); // Minutos por km (ej. 5.30)
+  const [runDist, setRunDist] = useState(''); // Km
+
+  const [cycleSpeed, setCycleSpeed] = useState(''); // Km/h
+  const [cycleDist, setCycleDist] = useState(''); // Km
+
+
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -84,6 +91,28 @@ export default function Register() {
         return;
     }
 
+    // Validar entradas numéricas
+    if (main_sport === 'running' && (!runPace || !runDist)) {
+      setError('Por favor, ingresa tu ritmo de corrida (minutos por km) y distancia (km).');
+      return;
+    }
+    if (main_sport === 'cycling' && (!cycleSpeed || !cycleDist)) {
+      setError('Por favor, ingresa tu velocidad de ciclismo (km/h) y distancia (km).');
+      return;
+    }
+
+    // Preparar datos de rendimiento
+    const performanceData = {
+      running: { 
+        pace: runPace ? parseFloat(runPace) : null, 
+        distance: runDist ? parseFloat(runDist) : null 
+      },
+      cycling: { 
+        speed: cycleSpeed ? parseFloat(cycleSpeed) : null, 
+        distance: cycleDist ? parseFloat(cycleDist) : null 
+      }
+    };
+
     setIsLoading(true);
 
     console.log("Preparando FormData")
@@ -95,6 +124,7 @@ export default function Register() {
     formData.append('region', region);
     formData.append('comuna', comuna);
     formData.append('main_sport', main_sport);
+  formData.append('performance', JSON.stringify(performanceData));
 
     console.log("Estado del Blob de imagen:", blobToSend);
 
@@ -179,6 +209,55 @@ export default function Register() {
           </select>
         </div>
         
+        {/* Campos de Rendimiento */}
+        {main_sport === 'running' && (
+          <div className="form-group">
+            <input
+              type="number"
+              id="runPace"
+              value={runPace}
+              onChange={(e) => setRunPace(e.target.value)}
+              required
+              placeholder="Ritmo de Corrida (min/km)"
+            />
+          </div>
+        )}
+        {main_sport === 'running' && (
+          <div className="form-group">
+            <input
+              type="number"
+              id="runDist"
+              value={runDist}
+              onChange={(e) => setRunDist(e.target.value)}
+              required
+              placeholder="Distancia promedio (km)"
+            />
+          </div>
+        )}
+        {main_sport === 'cycling' && (
+          <div className="form-group">
+            <input
+              type="number"
+              id="cycleSpeed"
+              value={cycleSpeed}
+              onChange={(e) => setCycleSpeed(e.target.value)}
+              required
+              placeholder="Velocidad promedio (km/h)"
+            />
+          </div>
+        )}
+        {main_sport === 'cycling' && (
+          <div className="form-group">
+            <input
+              type="number"
+              id="cycleDist"
+              value={cycleDist}
+              onChange={(e) => setCycleDist(e.target.value)}
+              required
+              placeholder="Distancia promedio (km)"
+            />
+          </div>
+        )}
         <div>
           <label style={{fontWeight: 'bold'}}>Foto de Perfil (Opcional):</label>
           <input type="file" accept="image/*" onChange={onSelectFile} />

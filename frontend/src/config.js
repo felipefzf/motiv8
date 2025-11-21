@@ -1,7 +1,4 @@
-const API_URL = 
-  // import.meta.env.PROD 
-  // ? 'https://motiv8-luwi.onrender.com' // <-- ¡PEGA AQUÍ TU URL DE RENDER!
-  // : 'http://localhost:5000'; // En tu PC seguirá usando local
-
-  'https://motiv8-luwi.onrender.com'
+const API_URL = import.meta.env.PROD 
+  ? 'https://motiv8-api.onrender.com' // <-- Tu URL real de Render
+  : 'http://localhost:5000';
 export default API_URL;

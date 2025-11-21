@@ -148,7 +148,7 @@ function MissionDashboard() {
     if (!token) return;
 
     try {
-      const response = await fetch(`${API_URL}/missions/${id}`, {
+      const response = await fetch(`${API_URL}/api/missions/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

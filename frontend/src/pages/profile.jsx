@@ -14,6 +14,7 @@ import ProfileRewardModal from "../components/profileRewardModal.jsx";
 import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
 import API_URL from "../config";
+import EditGoalsModal from '../components/EditGoalsModal.jsx'; // 1. ¡IMPORTAR ESTO!
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -36,6 +37,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   // Estado para modal de recompensa
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
+  // Estado para modal de metas
+  const [isGoalsModalOpen, setGoalsModalOpen] = useState(false);
 
   const fetchStats = async () => {
     if (!user) return;
@@ -184,6 +187,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   if (!user) return <p>Cargando...</p>;
 
+  const val = (value, unit) => value ? `${value} ${unit}` : '--';
+
   return (
     <div className="profile-container">
       <button onClick={handleToggleTheme} className="theme-toggle-btn">
@@ -231,6 +236,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           Editar información
         </button>
 
+        
+
         <br />
 
         <h4 className="profile-name">
@@ -267,6 +274,12 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <br />
 
         <p>
+          Performance:{" "}
+          <span className="profile-level">
+            {JSON.stringify(user.performance || {})}
+          </span>
+        </p>
+        <p>
           Ubicación:{" "}
           <span className="profile-level">
             {user.comuna || "No definida"}, {user.region || "Chile"}
@@ -287,6 +300,48 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </div>
 
         <h3 className="section-title">Estadísticas</h3>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '30px' }}>
+          <h3 className="section-title" style={{margin: 0}}>Mi rendimiento</h3>
+          <button 
+            onClick={() => setGoalsModalOpen(true)}
+            style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: '0.9em', textDecoration: 'underline' }}
+          >
+            Editar rendimiento
+          </button>
+        </div>
+
+        <div className="container text-center" style={{ marginTop: '10px' }}>
+          <div className="row row-cols-2">
+            
+            {/* Tarjeta Running */}
+            <div className="card-profile">
+              <div className="card-body">
+                <h5 style={{color: '#555', marginBottom: '10px'}}>🏃‍♂️ Running</h5>
+                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
+                  Ritmo: <span className="highlight">{val(user.performance?.running?.pace, 'min/km')}</span>
+                </p>
+                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
+                  Distancia: <span className="highlight">{val(user.performance?.running?.distance, 'km')}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Tarjeta Ciclismo */}
+            <div className="card-profile">
+              <div className="card-body">
+                <h5 style={{color: '#555', marginBottom: '10px'}}>🚴‍♀️ Ciclismo</h5>
+                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
+                  Velocidad: <span className="highlight">{val(user.performance?.cycling?.speed, 'km/h')}</span>
+                </p>
+                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
+                  Distancia: <span className="highlight">{val(user.performance?.cycling?.distance, 'km')}</span>
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
 
         <br />
         <div className="stats-container">
@@ -416,6 +471,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         isOpen={isRewardModalOpen}
         onClose={() => setRewardModalOpen(false)}
         onClaim={reclamarRecompensa}
+      />
+      <EditGoalsModal 
+        isOpen={isGoalsModalOpen} 
+        onClose={() => setGoalsModalOpen(false)} 
       />
       {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>

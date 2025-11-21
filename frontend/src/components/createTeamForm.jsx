@@ -33,6 +33,12 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [runPaceRequirement, setRunPaceRequirement] = useState(''); // Minutos por km (ej. 5.30)
+  const [runDistRequirement, setRunDistRequirement] = useState(''); // Km
+
+  const [cycleSpeedRequirement, setCycleSpeedRequirement] = useState(''); // Km/h
+  const [cycleDistRequirement, setCycleDistRequirement] = useState(''); // Km
+
   const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -84,11 +90,26 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
       return;
     }
 
+    if (sport_type === 'running' && (!runPaceRequirement || !runDistRequirement)) {
+      setError('Por favor, ingresa tu ritmo de corrida (minutos por km) y distancia (km).');
+      return;
+    }
+    if (sport_type === 'cycling' && (!cycleSpeedRequirement || !cycleDistRequirement)) {
+      setError('Por favor, ingresa tu velocidad de ciclismo (km/h) y distancia (km).');
+      return;
+    }
+
+    const requirementsData = {
+      running: { pace: parseFloat(runPaceRequirement), distance: parseFloat(runDistRequirement) },
+      cycling: { speed: parseFloat(cycleSpeedRequirement), distance: parseFloat(cycleDistRequirement) }
+    };
+
     const formData = new FormData();
     formData.append("team_name", team_name);
     formData.append("sport_type", sport_type);
     formData.append("description", description);
     formData.append("team_color", team_color);
+    formData.append("requirements", JSON.stringify(requirementsData[sport_type]));
 
     if (blobToSend) {
       formData.append("teamImageFile", blobToSend, "logo.jpg");

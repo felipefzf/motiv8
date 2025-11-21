@@ -87,13 +87,21 @@ app.use("/api", testRoutes);
 
 // FUNCIONES login y register usuarios
 // Register: Registrar un nuevo usuario
-app.post(
-  "/api/auth/register",
-  upload.single("profile_image_file"),
-  async (req, res) => {
+app.post("/api/auth/register", upload.single("profile_image_file"), async (req, res) => {
     try {
-      const { email, password, name, region, comuna, main_sport } = req.body;
+      const { email, password, name, region, comuna, main_sport, performance } = req.body;
       const file = req.file;
+
+      let performanceObj = {};
+        if (performance) {
+          try {
+            performanceObj = JSON.parse(performance);
+          } catch (e) {
+            console.error("Error parseando performance:", e);
+            // Si falla, guardamos un objeto vacío para no romper la DB
+            performanceObj = {}; 
+          }
+        }
 
       // --- PASO 1: Crear el usuario en Firebase Authentication ---
       // Esto crea el registro de email/contraseña
@@ -102,6 +110,7 @@ app.post(
         password: password,
         displayName: name,
         main_sport: main_sport || "",
+        performance: performanceObj || {},
       });
 
       let profile_image_url = null;
@@ -145,7 +154,7 @@ app.post(
         region: region,
         comuna: comuna,
         main_sport: main_sport,
-        
+        performance: performanceObj || {},
       };
 
       // Usamos el UID del usuario de Auth como ID del documento en Firestore
@@ -194,11 +203,7 @@ app.get("/api/auth/me", verifyToken, (req, res) => {
 });
 
 // Ruta para actualizar la foto de perfil
-app.post(
-  "/api/users/avatar",
-  verifyToken,
-  upload.single("profileImageFile"),
-  async (req, res) => {
+app.post("/api/users/avatar", verifyToken, upload.single("profileImageFile"), async (req, res) => {
     const user = req.user;
     const file = req.file;
 
@@ -285,6 +290,36 @@ app.put("/api/users/profile", verifyToken, express.json(), async (req, res) => {
     res.status(500).send("Error interno al actualizar el perfil.");
   }
 });
+
+app.put('/api/users/goals', verifyToken, express.json(), async (req, res) => {
+  const user = req.user; // Obtenido del token
+  const { performance } = req.body; 
+
+  // Validación básica
+  if (!performance) {
+    return res.status(400).send('Se requieren datos de rendimiento (performance).');
+  }
+
+  try {
+    // Actualizamos el documento del usuario en Firestore.
+    // Al pasar el objeto 'performance' directamente, Firestore lo guardará como un Mapa.
+    await db.collection('users').doc(user.uid).update({
+      performance: performance
+    });
+
+    console.log(`Metas actualizadas para el usuario ${user.uid}`);
+
+    res.status(200).json({ 
+      message: 'Metas actualizadas correctamente',
+      performance // Devolvemos lo que guardamos para confirmar
+    });
+
+  } catch (error) {
+    console.error("Error al actualizar metas:", error);
+    res.status(500).send("Error interno al actualizar las metas.");
+  }
+});
+
 
 // CRUD Misiones
 // CREATE: Crear Misión
@@ -558,15 +593,11 @@ app.get('/api/activities', verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post(
-  "/api/teams",
-  verifyToken,
-  upload.single("teamImageFile"),
-  async (req, res) => {
+app.post("/api/teams", verifyToken, upload.single("teamImageFile"), async (req, res) => {
     console.log("req.file (lo que recibió multer):", req.file);
     console.log("req.body (los campos de texto):", req.body);
 
-    const { team_name, sport_type, description, team_color } = req.body;
+    const { team_name, sport_type, description, team_color, requirements } = req.body;
     const user = req.user;
 
     const file = req.file;
@@ -585,6 +616,7 @@ app.post(
         members: [{ uid: user.uid, role: "Líder👑" }],
         team_image_url: null, // Empezará como nulo
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        requirements: requirements || {},
       });
 
       let teamImageUrl = null;
