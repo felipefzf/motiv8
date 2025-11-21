@@ -10,6 +10,7 @@ import EditAvatarModal from "../components/editAvatarModal.jsx";
 import EditProfileModal from "../components/editProfileModal.jsx";
 import Modal from "../components/modal.jsx";
 import ProfileRewardModal from "../components/profileRewardModal.jsx";
+import LiveToast from "../components/liveToast";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -25,6 +26,9 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
 
   // Estado para modal de recompensa
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
@@ -157,18 +161,23 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         { option },
         config
       );
-      alert(`🎉 ${res.data.recompensa}`);
+      setToastMessage(`🎉 ${res.data.recompensa}`);
+      setToastKey((prev) => prev + 1);
       setRewardModalOpen(false);
       fetchStats();
     } catch (err) {
       if (err.response?.status === 403) {
-        alert("Ya reclamaste la recompensa en este nivel o no corresponde.");
+        setToastMessage(
+          "Ya reclamaste la recompensa en este nivel o no corresponde."
+        );
+        setToastKey((prev) => prev + 1);
         setRewardModalOpen(false);
       } else {
         console.error("Error reclamando recompensa:", err);
       }
     }
   };
+
   // ✅ Resetear hasClaimedReward cuando cambie el nivel
 
   if (!user) return <p>Cargando...</p>;
@@ -451,16 +460,25 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <EditAvatarModal
         isOpen={isAvatarModalOpen}
         onClose={() => setAvatarModalOpen(false)}
+        showToast={(msg) => {
+          setToastMessage(msg);
+          setToastKey((prev) => prev + 1);
+        }}
       />
       <EditProfileModal
         isOpen={isInfoModalOpen}
         onClose={() => setInfoModalOpen(false)}
+        showToast={(msg) => {
+          setToastMessage(msg);
+          setToastKey((prev) => prev + 1);
+        }}
       />
       <ProfileRewardModal
         isOpen={isRewardModalOpen}
         onClose={() => setRewardModalOpen(false)}
         onClaim={reclamarRecompensa}
       />
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
   );
 }
