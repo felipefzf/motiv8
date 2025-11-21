@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import tomy from "../assets/tomy.png";
+import userDefaul from "../assets/userDefaul.jpg";
 import "./Profile.css";
 import { useAuth } from "../context/authContext";
 import { signOut } from "firebase/auth";
@@ -207,7 +207,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         {/* FOTO + BOTÓN FLOTANTE */}
         <div className="profile-image-wrapper">
           <img
-            src={user.profile_image_url || tomy}
+            src={user.profile_image_url || userDefaul}
             className="profile-image"
             alt="Perfil de usuario"
           />
