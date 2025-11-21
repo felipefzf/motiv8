@@ -11,8 +11,12 @@ import EditProfileModal from "../components/editProfileModal.jsx";
 import Modal from "../components/modal.jsx";
 import InventoryModal from "../components/inventoryModal.jsx";
 import ProfileRewardModal from "../components/profileRewardModal.jsx";
+<<<<<<< Updated upstream
 import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
+=======
+import API_URL from "../config";
+>>>>>>> Stashed changes
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -43,7 +47,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/userStats/${user.uid}`,
+        `${API_URL}/api/userStats/${user.uid}`,
         config
       );
       setStats(res.data);
@@ -78,7 +82,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       if (!token) return;
 
       try {
-        const response = await fetch("/api/activities", {
+        const response = await fetch(`${API_URL}/api/activities`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -103,7 +107,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     axios
-      .get("http://localhost:5000/api/teams/my-team", config)
+      .get(`${API_URL}/api/teams/my-team`, config)
       .then((res) => setEquipo(res.data))
       .catch((err) => {
         if (err.response?.status === 404) {
@@ -114,12 +118,12 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       });
 
     axios
-      .get(`http://localhost:5000/api/userStats/${user.uid}`, config)
+      .get(`${API_URL}/api/userStats/${user.uid}`, config)
       .then((res) => setStats(res.data))
       .catch((err) => console.error("Error stats:", err));
 
     axios
-      .get("http://localhost:5000/api/user-locations", config)
+      .get(`${API_URL}/api/user-locations`, config)
       .then((res) => setUbicaciones(res.data))
       .catch((err) => console.error("Error ubicaciones:", err));
   }, [user]);
@@ -158,7 +162,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/profile/reward",
+        `${API_URL}/api/profile/reward`,
         { option },
         config
       );

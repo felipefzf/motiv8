@@ -1,5 +1,5 @@
-// frontend/src/MissionCreator.jsx
 import React, { useState } from 'react';
+import API_URL from '../config'; 
 
 function MissionCreator() {
   const [name, setName] = useState('');
@@ -38,7 +38,7 @@ function MissionCreator() {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/missions', { // URL a tu backend
+      const response = await fetch(`${API_URL}/api/missions`, { // URL a tu backend
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

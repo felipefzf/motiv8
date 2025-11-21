@@ -8,6 +8,7 @@ import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { canvasPreview, getCanvasBlob } from '../utils/canvasPreview';
 import styles from '../components/CreateTeamForm.module.css';
+import API_URL from '../config'; // (Ajusta la ruta de importación)
 
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   return centerCrop(
@@ -103,7 +104,7 @@ export default function Register() {
 
     try {
       console.log("Enviando fetch al backend...");
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
         body: formData,
       });

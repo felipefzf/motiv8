@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./Rankings.css";
+import API_URL from "../config";
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
@@ -14,7 +15,7 @@ const Ranking = () => {
     const fetchRanking = async () => {
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/ranking", {
+        const res = await axios.get(`${API_URL}/api/ranking`, {
           params: { comuna: comunaFilter || undefined },
         });
         setRanking(res.data.usuarios);

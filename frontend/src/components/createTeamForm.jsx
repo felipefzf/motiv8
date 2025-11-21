@@ -3,7 +3,11 @@ import { useAuth } from "../context/authContext";
 import styles from "./CreateTeamForm.module.css";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+<<<<<<< Updated upstream
 import LiveToast from "../components/liveToast";
+=======
+import API_URL from "../config";
+>>>>>>> Stashed changes
 
 import { canvasPreview, getCanvasBlob } from "../utils/canvasPreview";
 
@@ -94,7 +98,7 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
     }
 
     try {
-      const response = await fetch("/api/teams", {
+      const response = await fetch(`${API_URL}/api/teams`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

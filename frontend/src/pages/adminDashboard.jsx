@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // 1. Importa el archivo de estilos de CSS Modules
 import styles from "./AdminDashboard.module.css";
+import API_URL from '../config'; 
+
 
 // 2. El objeto 'styles' ya no existe aquí
 // ...
@@ -57,7 +59,7 @@ function AdminDashboard() {
     const token = getToken();
     if (!token) return;
     try {
-      const response = await fetch("/api/shop/items", {
+      const response = await fetch(`${API_URL}/api/shop/items`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -73,7 +75,7 @@ function AdminDashboard() {
     if (!token) return;
 
     try {
-      const response = await fetch("/api/missions", {
+      const response = await fetch(`${API_URL}/api/missions`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -109,7 +111,7 @@ function AdminDashboard() {
     const method = isUpdating ? "PUT" : "POST";
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`${API_URL}${url}`, {
         method: method,
         headers: {
           "Content-Type": "application/json",
@@ -150,7 +152,7 @@ function AdminDashboard() {
     if (!token) return;
 
     try {
-      const response = await fetch(`/api/missions/${id}`, {
+      const response = await fetch(`${API_URL}/api/missions/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -198,7 +200,7 @@ function AdminDashboard() {
     e.preventDefault();
     const token = getToken();
     if (!token) return;
-    await fetch("/api/shop/items", {
+    await fetch(`${API_URL}/api/shop/items`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

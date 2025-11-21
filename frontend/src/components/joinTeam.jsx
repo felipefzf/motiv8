@@ -4,6 +4,7 @@ import Modal from "./modal";
 import CreateTeamForm from "./createTeamForm";
 import TeamDetailModal from "./teamDetailModal";
 import styles from "./JoinTeam.module.css";
+import API_URL from '../config'; 
 
 function JoinTeamView({ setTeamColor }) {
   const { user, refreshUser, updateUserTeamStatus } = useAuth();
@@ -31,7 +32,7 @@ function JoinTeamView({ setTeamColor }) {
       setError(null);
 
       try {
-        const response = await fetch("/api/teams/available", {
+        const response = await fetch(`${API_URL}/api/teams/available`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

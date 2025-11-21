@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './modal'; // Asumiendo que tu Modal base está en './Modal'
 import styles from './teamDetailModal.module.css'; // Reutilizamos los estilos
+import API_URL from '../config'; 
+
 
 function TeamDetailModal({ team, isOpen, onClose, onJoin }) {
   // 'team' es el objeto básico de la lista (sin nombres de miembros)
@@ -30,7 +32,7 @@ function TeamDetailModal({ team, isOpen, onClose, onJoin }) {
 
       try {
         // ¡Llama a la nueva ruta del backend!
-        const response = await fetch(`/api/teams/${team.id}/details`, {
+        const response = await fetch(`${API_URL}/api/teams/${team.id}/details`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 

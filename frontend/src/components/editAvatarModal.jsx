@@ -5,6 +5,7 @@ import { canvasPreview, getCanvasBlob } from '../utils/canvasPreview';
 import { useAuth } from '../context/authContext';
 import Modal from './modal'; // Tu componente Modal genérico
 import styles from './CreateTeamForm.module.css'; // Reutilizamos estilos del form
+import API_URL from '../config';
 
 // Centrar el crop inicial
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
@@ -55,7 +56,7 @@ function EditAvatarModal({ isOpen, onClose , showToast}) {
 
       // 3. Enviar al Backend
       const token = localStorage.getItem('firebaseToken');
-      const response = await fetch('/api/users/avatar', {
+      const response = await fetch(`${API_URL}/api/users/avatar`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData

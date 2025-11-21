@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./Shop.css";
 import { useAuth } from "../context/authContext";
 import axios from "axios";
+import API_URL from "../config"; // (Ajusta la ruta de importación)
+
 
 // Imágenes locales de fallback (si no hay imageUrl en el ítem)
 import boostImg from "../assets/boost.png";
@@ -17,7 +19,7 @@ export default function Shop() {
 
     const fetchItems = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/shop/items", {
+        const res = await axios.get(`${API_URL}/api/shop/items`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setItems(res.data);
@@ -32,7 +34,7 @@ export default function Shop() {
   const handlePurchase = async (item) => {
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/shop/purchase",
+        `${API_URL}/api/shop/purchase`,
         { itemName: item.name, cost: item.price },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -4,7 +4,11 @@ import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import { io } from "socket.io-client"; // ✅ frontend client
+<<<<<<< Updated upstream
 import LiveToast from "../components/liveToast";
+=======
+import API_URL from '../config'; 
+>>>>>>> Stashed changes
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
@@ -18,10 +22,33 @@ export default function Home() {
  
 
   useEffect(() => {
+<<<<<<< Updated upstream
     misiones.forEach((m) => {
       const estaEmparejado = emparejados[m.id]?.some((u) => u.uid === user.uid);
       if (estaEmparejado) {
         socket.emit("joinMission", m.id);
+=======
+  const interval = setInterval(async () => {
+    for (const m of misiones) {
+      try {
+        const res = await axios.get(
+          `${API_URL}/api/match/${m.id}/events`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        res.data.forEach((event) => {
+          const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
+          if (!yaVisto) {
+            alert(event.message); // ✅ solo una vez
+            setEventosVistos((prev) => ({
+              ...prev,
+              [m.id]: [...(prev[m.id] || []), event.timestamp],
+            }));
+          }
+        });
+      } catch (err) {
+        console.error("Error obteniendo eventos:", err);
+>>>>>>> Stashed changes
       }
     });
   }, [emparejados, misiones, user]);
@@ -56,7 +83,7 @@ export default function Home() {
   // 🔑 Cargar misiones
   const fetchMisiones = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/user-missions", {
+      const res = await axios.get(`${API_URL}/api/user-missions`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMisiones(res.data);
@@ -68,7 +95,7 @@ export default function Home() {
   // ✅ Conectar socket una vez
   useEffect(() => {
     if (!token) return;
-    const s = io("http://localhost:5000", { auth: { token } });
+    const s = io(`${API_URL}`, { auth: { token } });
     setSocket(s);
 
     s.on("missionCompleted", ({ missionId }) => {
@@ -93,7 +120,7 @@ export default function Home() {
 
       // ✅ consulta inmediata al backend para no esperar polling
       axios
-        .get(`http://localhost:5000/api/match/${m.id}`, {
+        .get(`${API_URL}/api/match/${m.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
@@ -107,7 +134,7 @@ export default function Home() {
   const reclamarRecompensa = async (id) => {
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/user-missions/claim",
+        `${API_URL}/api/user-missions/claim`,
         { missionId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -117,7 +144,7 @@ export default function Home() {
       setToastKey((prev) => prev + 1);
 
       await axios.post(
-        "http://localhost:5000/api/match/stop",
+        `${API_URL}/api/match/stop`,
         { missionId: id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -150,6 +177,7 @@ export default function Home() {
   try {
     setEmparejandoEnCurso((prev) => ({ ...prev, [missionId]: true }));
 
+<<<<<<< Updated upstream
     if (!isEmparejado) {
       await axios.post(
         "http://localhost:5000/api/match/start",
@@ -167,6 +195,23 @@ export default function Home() {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+=======
+        await axios.post(
+          `${API_URL}/api/match/start`,
+          { missionId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        await axios.post(
+          `${API_URL}/api/match/stop`,
+          {
+    missionId,
+    uid: user.uid,
+    name: user.name,
+  },
+  { headers: { Authorization: `Bearer ${token}` } }
+        );
+>>>>>>> Stashed changes
 
       // ✅ Eliminar al usuario del grupo localmente
       setEmparejados((prev) => ({
@@ -207,7 +252,7 @@ export default function Home() {
 
     axios
       .post(
-        "http://localhost:5000/api/user-missions/assign-3",
+        `${API_URL}/api/user-missions/assign-3`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -231,7 +276,7 @@ export default function Home() {
       for (const m of misiones) {
         try {
           const res = await axios.get(
-            `http://localhost:5000/api/match/${m.id}`,
+            `${API_URL}/api/match/${m.id}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           setEmparejados((prev) => ({ ...prev, [m.id]: res.data }));

@@ -2,9 +2,13 @@ import React, { useState } from "react";
 import { useAuth } from "../context/authContext";
 import MyTeamInfo from "../components/teamInfo";
 import JoinTeamView from "../components/joinTeam";
-import CreateTeamForm from "../components/CreateTeamForm";
+import CreateTeamForm from "../components/createTeamForm";
 import styles from "./teams.module.css";
+<<<<<<< Updated upstream
 import LiveToast from "../components/liveToast";
+=======
+import API_URL from "../config"; // (Ajusta la ruta de importación)
+>>>>>>> Stashed changes
 
 function Teams({ setTeamColor }) {
   const { user, isLoading } = useAuth();

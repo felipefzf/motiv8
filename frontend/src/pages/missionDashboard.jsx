@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './MissionDashboard.module.css';
+import API_URL from '../config'; 
 
 const initialState = {
   name: '',
@@ -46,7 +47,7 @@ function MissionDashboard() {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/missions', {
+      const response = await fetch(`${API_URL}/api/missions`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) {
@@ -109,7 +110,7 @@ function MissionDashboard() {
     if (!token) return;
 
     const isUpdating = editingMission !== null;
-    const url = isUpdating ? `http://localhost:5000/missions/${editingMission.id}` : 'http://localhost:5000/missions';
+    const url = isUpdating ? `${API_URL}/missions/${editingMission.id}` : `${API_URL}/missions`;
     const method = isUpdating ? 'PUT' : 'POST';
 
     try {
@@ -147,7 +148,7 @@ function MissionDashboard() {
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/missions/${id}`, {
+      const response = await fetch(`${API_URL}/missions/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

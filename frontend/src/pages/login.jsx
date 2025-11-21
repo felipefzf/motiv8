@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/AuthContext';
 import './login.css'; // 👈 Importamos los estilos externos
+import API_URL from '../config'; // (Ajusta la ruta de importación)
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -20,7 +21,9 @@ function Login() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const token = await userCredential.user.getIdToken();
 
-      const response = await fetch('/api/auth/me', {
+      console.log("Token obtenido, llamando a backend:", `${API_URL}/api/auth/me`);
+
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 

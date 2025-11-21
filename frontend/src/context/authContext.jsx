@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import API_URL from '../config'; 
 
 // 1. Crea el Contexto
 const AuthContext = createContext(null);
@@ -26,7 +27,7 @@ export function AuthProvider({ children }) {
   // Esta función solo se re-creará si la función 'logout' cambia (que nunca lo hará)
   const fetchUserData = useCallback(async (token) => {
     try {
-      const response = await fetch('/api/auth/me', { // Asumiendo proxy
+      const response = await fetch(`${API_URL}/api/auth/me`, { // Asumiendo proxy
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

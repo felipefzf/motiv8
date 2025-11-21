@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { auth } from '../firebaseConfig';
 import { Link } from 'react-router-dom';
+import API_URL from '../config'; 
 
 export default function JoinTeam() {
   const [teams, setTeams] = useState([]);
@@ -10,7 +11,7 @@ export default function JoinTeam() {
 
   const fetchTeams = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/teams');
+      const response = await axios.get(`${API_URL}/teams`);
       setTeams(response.data);
     } catch (error) {
       console.error('Error al obtener equipos:', error);
