@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import tomy from "../assets/tomy.png";
+import userDefaul from "../assets/userDefaul.jpg";
 import "./Profile.css";
 import { useAuth } from "../context/authContext";
 import { signOut } from "firebase/auth";
@@ -195,7 +195,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <div className="profile-content">
         <img
           // Usamos user.profile_image_url DIRECTAMENTE del contexto
-          src={user.profile_image_url || tomy}
+          src={user.profile_image_url || userDefaul}
           className="profile-image rounded-circle border"
           alt="Perfil de usuario"
           style={{
