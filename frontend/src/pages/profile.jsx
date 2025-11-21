@@ -193,6 +193,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
       </p>
       <div className="profile-content">
+<<<<<<< Updated upstream
         <img
           // Usamos user.profile_image_url DIRECTAMENTE del contexto
           src={user.profile_image_url || userDefaul}
