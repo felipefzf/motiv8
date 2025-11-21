@@ -349,6 +349,7 @@ export default function Home() {
     <Link to="/activityTracker" className="btn-registrar">
       Registrar Actividad
     </Link>
+    
 
     
     {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
