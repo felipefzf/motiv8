@@ -207,6 +207,15 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             margin: "0 auto",
           }}
         />
+=======
+        {/* FOTO + BOTÓN FLOTANTE */}
+        <div className="profile-image-wrapper">
+          <img
+            src={user.profile_image_url || userDefaul}
+            className="profile-image"
+            alt="Perfil de usuario"
+          />
+>>>>>>> Stashed changes
 
         <div style={{ marginTop: 15, marginBottom: 15 }}>
           <button
