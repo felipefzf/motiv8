@@ -4,9 +4,10 @@ import Modal from "./modal";
 import CreateTeamForm from "./createTeamForm";
 import TeamDetailModal from "./teamDetailModal";
 import styles from "./JoinTeam.module.css";
-import API_URL from '../config'; 
+import API_URL from "../config";
+import LiveToast from "../components/liveToast";
 
-function JoinTeamView({ setTeamColor }) {
+function JoinTeamView({ setTeamColor, showToast }) {
   const { user, refreshUser, updateUserTeamStatus } = useAuth();
   const [availableTeams, setAvailableTeams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +16,9 @@ function JoinTeamView({ setTeamColor }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  
+  
 
   const containerRef = useRef(null);
 
@@ -95,7 +99,11 @@ function JoinTeamView({ setTeamColor }) {
         applyTeamColor(data.team_color);
       }
 
-      alert(`¡Te has unido a "${data.team_name || teamName}"!`);
+      if (typeof showToast === "function") {
+        showToast(`✅ Te has unido a "${data.team_name || teamName}"`);
+      }
+      
+
       closeDetailModal();
       refreshUser();
     } catch (e) {
@@ -119,7 +127,10 @@ function JoinTeamView({ setTeamColor }) {
 
   // 👉 al crear un equipo desde el modal
   const handleTeamCreated = (newTeamData) => {
-    alert(`Equipo "${newTeamData.team_name}" creado.`);
+    if (typeof showToast === "function") {
+      showToast(`🎉 Equipo "${newTeamData.team_name}" creado`);
+    }
+   
 
     // 🎨 si el backend envía el color, lo aplicamos
     if (newTeamData.team_color) {
@@ -146,7 +157,8 @@ function JoinTeamView({ setTeamColor }) {
     setSelectedTeam(null);
   };
 
-  if (loading) return <p className={styles.loading}>Buscando equipos disponibles...</p>;
+  if (loading)
+    return <p className={styles.loading}>Buscando equipos disponibles...</p>;
   if (error) return <p className={styles.error}>{error}</p>;
 
   return (
@@ -211,6 +223,7 @@ function JoinTeamView({ setTeamColor }) {
       {selectedTeam && actionError && (
         <p className={styles.modalError}>{actionError}</p>
       )}
+      
     </div>
   );
 }
