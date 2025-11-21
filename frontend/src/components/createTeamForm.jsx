@@ -233,19 +233,20 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
         <canvas ref={canvasRef} className={styles.hiddenCanvas} />
 
         <div className={styles.buttonContainer}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={`${styles.buttonBase} ${styles.cancelButton}`}
-          >
-            Cancelar
-          </button>
+          
           <button
             type="submit"
             className={`${styles.buttonBase} ${styles.submitButton}`}
             disabled={isLoading}
           >
             {isLoading ? "Creando..." : "Crear Equipo"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${styles.buttonBase} ${styles.cancelButton}`}
+          >
+            Cancelar
           </button>
         </div>
       </div>
