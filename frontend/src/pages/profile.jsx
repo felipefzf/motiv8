@@ -9,7 +9,9 @@ import axios from "axios";
 import EditAvatarModal from "../components/editAvatarModal.jsx";
 import EditProfileModal from "../components/editProfileModal.jsx";
 import Modal from "../components/modal.jsx";
+import InventoryModal from "../components/inventoryModal.jsx";
 import ProfileRewardModal from "../components/profileRewardModal.jsx";
+import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
@@ -23,6 +25,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [perfil, setPerfil] = useState(null);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
+  const [isInventoryModalOpen, setInventoryModalOpen] = useState(false);
 
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
@@ -32,7 +35,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   // Estado para modal de recompensa
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
-  // ✅ Estado para controlar si ya reclamó en este nivel
 
   const fetchStats = async () => {
     if (!user) return;
@@ -66,7 +68,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         equipo.team_color || "#ffd000ff"
       );
     }
-  }, [equipo]);
+  }, [equipo, setTeamColor]);
 
   useEffect(() => {
     if (!user) return;
@@ -150,7 +152,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     }
   };
 
-  // Reclamar recompensa
   const reclamarRecompensa = async (option) => {
     const token = localStorage.getItem("firebaseToken");
     const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -181,10 +182,18 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   // ✅ Resetear hasClaimedReward cuando cambie el nivel
 
   if (!user) return <p>Cargando...</p>;
+
   return (
     <div className="profile-container">
       <button onClick={handleToggleTheme} className="theme-toggle-btn">
         {theme === "dark" ? "☀️ Tema Claro" : "🌙 Tema Oscuro"}
+      </button>
+
+      <button
+        className="btn-inventory"
+        onClick={() => setInventoryModalOpen(true)}
+      >
+        Inventario
       </button>
 
       <h1 className="profile-title">MOTIV8</h1>
@@ -192,44 +201,36 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       <p>
         Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
       </p>
-      <div className="profile-content">
-        <img
-          // Usamos user.profile_image_url DIRECTAMENTE del contexto
-          src={user.profile_image_url || tomy}
-          className="profile-image rounded-circle border"
-          alt="Perfil de usuario"
-          style={{
-            objectFit: "cover",
-            width: "150px",
-            height: "150px",
-            display: "block",
-            margin: "0 auto",
-          }}
-        />
 
-        <div style={{ marginTop: 15, marginBottom: 15 }}>
+      <div className="profile-content">
+        {/* FOTO + BOTÓN FLOTANTE */}
+        <div className="profile-image-wrapper">
+          <img
+            src={user.profile_image_url || tomy}
+            className="profile-image"
+            alt="Perfil de usuario"
+          />
+
           <button
-            className="btn btn-primary btn-sm"
+            className="change-foto"
             onClick={() => setAvatarModalOpen(true)}
           >
-            Cambiar foto
+            <img
+              src={PencilImg}
+              alt="Icono lápiz"
+              className="change-foto-icon"
+            />
           </button>
         </div>
 
         <button
+          className="edit-info"
           onClick={() => setInfoModalOpen(true)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#007bff",
-            textDecoration: "underline",
-            cursor: "pointer",
-            fontSize: "0.9em",
-            marginBottom: "10px",
-          }}
         >
           Editar información
         </button>
+
+        <br />
 
         <h4 className="profile-name">
           {user?.name || "Sin nombre"}{" "}
@@ -240,7 +241,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         </h4>
 
         {stats && (
-          <div className="progress-bar-container" style={{ marginTop: "10px" }}>
+          <div className="progress-bar-container">
             <progress
               value={stats.puntos}
               max={stats.puntosParaSiguienteNivel + stats.puntos}
@@ -250,25 +251,23 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
           </div>
         )}
-        <br />
 
-        {/* ✅ Botón de recompensa solo si no ha reclamado */}
         {stats &&
           stats.nivelActual % 2 === 0 &&
           stats.ultimoNivelRecompensado !== stats.nivelActual && (
             <button
               className="btn-recompensa"
-              onClick={() => setRewardModalOpen(true)} // ✅ abre el modal
-              style={{ marginTop: "10px" }}
+              onClick={() => setRewardModalOpen(true)}
             >
               Reclama tu recompensa 🎁
             </button>
           )}
+
         <br />
+
         <p>
           Ubicación:{" "}
           <span className="profile-level">
-            {/* Usamos user.comuna DIRECTAMENTE */}
             {user.comuna || "No definida"}, {user.region || "Chile"}
           </span>
         </p>
@@ -276,10 +275,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <div>
           Deporte Principal:{" "}
           <span className="profile-level">
-            {/* Usamos user.main_sport DIRECTAMENTE (si lo agregaste al objeto user en backend)
-               Si no lo tienes en user, entonces sí necesitarías 'perfil', 
-               pero lo ideal es que /auth/me te devuelva todo. 
-            */}
             {user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}
           </span>
           {equipo && (
@@ -290,11 +285,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           )}
         </div>
 
-        {/* ... (El resto de estadísticas, logros y botón logout igual) ... */}
         <h3 className="section-title">Estadísticas</h3>
-        {/* ... */}
+
         <br />
-        <div className="container text-center">
+        <div className="stats-container">
           <p>
             Distancia total:{" "}
             <span className="profile-highlight">
@@ -349,102 +343,42 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           {loadingActivities ? (
             <p>Cargando actividades...</p>
           ) : activities.length === 0 ? (
-            <p style={{ color: "#666", fontStyle: "italic" }}>
+            <p className="activities-empty">
               Aún no tienes actividades registradas.
             </p>
           ) : (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "15px" }}
-            >
+            <div className="activities-wrapper">
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="activity-card"
-                  style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "8px",
-                    padding: "15px",
-                    backgroundColor: "white", // O usa variables de tema
-                    textAlign: "left",
-                  }}
+                  className="activity-card activity-card-inner"
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        textTransform: "capitalize",
-                        color: "#007bff",
-                      }}
-                    >
+                  <div className="activity-card-header">
+                    <span className="activity-card-title">
                       {activity.title || "Actividad"}
                     </span>
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        textTransform: "capitalize",
-                        color: "#007bff",
-                      }}
-                    >
+                    <span className="activity-card-type">
                       {activity.type || "Actividad"} activity
                     </span>
-                    <span style={{ fontSize: "0.9em", color: "#666" }}>
+                    <span className="activity-card-date">
                       {new Date(activity.date).toLocaleDateString()}
                     </span>
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-around",
-                      marginBottom: "10px",
-                    }}
-                  >
+                  <div className="activity-card-stats">
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Distancia
-                      </span>
+                      <span className="activity-card-label">Distancia</span>
                       <strong>{activity.distance.toFixed(2)} km</strong>
                     </div>
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Tiempo
-                      </span>
+                      <span className="activity-card-label">Tiempo</span>
                       <strong>{(activity.time / 60).toFixed(0)} min</strong>
                     </div>
                     <div>
-                      <span
-                        style={{
-                          fontSize: "0.8em",
-                          display: "block",
-                          color: "#888",
-                        }}
-                      >
-                        Velocidad
-                      </span>
+                      <span className="activity-card-label">Velocidad</span>
                       <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
                     </div>
                   </div>
-
-                  {/* (Opcional) Botón para ver detalles o mapa */}
-                  {/* <button style={{ width: '100%', padding: '5px' }}>Ver Ruta</button> */}
                 </div>
               ))}
             </div>
@@ -464,6 +398,10 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           setToastMessage(msg);
           setToastKey((prev) => prev + 1);
         }}
+      />
+      <InventoryModal
+        isOpen={isInventoryModalOpen}
+        onClose={() => setInventoryModalOpen(false)}
       />
       <EditProfileModal
         isOpen={isInfoModalOpen}
