@@ -8,16 +8,21 @@ import { auth } from "../firebaseConfig";
 import axios from "axios";
 import "./Teams.css";
 import { Link } from "react-router-dom";
+import LiveToast from "../components/liveToast";
 
 export default function Teams() {
   const [team, setTeam] = useState(null);
   const [membersInfo, setMembersInfo] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+
   const handleLeaveTeam = async () => {
     const user = auth.currentUser;
     if (!user) {
-      alert("Debes iniciar sesión para abandonar el equipo.");
+      setToastMessage("Debes iniciar sesión para abandonar el equipo.");
+      setToastKey((prev) => prev + 1);
       return;
     }
 
@@ -26,12 +31,14 @@ export default function Teams() {
         uid: user.uid,
       });
 
-      alert("Has abandonado el equipo.");
+      setToastMessage("Has abandonado el equipo.");
+      setToastKey((prev) => prev + 1);
       setTeam(null); // Limpia el estado
       setMembersInfo([]); // Limpia la lista de miembros
     } catch (error) {
       console.error("Error al abandonar el equipo:", error);
-      alert(error.response?.data?.error || "Error al abandonar el equipo.");
+      setToastMessage(error.response?.data?.error || "Error al abandonar el equipo.");
+      setToastKey((prev) => prev + 1);
     }
   };
 
@@ -213,6 +220,7 @@ export default function Teams() {
           </div>
         </div>
       </div>
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
   );
 }
