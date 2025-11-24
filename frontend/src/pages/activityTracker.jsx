@@ -33,9 +33,11 @@ function ActivityTracker() {
 
   const handleStart = () => {
     setError(null);
+    console.log("Intentando obtener ubicación inicial...");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        console.log("Ubicación inicial obtenida:", coords);
         setStartPos(coords);
         setStartTime(Date.now());
         setStatus("running");
@@ -44,19 +46,25 @@ function ActivityTracker() {
           setElapsedTime((prev) => prev + 1);
         }, 1000);
       },
-      () => setError("Error al obtener ubicación inicial. Activa el GPS."),
+      () => {
+        console.error("Error GPS inicio:", err);
+        setError("Error al obtener ubicación inicial. Activa el GPS.");
+      },
       { enableHighAccuracy: true }
     );
   };
 
   const handleStop = () => {
+    console.log("Deteniendo actividad...");
     clearInterval(timerRef.current);
     const finalTime = Math.floor((Date.now() - startTime) / 1000);
     setElapsedTime(finalTime);
 
+    console.log("Solicitando ubicación final...");
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        console.log("Ubicación final obtenida:", coords);
         setEndPos(coords);
         setStatus("finished");
         await calculateRoute(startPos, coords);
