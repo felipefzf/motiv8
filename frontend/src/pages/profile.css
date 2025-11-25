@@ -44,6 +44,50 @@
   object-fit: cover;
 }
 
+/* === Botón cambiar foto como círculo con icono flotando en la foto === */
+.change-foto {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  padding: 0;
+}
+
+.change-foto:hover {
+  background-color: var(--accent-color);
+  transform: translateY(-1px);
+}
+
+/* Icono dentro del botón circular */
+.change-foto-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Botón editar info normal */
+.edit-info {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
 .profile-name {
   margin: 0;
   color: var(--text-color);
@@ -148,77 +192,6 @@
   width: 100%;
 }
 
-.activity-card {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s;
-}
-
-.activity-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* === Botón cambiar foto como círculo con icono flotando en la foto === */
-.change-foto {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background-color: var(--accent-color);
-  color: var(--btn-text);
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  padding: 0;
-}
-
-.change-foto:hover {
-  background-color: var(--accent-color);
-  transform: translateY(-1px);
-}
-
-/* Icono dentro del botón circular */
-.change-foto-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-/* Botón editar info normal */
-.edit-info {
-  margin-top: 20px;
-  padding: 10px 15px;
-  background-color: var(--accent-color);
-  color: var(--btn-text);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-/* Barra de progreso + texto */
-.progress-bar-container {
-  margin-top: 10px;
-  
-}
-
-.progress-bar-container progress {
-  width: 100%;
-  margin-bottom: 5px;
-  color: var(--accent-color);
-}
-
-/* Stats */
-.stats-container {
-  text-align: center;
-}
-
 /* Lista vacía de actividades */
 .activities-empty {
   color: #666;
@@ -232,16 +205,22 @@
   gap: 15px;
 }
 
-.activity-card{
-  background-color: var(--accent-color);
+/* Card externa con colores de la app */
+.activity-card {
+  background-color: var(--card-bg);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px var(--shadow-color);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Tarjeta interna con borde y fondo blanco */
+/* Tarjeta interna con fondo del tema */
 .activity-card-inner {
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 15px;
-  background-color: white;
+  background-color: var(--card-bg);
+  color: var(--text-color);
   text-align: left;
 }
 
@@ -250,6 +229,8 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .activity-card-title,
@@ -259,26 +240,69 @@
   color: var(--accent-color);
 }
 
+.activity-card-type {
+  font-size: 0.9em;
+}
+
 .activity-card-date {
   font-size: 0.9em;
-  color: #666;
+  color: var(--muted-text, #888);
+}
+
+/* Contenedor del mapa */
+.activity-map-container {
+  width: 100%;
+  height: 200px;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 /* Stats dentro de la tarjeta */
 .activity-card-stats {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-around; /* <--- todas al lado y espaciadas */
+  align-items: center;
+  margin-top: 15px;
   margin-bottom: 10px;
 }
 
 .activity-card-label {
   font-size: 0.8em;
   display: block;
-  color: #888;
+  color: var(--muted-text, #888);
+}
+
+.strong-label {
+  font-weight: bold;
+  color: var(--text-color);
+}
+
+/* Contenido interno de las cards de rendimiento */
+.performance-card-body {
+  border-radius: 10px;
+  padding: 15px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+
+}
+
+/* Título de la card de rendimiento: usa el color del texto del tema */
+.performance-card-title {
+  color: var(--text-color);  /* mismo color que el texto normal */
+  margin-bottom: 10px;
+}
+
+/* Texto de métricas en rendimiento: también usa el color general */
+.performance-text {
+  font-size: 0.9em;
+  margin: 5px 0;
+  color: var(--text-color);
 }
 
 
-/* Botón cerrar sesión (si lo tenías ya, mantenlo igual) */
+/* Botón cerrar sesión */
 .btn-cerrarsesion {
   margin-top: 10px;
   padding: 10px 15px;
@@ -289,3 +313,48 @@
   cursor: pointer;
   font-weight: bold;
 }
+
+.btn-cerrarsesion:hover {
+  background-color: #a80000;
+  transform: scale(1.02);
+}
+
+/* === Cards de rendimiento (Running / Ciclismo) === */
+.performance-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  width: 100%;
+}
+
+.performance-title {
+  margin: 0;
+}
+
+.performance-edit-btn {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9em;
+  text-decoration: underline;
+}
+
+/* Grid de rendimiento */
+.performance-grid {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.performance-card-title {
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.performance-text {
+  font-size: 0.9em;
+  margin: 5px 0;
+}
+
+

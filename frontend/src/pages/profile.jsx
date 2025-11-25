@@ -192,26 +192,26 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   const ActivityCard = ({ activity }) => {
 
-  // Preparar datos para el mapa
-  // Nota: Firestore guarda objetos, asegurémonos de que el formato sea el correcto
-  // Si guardaste 'path' como GeoJSON Coordinates en el backend, 
-  // podrías necesitar reconstruir el objeto GeoJSON completo si solo guardaste las coordenadas.
-  
-  // Asumiendo que guardaste:
-  // path: [ [lng, lat], ... ] (Array de coordenadas de OSRM)
-  // O path: { type: 'LineString', coordinates: [...] } (GeoJSON completo)
-  
-  let routeGeoJSON = null;
-  if (activity.path && Array.isArray(activity.path)) {
+    // Preparar datos para el mapa
+    // Nota: Firestore guarda objetos, asegurémonos de que el formato sea el correcto
+    // Si guardaste 'path' como GeoJSON Coordinates en el backend, 
+    // podrías necesitar reconstruir el objeto GeoJSON completo si solo guardaste las coordenadas.
+
+    // Asumiendo que guardaste:
+    // path: [ [lng, lat], ... ] (Array de coordenadas de OSRM)
+    // O path: { type: 'LineString', coordinates: [...] } (GeoJSON completo)
+
+    let routeGeoJSON = null;
+    if (activity.path && Array.isArray(activity.path)) {
       // Reconstruir GeoJSON simple si es solo un array
       routeGeoJSON = {
-          type: "LineString",
-          coordinates: activity.path 
+        type: "LineString",
+        coordinates: activity.path
       };
-  } else if (activity.path && activity.path.type === 'LineString') {
+    } else if (activity.path && activity.path.type === 'LineString') {
       routeGeoJSON = activity.path;
+    }
   }
-}
 
 
   return (
@@ -261,7 +261,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           Editar información
         </button>
 
-        
+
 
         <br />
 
@@ -320,8 +320,8 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         <h3 className="section-title">Estadísticas</h3>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '30px' }}>
-          <h3 className="section-title" style={{margin: 0}}>Mi rendimiento</h3>
-          <button 
+          <h3 className="section-title" style={{ margin: 0 }}>Mi rendimiento</h3>
+          <button
             onClick={() => setGoalsModalOpen(true)}
             style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: '0.9em', textDecoration: 'underline' }}
           >
@@ -331,32 +331,46 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
         <div className="container text-center" style={{ marginTop: '10px' }}>
           <div className="row row-cols-2">
-            
+
             {/* Tarjeta Running */}
             <div className="card-profile">
-              <div className="card-body">
-                <h5 style={{color: '#555', marginBottom: '10px'}}>🏃‍♂️ Running</h5>
-                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
-                  Ritmo: <span className="highlight">{val(user.performance?.running?.pace, 'min/km')}</span>
+              <div className="card-body performance-card-body">
+                <h5 className="performance-card-title">🏃‍♂️ Running</h5>
+                <p className="performance-text">
+                  Ritmo:{" "}
+                  <span className="highlight">
+                    {val(user.performance?.running?.pace, "min/km")}
+                  </span>
                 </p>
-                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
-                  Distancia: <span className="highlight">{val(user.performance?.running?.distance, 'km')}</span>
+                <p className="performance-text">
+                  Distancia:{" "}
+                  <span className="highlight">
+                    {val(user.performance?.running?.distance, "km")}
+                  </span>
                 </p>
               </div>
             </div>
 
             {/* Tarjeta Ciclismo */}
             <div className="card-profile">
-              <div className="card-body">
-                <h5 style={{color: '#555', marginBottom: '10px'}}>🚴‍♀️ Ciclismo</h5>
-                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
-                  Velocidad: <span className="highlight">{val(user.performance?.cycling?.speed, 'km/h')}</span>
+              <div className="card-body performance-card-body">
+                <h5 className="performance-card-title">🚴‍♀️ Ciclismo</h5>
+                <p className="performance-text">
+                  Velocidad:{" "}
+                  <span className="highlight">
+                    {val(user.performance?.cycling?.speed, "km/h")}
+                  </span>
                 </p>
-                <p style={{fontSize: '0.9em', margin: '5px 0'}}>
-                  Distancia: <span className="highlight">{val(user.performance?.cycling?.distance, 'km')}</span>
+                <p className="performance-text">
+                  Distancia:{" "}
+                  <span className="highlight">
+                    {val(user.performance?.cycling?.distance, "km")}
+                  </span>
                 </p>
               </div>
             </div>
+
+
 
           </div>
         </div>
@@ -425,56 +439,58 @@ export default function Profile({ toggleTheme, setTeamColor }) {
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="card-profile activity-card-inner"
+                  className="activity-card"
                 >
-                  <div className="activity-card-header">
-                    <span className="activity-card-title">
-                      {activity.title || "Actividad"}
-                    </span>
-                    <span className="activity-card-type">
-                      {activity.type || "Actividad"} activity
-                    </span>
-                    <span className="activity-card-date">
-                      {new Date(activity.date).toLocaleDateString()}
-                    </span>
-                  </div>
-                  
-                  {/* Mapa de Actividad */}
-                  <div style={{ height: '200px', marginTop: '10px', width: '100%' }}>
-                    <ActivityMap 
+                  <div className="activity-card-inner">
+                    <div className="activity-card-header">
+                      <span className="activity-card-title">
+                        {activity.title || "Actividad"}
+                      </span>
+                      <span className="activity-card-type">
+                        {activity.type || "Actividad"} activity
+                      </span>
+                      <span className="activity-card-date">
+                        {new Date(activity.date).toLocaleDateString()}
+                      </span>
+                    </div>
+
+                    {/* Mapa de Actividad */}
+                    <div style={{ height: '200px', marginTop: '10px', width: '100%' }}>
+                      <ActivityMap
                         routeGeoJSON={activity.path}
                         start={activity.startLocation}
                         end={activity.endLocation}
                         interactive={false} // Mapa estático (opcional)
-                    />
-                </div>
-                <br />
+                      />
+                    </div>
 
-                  <div className="activity-card-stats">
-                    <div>
-                      <span className="profile-name activity-card-label">Distancia</span>
-                      <strong>{activity.distance.toFixed(2)} km</strong>
-                    </div>
-                    <div>
-                      <span className="profile-name activity-card-label">Tiempo</span>
-                      <strong>{(activity.time / 60).toFixed(0)} min</strong>
-                    </div>
-                    <div>
-                      <span className="profile-name activity-card-label">Velocidad</span>
-                      <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
+                    <div className="activity-card-stats">
+                      <div>
+                        <span className="activity-card-label">Distancia</span>
+                        <p className="strong-label">
+                          {activity.distance.toFixed(2)} km
+                        </p>
+                      </div>
+                      <div>
+                        <span className="activity-card-label">Tiempo</span>
+                        <p className="strong-label">
+                          {(activity.time / 60).toFixed(0)} min
+                        </p>
+                      </div>
+                      <div>
+                        <span className="activity-card-label">Velocidad</span>
+                        <p className="strong-label">
+                          {activity.avgSpeed.toFixed(1)} km/h
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+
           )}
         </div>
-        
-        <div className="profile-name">
-        <span>aaaaa</span>
-        </div>
-          
-        <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">
           Cerrar Sesión
         </button>
@@ -505,9 +521,9 @@ export default function Profile({ toggleTheme, setTeamColor }) {
         onClose={() => setRewardModalOpen(false)}
         onClaim={reclamarRecompensa}
       />
-      <EditGoalsModal 
-        isOpen={isGoalsModalOpen} 
-        onClose={() => setGoalsModalOpen(false)} 
+      <EditGoalsModal
+        isOpen={isGoalsModalOpen}
+        onClose={() => setGoalsModalOpen(false)}
       />
       {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
