@@ -1,6 +1,7 @@
 .ranking-container {
   color: var(--text-color);
   padding: 20px;
+  margin-top: 60px;
 }
 
 .ranking-title {

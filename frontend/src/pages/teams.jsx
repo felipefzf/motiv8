@@ -6,6 +6,7 @@ import CreateTeamForm from "../components/createTeamForm";
 import styles from "./teams.module.css";
 import LiveToast from "../components/liveToast";
 import API_URL from "../config"; // (Ajusta la ruta de importación)
+import Header from "../components/Header"; // 👈 IMPORTA EL HEADER
 
 function Teams({ setTeamColor }) {
   const { user, isLoading } = useAuth();
@@ -29,8 +30,6 @@ function Teams({ setTeamColor }) {
   const handleOpenCreate = () => setShowCreateModal(true);
   const handleCloseCreate = () => setShowCreateModal(false);
 
-  
-
   const handleTeamCreated = (newTeam) => {
     if (newTeam?.team_color && setTeamColor) {
       setTeamColor(newTeam.team_color);
@@ -50,30 +49,33 @@ function Teams({ setTeamColor }) {
   const isMember = user.team_member === true;
 
   return (
-    <div className={styles.teamsContainer}>
-      <h1 className={styles.teamsTitle}>MOTIV8</h1>
-      <h2 className={styles.teamsSubtitle}>Equipos</h2>
+    <div className={styles.teamsPageWithHeader}>
+      {/* 🔹 HEADER FIJO ARRIBA */}
+      <Header title="Equipos" />
 
-      {isMember ? (
-        <MyTeamInfo setTeamColor={setTeamColor} />
-      ) : (
-        <>
+      {/* 🔹 CONTENIDO DE EQUIPOS DEBAJO DEL HEADER */}
+      <div className={styles.teamsContainer}>
+        {/* Ya no necesitamos el h1/h2 con MOTIV8 / Equipos */}
+        {isMember ? (
+          <MyTeamInfo setTeamColor={setTeamColor} />
+        ) : (
           <JoinTeamView setTeamColor={setTeamColor} />
-        </>
-      )}
+        )}
 
-      {showCreateModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <CreateTeamForm
-              onClose={handleCloseCreate}
-              onTeamCreated={handleTeamCreated}
-              showToast={showToast}
-            />
+        {showCreateModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <CreateTeamForm
+                onClose={handleCloseCreate}
+                onTeamCreated={handleTeamCreated}
+                showToast={showToast}
+              />
+            </div>
           </div>
-        </div>
-      )}
-      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+        )}
+
+        {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+      </div>
     </div>
   );
 }

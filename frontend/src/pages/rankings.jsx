@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./Rankings.css";
 import API_URL from "../config";
+import Header from "../components/Header"; // 👈 importa tu header
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
@@ -36,63 +37,89 @@ const Ranking = () => {
   };
 
   return (
-    <div className="ranking-container">
-      <h1 className="ranking-title">MOTIV8</h1>
-      <h3 className="ranking-subtitle">🏆 Ranking Global</h3>
+    <div className="ranking-page-with-header">
+      {/* 🔹 HEADER FIJO */}
+      <Header title="Ranking" />
 
-      {/* Destacados */}
-      {destacados && (
-        <div className="destacados">
-          <h4>Usuarios destacados</h4>
-          <p>⭐ Máximo nivel: {destacados.maxNivel?.name} (Nivel {destacados.maxNivel?.nivel})</p>
-          <p>🚴 Mayor distancia: {destacados.maxDistancia?.name} ({destacados.maxDistancia?.distancia} km)</p>
-          <p>🎯 Más misiones: {destacados.maxMisiones?.name} ({destacados.maxMisiones?.misiones} misiones)</p>
-        </div>
-      )}
-
-      {/* Selector de filtro */}
-      <div className="ranking-filter">
-        <label htmlFor="filter">Filtrar por:&nbsp;</label>
-        <select id="filter" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="nivel">Nivel</option>
-          <option value="misiones">Misiones</option>
-          <option value="distancia">Distancia</option>
-        </select>
-      </div>
-
-      {/* Selector de comuna */}
-      <div className="ranking-filter">
-        <label htmlFor="comuna">Comuna:&nbsp;</label>
-        <select id="comuna" value={comunaFilter} onChange={(e) => setComunaFilter(e.target.value)}>
-          <option value="">Todas</option>
-          {comunas.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Lista de ranking */}
-      <div className="ranking-list">
-        {loading ? (
-          <p>Cargando ranking...</p>
-        ) : ranking.length === 0 ? (
-          <p>No hay usuarios en el ranking.</p>
-        ) : (
-          <ul>
-            {getFilteredRanking().map((user, index) => (
-              <li key={user.uid} className="ranking-item">
-                <div className="left-section">
-                  <strong>#{index + 1}</strong> <span>{user.name}</span>
-                </div>
-                <div className="right-section">
-                  {filter.charAt(0).toUpperCase() + filter.slice(1)}:{" "}
-                  <span className="value">{user[filter] ?? "N/A"}</span>
-                  {user.comuna && <span className="comuna"> | {user.comuna}</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
+      {/* 🔹 CONTENIDO DEBAJO DEL HEADER */}
+      <div className="ranking-container">
+        {/* Ya no necesitas el H1 “MOTIV8” aquí, lo pone el Header */}
+        {/* <h1 className="ranking-title">MOTIV8</h1> */}
+        {/* Destacados */}
+        {destacados && (
+          <div className="destacados">
+            <h4>Usuarios destacados</h4>
+            <p>
+              ⭐ Máximo nivel: {destacados.maxNivel?.name} (Nivel{" "}
+              {destacados.maxNivel?.nivel})
+            </p>
+            <p>
+              🚴 Mayor distancia: {destacados.maxDistancia?.name} (
+              {destacados.maxDistancia?.distancia} km)
+            </p>
+            <p>
+              🎯 Más misiones: {destacados.maxMisiones?.name} (
+              {destacados.maxMisiones?.misiones} misiones)
+            </p>
+          </div>
         )}
+
+        {/* Selector de filtro */}
+        <div className="ranking-filter">
+          <label htmlFor="filter">Filtrar por:&nbsp;</label>
+          <select
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="nivel">Nivel</option>
+            <option value="misiones">Misiones</option>
+            <option value="distancia">Distancia</option>
+          </select>
+        </div>
+
+        {/* Selector de comuna */}
+        <div className="ranking-filter">
+          <label htmlFor="comuna">Comuna:&nbsp;</label>
+          <select
+            id="comuna"
+            value={comunaFilter}
+            onChange={(e) => setComunaFilter(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {comunas.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Lista de ranking */}
+        <div className="ranking-list">
+          {loading ? (
+            <p>Cargando ranking...</p>
+          ) : ranking.length === 0 ? (
+            <p>No hay usuarios en el ranking.</p>
+          ) : (
+            <ul>
+              {getFilteredRanking().map((user, index) => (
+                <li key={user.uid} className="ranking-item">
+                  <div className="left-section">
+                    <strong>#{index + 1}</strong> <span>{user.name}</span>
+                  </div>
+                  <div className="right-section">
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}:{" "}
+                    <span className="value">{user[filter] ?? "N/A"}</span>
+                    {user.comuna && (
+                      <span className="comuna"> | {user.comuna}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

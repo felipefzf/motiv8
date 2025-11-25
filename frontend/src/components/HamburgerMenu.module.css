@@ -1,9 +1,9 @@
 /* Posiciona el contenedor del menú */
 .hamburgerContainer {
-  position: absolute; /* Lo fija en la pantalla */
-  top: 35px;
-  right: 20px;
-  z-index: 999; /* Asegura que esté encima de otros elementos */
+  position: fixed; /* Lo fija en la pantalla */
+  top: 5px;
+  right: 10px;
+  z-index: 10000; /* Asegura que esté encima de otros elementos */
   border: 2px solid #817d7d;
   border-radius: 200px;
 }
@@ -13,7 +13,7 @@
   background: none;
   border: none;
   color: var(--accent-color); /* Color del icono */
-  font-size: 1.5rem; /* Tamaño del icono */
+  font-size: 1.1rem; /* Tamaño del icono */
   cursor: pointer;
   z-index: 1002;
   position: relative;
@@ -27,7 +27,7 @@
   right: 0;
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--accent-color);
   overflow: hidden; /* Para los bordes redondeados */
   
   /* Animación: oculto por defecto */
@@ -48,13 +48,14 @@
   list-style: none;
   padding: 10px 0;
   margin: 0;
+  background-color: var(--bg-color);
 }
 
 .navLink {
   display: block;
   padding: 12px 25px;
   text-decoration: none;
-  color: #333;
+  color: var(--text-color);
   font-weight: bold;
   white-space: nowrap; /* Evita que el texto se parta */
 }

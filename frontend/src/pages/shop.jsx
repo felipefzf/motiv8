@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import "./Shop.css";
 import { useAuth } from "../context/authContext";
 import axios from "axios";
-import API_URL from "../config"; // (Ajusta la ruta de importación)
+import API_URL from "../config";
 import LiveToast from "../components/liveToast";
-
-
+import Header from "../components/Header"; // 👈 IMPORTANTE
 
 // Imágenes locales de fallback (si no hay imageUrl en el ítem)
 import boostImg from "../assets/boost.png";
@@ -23,8 +22,6 @@ export default function Shop() {
     setToastMessage(msg);
     setToastKey((k) => k + 1);
   };
-
-
 
   useEffect(() => {
     if (!token) return;
@@ -51,15 +48,16 @@ export default function Shop() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      showToast(`✅ ${res.data.message}`); // "Compraste este item"
+      showToast(`✅ ${res.data.message}`);
     } catch (err) {
       if (err.response?.status === 400) {
-        showToast(`⚠️ ${err.response.data.message}`); // "Te faltan X coins..."
+        showToast(`⚠️ ${err.response.data.message}`);
       } else {
         showToast("❌ Error al procesar la compra.");
       }
     }
   };
+
   // Fallback de imágenes según tipo
   const getImage = (item) => {
     if (item.imageUrl) return item.imageUrl;
@@ -70,30 +68,33 @@ export default function Shop() {
   };
 
   return (
-    <div className="shop-container">
-      <h1 className="shop-title">MOTIV8</h1>
-      <h3 className="shop-subtitle">Tienda</h3>
+    <div className="shop-page-with-header">
+      {/* 🔹 HEADER FIJO */}
+      <Header title="Tienda" />
 
-      <div className="shop-grid">
-        {items.map((item) => (
-          <div className="card-shop" key={item.id}>
-            <img src={getImage(item)} className="card-img" alt={item.name} />
-            <div className="card-body">
-              <h5 className="card-title">{item.name}</h5>
-              <p className="card-description">{item.description}</p>
-              <p className="card-description">{item.price} Coins</p>
-              <button
-                className="btn-comprar"
-                onClick={() => handlePurchase(item)}
-              >
-                Comprar
-              </button>
+      {/* 🔹 CONTENIDO DE LA TIENDA DEBAJO DEL HEADER */}
+      <div className="shop-container">
+        <div className="shop-grid">
+          {items.map((item) => (
+            <div className="card-shop" key={item.id}>
+              <img src={getImage(item)} className="card-img" alt={item.name} />
+              <div className="card-body">
+                <h5 className="card-title">{item.name}</h5>
+                <p className="card-description">{item.description}</p>
+                <p className="card-description">{item.price} Coins</p>
+                <button
+                  className="btn-comprar"
+                  onClick={() => handlePurchase(item)}
+                >
+                  Comprar
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+          ))}
+        </div>
 
+        {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+      </div>
     </div>
   );
 }

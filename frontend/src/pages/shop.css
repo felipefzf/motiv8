@@ -1,6 +1,7 @@
 /* === Estilos generales === */
 .shop-container {
   padding: 20px;
+  margin-top: 60px;
   color: var(--text-color);
   text-align: center;
   overflow: hidden;
