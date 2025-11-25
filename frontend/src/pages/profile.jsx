@@ -17,7 +17,7 @@ import LiveToast from "../components/liveToast";
 import API_URL from "../config";
 import EditGoalsModal from "../components/EditGoalsModal.jsx";
 import ActivityMap from "../components/activityMap.jsx";
-import Header from "../components/Header.jsx"; // 🔸 nuevo
+import Header from "../components/Header.jsx";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -27,7 +27,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [stats, setStats] = useState(null);
   const [ubicaciones, setUbicaciones] = useState([]);
   const [equipo, setEquipo] = useState(null);
-  const [perfil, setPerfil] = useState(null);
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [isInventoryModalOpen, setInventoryModalOpen] = useState(false);
@@ -41,7 +40,29 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
   const [isGoalsModalOpen, setGoalsModalOpen] = useState(false);
 
-  // Fetch stats del usuario
+  // ⚡ Cargar tema desde localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "dark";
+    setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    const useTeamColor = localStorage.getItem("useTeamColor") === "true";
+    const teamColor = localStorage.getItem("teamColor");
+
+    if (useTeamColor && teamColor) {
+      document.documentElement.style.setProperty("--accent-color", teamColor);
+      document.documentElement.style.setProperty("--shadow-color", teamColor);
+    } else {
+      if (savedTheme === "light") {
+        document.documentElement.style.setProperty("--accent-color", "#0066cc");
+        document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+      } else {
+        document.documentElement.style.setProperty("--accent-color", "#ffd000ff");
+        document.documentElement.style.setProperty("--shadow-color", "#ffd000ff");
+      }
+    }
+  }, []);
+
   const fetchStats = async () => {
     if (!user) return;
     const token = localStorage.getItem("firebaseToken");
@@ -59,20 +80,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     fetchStats();
   }, [user]);
 
-  // Aplicar colores de equipo
-  useEffect(() => {
-    if (equipo) {
-      const teamColor = equipo.team_color || "#ffd000ff";
-      document.documentElement.style.setProperty("--accent-color", teamColor);
-      document.documentElement.style.setProperty("--shadow-color", teamColor);
-      localStorage.setItem("teamColor", teamColor);
-      if (typeof setTeamColor === "function") {
-        setTeamColor(teamColor);
-      }
-    }
-  }, [equipo, setTeamColor]);
-
-  // Cargar actividades
   useEffect(() => {
     if (!user) return;
 
@@ -99,7 +106,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     fetchActivities();
   }, [user]);
 
-  // Fetch equipo y ubicaciones
   useEffect(() => {
     if (!user) return;
 
@@ -128,46 +134,15 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       .catch((err) => console.error("Error ubicaciones:", err));
   }, [user]);
 
-  // Cargar tema guardado
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") || "dark";
-    setTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
-
-    // Aplicar color de equipo guardado si existe
-    const savedTeamColor = localStorage.getItem("teamColor");
-    if (savedTeamColor) {
-      document.documentElement.style.setProperty("--accent-color", savedTeamColor);
-      document.documentElement.style.setProperty("--shadow-color", savedTeamColor);
-      if (typeof setTeamColor === "function") setTeamColor(savedTeamColor);
-    }
-  }, [setTeamColor]);
-
-  // Cambiar tema
-  const handleToggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
-    if (typeof toggleTheme === "function") toggleTheme();
-  };
-
-  // Logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
-
-      // Limpiar localStorage
       localStorage.removeItem("firebaseToken");
       localStorage.removeItem("userRole");
       localStorage.removeItem("teamColor");
-      localStorage.removeItem("theme");
-
-      // Resetear variables CSS
+      localStorage.setItem("useTeamColor", "false");
       document.documentElement.style.removeProperty("--accent-color");
       document.documentElement.style.removeProperty("--shadow-color");
-      document.documentElement.setAttribute("data-theme", "dark");
-
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
@@ -201,37 +176,62 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   return (
     <div className="page-with-header">
-      {/* HEADER */}
-      <Header title="Perfil" rightContent={<></>} />
+      <Header
+  title="Perfil"
+  rightContent={
+    <div className="theme-toggle-switch">
+      <label className="switch">
+        <input
+          type="checkbox"
+          checked={theme === "light"}
+          onChange={() => {
+            const newTheme = theme === "dark" ? "light" : "dark";
+            setTheme(newTheme);
+            document.documentElement.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme);
 
-      {/* CONTENIDO */}
+            const useTeamColor = localStorage.getItem("useTeamColor") === "true";
+            const teamColor = localStorage.getItem("teamColor");
+
+            if (useTeamColor && teamColor) {
+              document.documentElement.style.setProperty("--accent-color", teamColor);
+              document.documentElement.style.setProperty("--shadow-color", teamColor);
+            } else {
+              if (newTheme === "light") {
+                document.documentElement.style.setProperty("--accent-color", "#0066cc");
+                document.documentElement.style.setProperty("--shadow-color", "#0066cc");
+              } else {
+                document.documentElement.style.setProperty("--accent-color", "#ffd000ff");
+                document.documentElement.style.setProperty("--shadow-color", "#ffd000ff");
+              }
+            }
+
+            if (typeof toggleTheme === "function") toggleTheme();
+          }}
+        />
+        <span className="slider round"></span>
+      </label>
+    </div>
+  }
+/>
+
       <div className="profile-container">
-        <p>
-          Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
-        </p>
+        <p>Coins: <span className="profile-highlight">{stats?.coins || 0}</span></p>
 
         <div className="profile-content">
-          {/* FOTO + BOTONES */}
           <div className="profile-image-wrapper">
-            <img
-              src={user.profile_image_url || userDefaul}
-              className="profile-image"
-              alt="Perfil de usuario"
-            />
-            <button onClick={handleToggleTheme} className="theme-toggle-btn">
-              {theme === "dark" ? "☀️" : "🌙"}
-            </button>
-            <button className="btn-inventory" onClick={() => setInventoryModalOpen(true)}>
-              Inventario
-            </button>
+            <img src={user.profile_image_url || userDefaul} className="profile-image" alt="Perfil de usuario" />
+
+            {/* Toggle estilo iPhone */}
+            
+
+            <button className="btn-inventory" onClick={() => setInventoryModalOpen(true)}>Inventario</button>
             <button className="change-foto" onClick={() => setAvatarModalOpen(true)}>
               <img src={PencilImg} alt="Icono lápiz" className="change-foto-icon" />
             </button>
           </div>
 
-          <button className="edit-info" onClick={() => setInfoModalOpen(true)}>
-            Editar información
-          </button>
+          <button className="edit-info" onClick={() => setInfoModalOpen(true)}>Editar información</button>
 
           <br />
 
@@ -244,10 +244,17 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
           {stats && (
             <div className="progress-bar-container">
-              <progress value={stats.puntos} max={stats.puntosParaSiguienteNivel + stats.puntos}></progress>{" "}
-              Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1}
-              {stats?.nivelSiguiente % 2 === 0 && " 🎁"}
-              <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
+              <div className="progress-bar-background">
+                <div
+                  className="progress-bar-fill"
+                  style={{
+                    width: `${(stats.puntos / (stats.puntosParaSiguienteNivel + stats.puntos)) * 100}%`,
+                  }}
+                ></div>
+              </div>
+              <div className="progress-bar-text">
+                Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1} (faltan {stats.puntosParaSiguienteNivel} XP)
+              </div>
             </div>
           )}
 
@@ -263,13 +270,9 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           </p>
 
           <div>
-            Deporte Principal:{" "}
-            <span className="profile-level">{user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}</span>
+            Deporte Principal: <span className="profile-level">{user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}</span>
             {equipo && (
-              <p>
-                <br />
-                Equipo: <span className="profile-level">{equipo.team_name}</span>
-              </p>
+              <p><br />Equipo: <span className="profile-level">{equipo.team_name}</span></p>
             )}
           </div>
 
@@ -280,32 +283,22 @@ export default function Profile({ toggleTheme, setTeamColor }) {
               <div className="card-profile">
                 <div className="card-body performance-card-body">
                   <h5 className="performance-card-title">🏃‍♂️ Running</h5>
-                  <p className="performance-text">
-                    Ritmo: <span className="highlight">{val(user.performance?.running?.pace, "min/km")}</span>
-                  </p>
-                  <p className="performance-text">
-                    Distancia: <span className="highlight">{val(user.performance?.running?.distance, "km")}</span>
-                  </p>
+                  <p className="performance-text">Ritmo: <span className="highlight">{val(user.performance?.running?.pace, "min/km")}</span></p>
+                  <p className="performance-text">Distancia: <span className="highlight">{val(user.performance?.running?.distance, "km")}</span></p>
                 </div>
               </div>
 
               <div className="card-profile">
                 <div className="card-body performance-card-body">
                   <h5 className="performance-card-title">🚴‍♀️ Ciclismo</h5>
-                  <p className="performance-text">
-                    Velocidad: <span className="highlight">{val(user.performance?.cycling?.speed, "km/h")}</span>
-                  </p>
-                  <p className="performance-text">
-                    Distancia: <span className="highlight">{val(user.performance?.cycling?.distance, "km")}</span>
-                  </p>
+                  <p className="performance-text">Velocidad: <span className="highlight">{val(user.performance?.cycling?.speed, "km/h")}</span></p>
+                  <p className="performance-text">Distancia: <span className="highlight">{val(user.performance?.cycling?.distance, "km")}</span></p>
                 </div>
               </div>
             </div>
           </div>
 
-          <button className="edit-performance" onClick={() => setGoalsModalOpen(true)}>
-            Editar rendimiento
-          </button>
+          <button className="edit-performance" onClick={() => setGoalsModalOpen(true)}>Editar rendimiento</button>
 
           <br />
           <h3 className="section-title">Estadísticas</h3>
@@ -320,11 +313,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
           <h3 className="section-title">Ubicaciones visitadas</h3>
           <div className="locations-container">
-            {ubicaciones.length > 0 ? (
-              ubicaciones.map((loc, i) => <span key={i} className="ubi-list">{loc}</span>)
-            ) : (
-              <p>No hay ubicaciones registradas</p>
-            )}
+            {ubicaciones.length > 0 ? ubicaciones.map((loc, i) => <span key={i} className="ubi-list">{loc}</span>) : <p>No hay ubicaciones registradas</p>}
           </div>
 
           <h3 className="section-title">Historial de Actividades</h3>
@@ -369,21 +358,16 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             )}
           </div>
 
-          <button onClick={handleLogout} className="btn-cerrarsesion">
-            Cerrar Sesión
-          </button>
+          <button onClick={handleLogout} className="btn-cerrarsesion">Cerrar Sesión</button>
         </div>
       </div>
 
-      {/* MODALES */}
-      <EditAvatarModal isOpen={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)}
-        showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
+      {/* Modales */}
+      <EditAvatarModal isOpen={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)} showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
       <InventoryModal isOpen={isInventoryModalOpen} onClose={() => setInventoryModalOpen(false)} />
-      <EditProfileModal isOpen={isInfoModalOpen} onClose={() => setInfoModalOpen(false)}
-        showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
+      <EditProfileModal isOpen={isInfoModalOpen} onClose={() => setInfoModalOpen(false)} showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
       <ProfileRewardModal isOpen={isRewardModalOpen} onClose={() => setRewardModalOpen(false)} onClaim={reclamarRecompensa} />
       <EditGoalsModal isOpen={isGoalsModalOpen} onClose={() => setGoalsModalOpen(false)} />
-
       {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
   );
