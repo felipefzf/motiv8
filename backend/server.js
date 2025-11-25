@@ -1129,13 +1129,41 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
 
 
 app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
-  const userId = req.user.uid;
+  const userId = req.user?.uid;
+  if (!userId) return res.status(401).send("No autenticado.");
+
   try {
+    // 1) Leer contador simple de clics
+    const statsRef = db.collection("userStats").doc(userId);
+    const statsDoc = await statsRef.get();
+    const clicks = statsDoc.exists ? Number(statsDoc.data().assignClicks || 0) : 0;
+
+    // 2) Si ya llegó al límite (3), no asignar y avisar al frontend
+    if (clicks >= 3) {
+      return res.status(200).json({
+        message: "Haz completado tus misiones semanales",
+        limitReached: true,
+        assignClicks: clicks,
+        missions: [], // no asignamos
+      });
+    }
+
+    // 3) Validación opcional: evita asignar si hay misiones pendientes
+    const userMissionRef = db.collection("user_missions").doc(userId);
+    const userDoc = await userMissionRef.get();
+    const currentData = userDoc.exists ? userDoc.data() : { missions: [] };
+
+    if ((currentData.missions || []).length > 0) {
+      return res.status(400).json({
+        message: "Debes completar tus misiones actuales.",
+        limitReached: false,
+        assignClicks: clicks,
+      });
+    }
+
+    // 4) Seleccionar 3 misiones aleatorias (tu lógica actual)
     const snapshot = await db.collection("missions").get();
-    const allMissions = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const allMissions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
     if (allMissions.length < 3) {
       return res.status(400).send("No hay suficientes misiones disponibles.");
@@ -1148,17 +1176,28 @@ app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
       completed: false,
     }));
 
-    await db.collection("user_missions").doc(userId).set({
+    // 5) Guardar misiones del usuario
+    await userMissionRef.set({
       missions: nuevas,
       assignedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    res.status(201).json({ missions: nuevas });
+    // 6) Incrementar contador y responder con estado
+    const nextClicks = clicks + 1;
+    await statsRef.set({ assignClicks: nextClicks }, { merge: true });
+
+    return res.status(201).json({
+      message: "Se asignaron 3 nuevas misiones",
+      missions: nuevas,
+      limitReached: nextClicks >= 3,
+      assignClicks: nextClicks,
+    });
   } catch (error) {
     console.error("Error asignando 3 misiones:", error);
-    res.status(500).send("Error interno al asignar misiones.");
+    return res.status(500).send("Error interno al asignar misiones.");
   }
 });
+
 
 // ASIGNAR MISIONES
 
