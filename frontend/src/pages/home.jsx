@@ -42,7 +42,8 @@ export default function Home() {
             const yaVisto = eventosVistos[m.id]?.includes(event.timestamp);
 
             if (!yaVisto) {
-              alert(event.message);
+              setToastMessage(event.message);
+              setToastKey((prev) => prev + 1);
 
               setEventosVistos((prev) => ({
                 ...prev,
@@ -166,8 +167,7 @@ export default function Home() {
 
         setEmparejados((prev) => ({
           ...prev,
-          [missionId]:
-            prev[missionId]?.filter((u) => u.uid !== user.uid) || [],
+          [missionId]: prev[missionId]?.filter((u) => u.uid !== user.uid) || [],
         }));
 
         setToastKey((prev) => prev + 1);
@@ -183,9 +183,7 @@ export default function Home() {
     if (!socket) return;
 
     misiones.forEach((m) => {
-      const estaEmparejado = emparejados[m.id]?.some(
-        (u) => u.uid === user.uid
-      );
+      const estaEmparejado = emparejados[m.id]?.some((u) => u.uid === user.uid);
       if (estaEmparejado) {
         socket.emit("joinMission", m.id);
       }
