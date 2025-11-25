@@ -265,6 +265,22 @@ export default function Home() {
     <h1 className="home-title">MOTIV8</h1>
     <h3 className="home-subtitle">Inicio</h3>
 
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <h3 className="home-subtitle">Bienvenido, {user.name}</h3>
+    </div>
+
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <span>
+        Ganas de entrenar?
+      </span>
+    </div>
+    
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <Link to="/activityTracker" className="btn-registrar">
+      Registrar Actividad
+    </Link>
+    </div>
+
     <div className="missions-section">
       <h3 className="missions-title">Misiones asignadas</h3>
       <div className="container text-center">
@@ -340,15 +356,15 @@ export default function Home() {
       </div>
     </div>
 
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
     {misiones.length === 0 && (
       <button className="btn btn-dark mb-3" onClick={agregarTresMisiones}>
         AGREGAR 3 MISIONES
       </button>
     )}
+    </div>
 
-    <Link to="/activityTracker" className="btn-registrar">
-      Registrar Actividad
-    </Link>
+    
     
 
     

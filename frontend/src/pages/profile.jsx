@@ -15,6 +15,7 @@ import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
 import API_URL from "../config";
 import EditGoalsModal from '../components/EditGoalsModal.jsx'; // 1. ¡IMPORTAR ESTO!
+import ActivityMap from "../components/activityMap.jsx";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -188,6 +189,30 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   if (!user) return <p>Cargando...</p>;
 
   const val = (value, unit) => value ? `${value} ${unit}` : '--';
+
+  const ActivityCard = ({ activity }) => {
+
+  // Preparar datos para el mapa
+  // Nota: Firestore guarda objetos, asegurémonos de que el formato sea el correcto
+  // Si guardaste 'path' como GeoJSON Coordinates en el backend, 
+  // podrías necesitar reconstruir el objeto GeoJSON completo si solo guardaste las coordenadas.
+  
+  // Asumiendo que guardaste:
+  // path: [ [lng, lat], ... ] (Array de coordenadas de OSRM)
+  // O path: { type: 'LineString', coordinates: [...] } (GeoJSON completo)
+  
+  let routeGeoJSON = null;
+  if (activity.path && Array.isArray(activity.path)) {
+      // Reconstruir GeoJSON simple si es solo un array
+      routeGeoJSON = {
+          type: "LineString",
+          coordinates: activity.path 
+      };
+  } else if (activity.path && activity.path.type === 'LineString') {
+      routeGeoJSON = activity.path;
+  }
+}
+
 
   return (
     <div className="profile-container">
@@ -400,7 +425,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="activity-card activity-card-inner"
+                  className="card-profile activity-card-inner"
                 >
                   <div className="activity-card-header">
                     <span className="activity-card-title">
@@ -413,18 +438,29 @@ export default function Profile({ toggleTheme, setTeamColor }) {
                       {new Date(activity.date).toLocaleDateString()}
                     </span>
                   </div>
+                  
+                  {/* Mapa de Actividad */}
+                  <div style={{ height: '200px', marginTop: '10px', width: '100%' }}>
+                    <ActivityMap 
+                        routeGeoJSON={activity.path}
+                        start={activity.startLocation}
+                        end={activity.endLocation}
+                        interactive={false} // Mapa estático (opcional)
+                    />
+                </div>
+                <br />
 
                   <div className="activity-card-stats">
                     <div>
-                      <span className="activity-card-label">Distancia</span>
+                      <span className="profile-name activity-card-label">Distancia</span>
                       <strong>{activity.distance.toFixed(2)} km</strong>
                     </div>
                     <div>
-                      <span className="activity-card-label">Tiempo</span>
+                      <span className="profile-name activity-card-label">Tiempo</span>
                       <strong>{(activity.time / 60).toFixed(0)} min</strong>
                     </div>
                     <div>
-                      <span className="activity-card-label">Velocidad</span>
+                      <span className="profile-name activity-card-label">Velocidad</span>
                       <strong>{activity.avgSpeed.toFixed(1)} km/h</strong>
                     </div>
                   </div>
@@ -433,7 +469,11 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             </div>
           )}
         </div>
-
+        
+        <div className="profile-name">
+        <span>aaaaa</span>
+        </div>
+          
         <br />
         <button onClick={handleLogout} className="btn-cerrarsesion">
           Cerrar Sesión

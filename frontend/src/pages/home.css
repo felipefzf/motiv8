@@ -98,9 +98,10 @@ body {
 .btn-registrar {
   background-color: var(--accent-color);
   color: var(--btn-text);
-  padding: 10px 15px;
+  padding: 10px 150px;
   border-radius: 5px;
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 20px;
   display: inline-block;
   text-decoration: none;
 }

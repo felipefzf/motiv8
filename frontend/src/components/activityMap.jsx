@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -11,40 +11,67 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
-function ActivityMap({ start, end, routeGeoJSON }) {
-  if (!start || !end) return <p>Cargando mapa...</p>;
+function ActivityMap({ path, routeGeoJSON, start, end, interactive = true }) {
+  // Lógica para determinar qué mostrar
+  // Prioridad 1: GeoJSON (Ruta calculada por OSRM)
+  // Prioridad 2: Path (Array de puntos GPS crudos)
 
-  // Centrar el mapa entre los dos puntos (aprox)
-  const centerLat = (start.lat + end.lat) / 2;
-  const centerLng = (start.lng + end.lng) / 2;
+  let center = [0, 0];
+  let zoom = 13;
+  let positions = [];
+
+  if (routeGeoJSON) {
+    // Caso OSRM (GeoJSON)
+    // Nota: GeoJSON usa [long, lat], Leaflet necesita [lat, long] para el centro
+    // Pero el componente <GeoJSON /> maneja la data correctamente solo.
+    if (start) center = [start.lat, start.lng];
+  } else if (path && path.length > 0) {
+    // Caso GPS Crudo (Array de objetos o arrays)
+    // Normalizamos a [lat, lng]
+    positions = path.map(p => p.lat ? [p.lat, p.lng] : [p[1], p[0]]); 
+    center = positions[0]; 
+  } else if (start) {
+      center = [start.lat, start.lng];
+  }
+
+  if (!start && !path && !routeGeoJSON) return <div style={{height: '100%', background: '#eee', display: 'grid', placeItems: 'center', color: '#666'}}>Sin datos de mapa</div>;
 
   return (
     <MapContainer 
-      center={[centerLat, centerLng]} 
-      zoom={14} 
-      style={{ height: '100%', width: '100%', borderRadius: '8px' }}
+      center={center} 
+      zoom={zoom} 
+      style={{ height: '100%', width: '100%', borderRadius: '8px', zIndex: 0 }} // zIndex bajo para no tapar modales
+      dragging={interactive} // Opción para hacer el mapa estático en el perfil
+      scrollWheelZoom={interactive}
+      doubleClickZoom={interactive}
+      zoomControl={interactive}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; OpenStreetMap contributors'
+        attribution='&copy; OpenStreetMap'
       />
 
-      {/* Marcador de Inicio */}
-      <Marker position={[start.lat, start.lng]}>
-        <Popup>Inicio</Popup>
-      </Marker>
-
-      {/* Marcador de Fin */}
-      <Marker position={[end.lat, end.lng]}>
-        <Popup>Fin</Popup>
-      </Marker>
-
-      {/* La Ruta (Línea Azul) */}
+      {/* Opción A: Ruta GeoJSON (OSRM) */}
       {routeGeoJSON && (
-        <GeoJSON 
-          data={routeGeoJSON} 
-          style={{ color: 'blue', weight: 5, opacity: 0.7 }} 
-        />
+        <GeoJSON data={routeGeoJSON} style={{ color: 'blue', weight: 5, opacity: 0.7 }} />
+      )}
+
+      {/* Opción B: Ruta Manual (GPS Points) */}
+      {!routeGeoJSON && positions.length > 0 && (
+        <Polyline positions={positions} color="blue" weight={5} opacity={0.7} />
+      )}
+
+      {/* Marcadores de Inicio y Fin */}
+      {start && (
+        <Marker position={[start.lat, start.lng]}>
+          <Popup>Inicio</Popup>
+        </Marker>
+      )}
+      
+      {end && (
+        <Marker position={[end.lat, end.lng]}>
+          <Popup>Fin</Popup>
+        </Marker>
       )}
     </MapContainer>
   );
