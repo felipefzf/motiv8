@@ -5,9 +5,24 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Contenedor principal del Home (debajo del header fijo) */
 .home-container {
-  color: var(--text-color);
+  /* que quede igual que el profile */
+  flex: 1;
   padding: 20px;
+  padding-top: 80px;          /* 🔹 deja espacio para el header de 60px */
+  color: var(--text-color);
+  background-color: var(--bg-color);
+
+  /* scroll solo interno y sin barra visible */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;      /* Firefox */
+}
+
+/* Ocultar scrollbar en WebKit */
+.home-container::-webkit-scrollbar {
+  display: none;
 }
 
 .home-title {
@@ -18,8 +33,23 @@ body {
 
 .home-subtitle {
   margin: 5px 0 10px 0;
-  text-align: start;
+  text-align: center;
   color: var(--text-color);
+}
+
+.home-text{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.activity-register {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  color: var(--bg-color);
 }
 
 .home-message {
@@ -97,11 +127,10 @@ body {
 
 .btn-registrar {
   background-color: var(--accent-color);
-  color: var(--btn-text);
+  color: var(--text-color);
   padding: 10px 150px;
   border-radius: 5px;
   margin-top: 10px;
   margin-bottom: 20px;
-  display: inline-block;
-  text-decoration: none;
+  font-weight: bold;
 }

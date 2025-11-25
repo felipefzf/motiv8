@@ -1,3 +1,4 @@
+// src/pages/Profile.jsx
 import React, { useEffect, useState } from "react";
 import userDefaul from "../assets/userDefaul.jpg";
 import "./Profile.css";
@@ -14,8 +15,9 @@ import ProfileRewardModal from "../components/profileRewardModal.jsx";
 import PencilImg from "../assets/pencil.png";
 import LiveToast from "../components/liveToast";
 import API_URL from "../config";
-import EditGoalsModal from '../components/EditGoalsModal.jsx'; // 1. ¡IMPORTAR ESTO!
+import EditGoalsModal from "../components/EditGoalsModal.jsx";
 import ActivityMap from "../components/activityMap.jsx";
+import Header from "../components/Header.jsx"; // 🔸 nuevo
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -36,21 +38,17 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [toastMessage, setToastMessage] = useState("");
   const [toastKey, setToastKey] = useState(0);
 
-  // Estado para modal de recompensa
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
-  // Estado para modal de metas
   const [isGoalsModalOpen, setGoalsModalOpen] = useState(false);
 
+  // Fetch stats del usuario
   const fetchStats = async () => {
     if (!user) return;
     const token = localStorage.getItem("firebaseToken");
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     try {
-      const res = await axios.get(
-        `${API_URL}/api/userStats/${user.uid}`,
-        config
-      );
+      const res = await axios.get(`${API_URL}/api/userStats/${user.uid}`, config);
       setStats(res.data);
     } catch (err) {
       console.error("Error stats:", err);
@@ -61,20 +59,20 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     fetchStats();
   }, [user]);
 
+  // Aplicar colores de equipo
   useEffect(() => {
-    if (equipo && typeof setTeamColor === "function") {
-      setTeamColor(equipo.team_color || "#ffd000ff");
-      document.documentElement.style.setProperty(
-        "--accent-color",
-        equipo.team_color || "#ffd000ff"
-      );
-      document.documentElement.style.setProperty(
-        "--shadow-color",
-        equipo.team_color || "#ffd000ff"
-      );
+    if (equipo) {
+      const teamColor = equipo.team_color || "#ffd000ff";
+      document.documentElement.style.setProperty("--accent-color", teamColor);
+      document.documentElement.style.setProperty("--shadow-color", teamColor);
+      localStorage.setItem("teamColor", teamColor);
+      if (typeof setTeamColor === "function") {
+        setTeamColor(teamColor);
+      }
     }
   }, [equipo, setTeamColor]);
 
+  // Cargar actividades
   useEffect(() => {
     if (!user) return;
 
@@ -101,6 +99,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     fetchActivities();
   }, [user]);
 
+  // Fetch equipo y ubicaciones
   useEffect(() => {
     if (!user) return;
 
@@ -129,28 +128,46 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       .catch((err) => console.error("Error ubicaciones:", err));
   }, [user]);
 
+  // Cargar tema guardado
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);
     document.documentElement.setAttribute("data-theme", savedTheme);
-  }, []);
 
+    // Aplicar color de equipo guardado si existe
+    const savedTeamColor = localStorage.getItem("teamColor");
+    if (savedTeamColor) {
+      document.documentElement.style.setProperty("--accent-color", savedTeamColor);
+      document.documentElement.style.setProperty("--shadow-color", savedTeamColor);
+      if (typeof setTeamColor === "function") setTeamColor(savedTeamColor);
+    }
+  }, [setTeamColor]);
+
+  // Cambiar tema
   const handleToggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
-    if (typeof toggleTheme === "function") {
-      toggleTheme();
-    }
+    if (typeof toggleTheme === "function") toggleTheme();
   };
 
+  // Logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
+
+      // Limpiar localStorage
       localStorage.removeItem("firebaseToken");
       localStorage.removeItem("userRole");
       localStorage.removeItem("teamColor");
+      localStorage.removeItem("theme");
+
+      // Resetear variables CSS
+      document.documentElement.style.removeProperty("--accent-color");
+      document.documentElement.style.removeProperty("--shadow-color");
+      document.documentElement.setAttribute("data-theme", "dark");
+
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
@@ -162,20 +179,14 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     const config = { headers: { Authorization: `Bearer ${token}` } };
 
     try {
-      const res = await axios.post(
-        `${API_URL}/api/profile/reward`,
-        { option },
-        config
-      );
+      const res = await axios.post(`${API_URL}/api/profile/reward`, { option }, config);
       setToastMessage(`🎉 ${res.data.recompensa}`);
       setToastKey((prev) => prev + 1);
       setRewardModalOpen(false);
       fetchStats();
     } catch (err) {
       if (err.response?.status === 403) {
-        setToastMessage(
-          "Ya reclamaste la recompensa en este nivel o no corresponde."
-        );
+        setToastMessage("Ya reclamaste la recompensa en este nivel o no corresponde.");
         setToastKey((prev) => prev + 1);
         setRewardModalOpen(false);
       } else {
@@ -184,347 +195,195 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     }
   };
 
-  // ✅ Resetear hasClaimedReward cuando cambie el nivel
-
   if (!user) return <p>Cargando...</p>;
 
-  const val = (value, unit) => value ? `${value} ${unit}` : '--';
-
-  const ActivityCard = ({ activity }) => {
-
-    // Preparar datos para el mapa
-    // Nota: Firestore guarda objetos, asegurémonos de que el formato sea el correcto
-    // Si guardaste 'path' como GeoJSON Coordinates en el backend, 
-    // podrías necesitar reconstruir el objeto GeoJSON completo si solo guardaste las coordenadas.
-
-    // Asumiendo que guardaste:
-    // path: [ [lng, lat], ... ] (Array de coordenadas de OSRM)
-    // O path: { type: 'LineString', coordinates: [...] } (GeoJSON completo)
-
-    let routeGeoJSON = null;
-    if (activity.path && Array.isArray(activity.path)) {
-      // Reconstruir GeoJSON simple si es solo un array
-      routeGeoJSON = {
-        type: "LineString",
-        coordinates: activity.path
-      };
-    } else if (activity.path && activity.path.type === 'LineString') {
-      routeGeoJSON = activity.path;
-    }
-  }
-
+  const val = (value, unit) => (value ? `${value} ${unit}` : "--");
 
   return (
-    <div className="profile-container">
-      <button onClick={handleToggleTheme} className="theme-toggle-btn">
-        {theme === "dark" ? "☀️ Tema Claro" : "🌙 Tema Oscuro"}
-      </button>
+    <div className="page-with-header">
+      {/* HEADER */}
+      <Header title="Perfil" rightContent={<></>} />
 
-      <button
-        className="btn-inventory"
-        onClick={() => setInventoryModalOpen(true)}
-      >
-        Inventario
-      </button>
+      {/* CONTENIDO */}
+      <div className="profile-container">
+        <p>
+          Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
+        </p>
 
-      <h1 className="profile-title">MOTIV8</h1>
-      <h2 className="profile-subtitle">Perfil</h2>
-      <p>
-        Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
-      </p>
-
-      <div className="profile-content">
-        {/* FOTO + BOTÓN FLOTANTE */}
-        <div className="profile-image-wrapper">
-          <img
-            src={user.profile_image_url || userDefaul}
-            className="profile-image"
-            alt="Perfil de usuario"
-          />
-
-          <button
-            className="change-foto"
-            onClick={() => setAvatarModalOpen(true)}
-          >
+        <div className="profile-content">
+          {/* FOTO + BOTONES */}
+          <div className="profile-image-wrapper">
             <img
-              src={PencilImg}
-              alt="Icono lápiz"
-              className="change-foto-icon"
+              src={user.profile_image_url || userDefaul}
+              className="profile-image"
+              alt="Perfil de usuario"
             />
-          </button>
-        </div>
-
-        <button
-          className="edit-info"
-          onClick={() => setInfoModalOpen(true)}
-        >
-          Editar información
-        </button>
-
-
-
-        <br />
-
-        <h4 className="profile-name">
-          {user?.name || "Sin nombre"}{" "}
-          <span className="profile-level">
-            Lvl: {stats?.nivelActual || 1}{" "}
-            {stats?.nivelActual % 2 === 0 && " 🎁"}
-          </span>
-        </h4>
-
-        {stats && (
-          <div className="progress-bar-container">
-            <progress
-              value={stats.puntos}
-              max={stats.puntosParaSiguienteNivel + stats.puntos}
-            ></progress>{" "}
-            Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1}
-            {stats?.nivelSiguiente % 2 === 0 && " 🎁"}
-            <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
+            <button onClick={handleToggleTheme} className="theme-toggle-btn">
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+            <button className="btn-inventory" onClick={() => setInventoryModalOpen(true)}>
+              Inventario
+            </button>
+            <button className="change-foto" onClick={() => setAvatarModalOpen(true)}>
+              <img src={PencilImg} alt="Icono lápiz" className="change-foto-icon" />
+            </button>
           </div>
-        )}
 
-        {stats &&
-          stats.nivelActual % 2 === 0 &&
-          stats.ultimoNivelRecompensado !== stats.nivelActual && (
-            <button
-              className="btn-recompensa"
-              onClick={() => setRewardModalOpen(true)}
-            >
+          <button className="edit-info" onClick={() => setInfoModalOpen(true)}>
+            Editar información
+          </button>
+
+          <br />
+
+          <h4 className="profile-name">
+            {user?.name || "Sin nombre"}{" "}
+            <span className="profile-level">
+              Lvl: {stats?.nivelActual || 1} {stats?.nivelActual % 2 === 0 && " 🎁"}
+            </span>
+          </h4>
+
+          {stats && (
+            <div className="progress-bar-container">
+              <progress value={stats.puntos} max={stats.puntosParaSiguienteNivel + stats.puntos}></progress>{" "}
+              Próximo nivel: {stats?.nivelSiguiente || stats?.nivelActual + 1}
+              {stats?.nivelSiguiente % 2 === 0 && " 🎁"}
+              <p>(faltan {stats.puntosParaSiguienteNivel} XP)</p>
+            </div>
+          )}
+
+          {stats && stats.nivelActual % 2 === 0 && stats.ultimoNivelRecompensado !== stats.nivelActual && (
+            <button className="btn-recompensa" onClick={() => setRewardModalOpen(true)}>
               Reclama tu recompensa 🎁
             </button>
           )}
 
-        <br />
-        <p>
-          Ubicación:{" "}
-          <span className="profile-level">
-            {user.comuna || "No definida"}, {user.region || "Chile"}
-          </span>
-        </p>
+          <br />
+          <p>
+            Ubicación: <span className="profile-level">{user.comuna || "No definida"}, {user.region || "Chile"}</span>
+          </p>
 
-        <div>
-          Deporte Principal:{" "}
-          <span className="profile-level">
-            {user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}
-          </span>
-          {equipo && (
-            <p>
-              <br />
-              Equipo: <span className="profile-level">{equipo.team_name}</span>
-            </p>
-          )}
-        </div>
+          <div>
+            Deporte Principal:{" "}
+            <span className="profile-level">{user.main_sport || (equipo ? equipo.sport_type : "Agente libre")}</span>
+            {equipo && (
+              <p>
+                <br />
+                Equipo: <span className="profile-level">{equipo.team_name}</span>
+              </p>
+            )}
+          </div>
 
-        <h3 className="section-title">Estadísticas</h3>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '30px' }}>
+          <br />
           <h3 className="section-title" style={{ margin: 0 }}>Mi rendimiento</h3>
-          <button
-            onClick={() => setGoalsModalOpen(true)}
-            style={{ background: 'none', border: 'none', color: '#007bff', cursor: 'pointer', fontSize: '0.9em', textDecoration: 'underline' }}
-          >
+          <div className="container text-center" style={{ marginTop: "10px" }}>
+            <div className="row row-cols-2">
+              <div className="card-profile">
+                <div className="card-body performance-card-body">
+                  <h5 className="performance-card-title">🏃‍♂️ Running</h5>
+                  <p className="performance-text">
+                    Ritmo: <span className="highlight">{val(user.performance?.running?.pace, "min/km")}</span>
+                  </p>
+                  <p className="performance-text">
+                    Distancia: <span className="highlight">{val(user.performance?.running?.distance, "km")}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="card-profile">
+                <div className="card-body performance-card-body">
+                  <h5 className="performance-card-title">🚴‍♀️ Ciclismo</h5>
+                  <p className="performance-text">
+                    Velocidad: <span className="highlight">{val(user.performance?.cycling?.speed, "km/h")}</span>
+                  </p>
+                  <p className="performance-text">
+                    Distancia: <span className="highlight">{val(user.performance?.cycling?.distance, "km")}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button className="edit-performance" onClick={() => setGoalsModalOpen(true)}>
             Editar rendimiento
           </button>
-        </div>
 
-        <div className="container text-center" style={{ marginTop: '10px' }}>
-          <div className="row row-cols-2">
-
-            {/* Tarjeta Running */}
-            <div className="card-profile">
-              <div className="card-body performance-card-body">
-                <h5 className="performance-card-title">🏃‍♂️ Running</h5>
-                <p className="performance-text">
-                  Ritmo:{" "}
-                  <span className="highlight">
-                    {val(user.performance?.running?.pace, "min/km")}
-                  </span>
-                </p>
-                <p className="performance-text">
-                  Distancia:{" "}
-                  <span className="highlight">
-                    {val(user.performance?.running?.distance, "km")}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-            {/* Tarjeta Ciclismo */}
-            <div className="card-profile">
-              <div className="card-body performance-card-body">
-                <h5 className="performance-card-title">🚴‍♀️ Ciclismo</h5>
-                <p className="performance-text">
-                  Velocidad:{" "}
-                  <span className="highlight">
-                    {val(user.performance?.cycling?.speed, "km/h")}
-                  </span>
-                </p>
-                <p className="performance-text">
-                  Distancia:{" "}
-                  <span className="highlight">
-                    {val(user.performance?.cycling?.distance, "km")}
-                  </span>
-                </p>
-              </div>
-            </div>
-
-
-
+          <br />
+          <h3 className="section-title">Estadísticas</h3>
+          <br />
+          <div className="stats-container">
+            <p>Distancia total: <span className="profile-highlight">{stats?.distanciaTotalKm || 0} km</span></p>
+            <p>Tiempo total: <span className="profile-highlight">{stats?.tiempoTotalRecorridoMin || 0} min</span></p>
+            <p>Velocidad máxima: <span className="profile-highlight">{stats?.velocidadMaximaKmh || 0} km/h</span></p>
+            <p>Misiones completadas: <span className="profile-highlight">{stats?.misionesCompletas || 0}</span></p>
+            <p>Insignias ganadas: <span className="profile-highlight">{stats?.insigniasGanadas || 0}</span></p>
           </div>
-        </div>
 
-        <br />
-        <div className="stats-container">
-          <p>
-            Distancia total:{" "}
-            <span className="profile-highlight">
-              {stats?.distanciaTotalKm || 0} km
-            </span>
-          </p>
-          <p>
-            Tiempo total:{" "}
-            <span className="profile-highlight">
-              {stats?.tiempoTotalRecorridoMin || 0} min
-            </span>
-          </p>
-          <p>
-            Velocidad máxima:{" "}
-            <span className="profile-highlight">
-              {stats?.velocidadMaximaKmh || 0} km/h
-            </span>
-          </p>
-          <p>
-            Misiones completadas:{" "}
-            <span className="profile-highlight">
-              {stats?.misionesCompletas || 0}
-            </span>
-          </p>
-          <p>
-            Insignias ganadas:{" "}
-            <span className="profile-highlight">
-              {stats?.insigniasGanadas || 0}
-            </span>
-          </p>
-        </div>
+          <h3 className="section-title">Ubicaciones visitadas</h3>
+          <div className="locations-container">
+            {ubicaciones.length > 0 ? (
+              ubicaciones.map((loc, i) => <span key={i} className="ubi-list">{loc}</span>)
+            ) : (
+              <p>No hay ubicaciones registradas</p>
+            )}
+          </div>
 
-        <h3 className="section-title">Ubicaciones visitadas</h3>
-        <div className="locations-container">
-          {ubicaciones.length > 0 ? (
-            ubicaciones.map((loc, i) => (
-              <span key={i} className="ubi-list">
-                {loc}
-              </span>
-            ))
-          ) : (
-            <p>No hay ubicaciones registradas</p>
-          )}
-        </div>
-
-        <h3 className="section-title">Logros y Medallas</h3>
-        <div className="achievements"></div>
-
-        <h3 className="section-title">Historial de Actividades</h3>
-
-        <div className="activities-list">
-          {loadingActivities ? (
-            <p>Cargando actividades...</p>
-          ) : activities.length === 0 ? (
-            <p className="activities-empty">
-              Aún no tienes actividades registradas.
-            </p>
-          ) : (
-            <div className="activities-wrapper">
-              {activities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="activity-card"
-                >
-                  <div className="activity-card-inner">
-                    <div className="activity-card-header">
-                      <span className="activity-card-title">
-                        {activity.title || "Actividad"}
-                      </span>
-                      <span className="activity-card-type">
-                        {activity.type || "Actividad"} activity
-                      </span>
-                      <span className="activity-card-date">
-                        {new Date(activity.date).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    {/* Mapa de Actividad */}
-                    <div style={{ height: '200px', marginTop: '10px', width: '100%' }}>
-                      <ActivityMap
-                        routeGeoJSON={activity.path}
-                        start={activity.startLocation}
-                        end={activity.endLocation}
-                        interactive={false} // Mapa estático (opcional)
-                      />
-                    </div>
-
-                    <div className="activity-card-stats">
-                      <div>
-                        <span className="activity-card-label">Distancia</span>
-                        <p className="strong-label">
-                          {activity.distance.toFixed(2)} km
-                        </p>
+          <h3 className="section-title">Historial de Actividades</h3>
+          <div className="activities-list">
+            {loadingActivities ? (
+              <p>Cargando actividades...</p>
+            ) : activities.length === 0 ? (
+              <p className="activities-empty">Aún no tienes actividades registradas.</p>
+            ) : (
+              <div className="activities-wrapper">
+                {activities.map((activity) => (
+                  <div key={activity.id} className="activity-card">
+                    <div className="activity-card-inner">
+                      <div className="activity-card-header">
+                        <span className="activity-card-title">{activity.title || "Actividad"}</span>
+                        <span className="activity-card-type">{activity.type || "Actividad"} activity</span>
+                        <span className="activity-card-date">{new Date(activity.date).toLocaleDateString()}</span>
                       </div>
-                      <div>
-                        <span className="activity-card-label">Tiempo</span>
-                        <p className="strong-label">
-                          {(activity.time / 60).toFixed(0)} min
-                        </p>
+
+                      <div className="activity-map-container" style={{ height: "200px", marginTop: "10px", width: "100%" }}>
+                        <ActivityMap routeGeoJSON={activity.path} start={activity.startLocation} end={activity.endLocation} interactive={false} />
                       </div>
-                      <div>
-                        <span className="activity-card-label">Velocidad</span>
-                        <p className="strong-label">
-                          {activity.avgSpeed.toFixed(1)} km/h
-                        </p>
+
+                      <div className="activity-card-stats">
+                        <div>
+                          <span className="activity-card-label">Distancia</span>
+                          <p className="strong-label">{activity.distance.toFixed(2)} km</p>
+                        </div>
+                        <div>
+                          <span className="activity-card-label">Tiempo</span>
+                          <p className="strong-label">{(activity.time / 60).toFixed(0)} min</p>
+                        </div>
+                        <div>
+                          <span className="activity-card-label">Velocidad</span>
+                          <p className="strong-label">{activity.avgSpeed.toFixed(1)} km/h</p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          )}
+          <button onClick={handleLogout} className="btn-cerrarsesion">
+            Cerrar Sesión
+          </button>
         </div>
-        <button onClick={handleLogout} className="btn-cerrarsesion">
-          Cerrar Sesión
-        </button>
       </div>
 
-      <EditAvatarModal
-        isOpen={isAvatarModalOpen}
-        onClose={() => setAvatarModalOpen(false)}
-        showToast={(msg) => {
-          setToastMessage(msg);
-          setToastKey((prev) => prev + 1);
-        }}
-      />
-      <InventoryModal
-        isOpen={isInventoryModalOpen}
-        onClose={() => setInventoryModalOpen(false)}
-      />
-      <EditProfileModal
-        isOpen={isInfoModalOpen}
-        onClose={() => setInfoModalOpen(false)}
-        showToast={(msg) => {
-          setToastMessage(msg);
-          setToastKey((prev) => prev + 1);
-        }}
-      />
-      <ProfileRewardModal
-        isOpen={isRewardModalOpen}
-        onClose={() => setRewardModalOpen(false)}
-        onClaim={reclamarRecompensa}
-      />
-      <EditGoalsModal
-        isOpen={isGoalsModalOpen}
-        onClose={() => setGoalsModalOpen(false)}
-      />
+      {/* MODALES */}
+      <EditAvatarModal isOpen={isAvatarModalOpen} onClose={() => setAvatarModalOpen(false)}
+        showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
+      <InventoryModal isOpen={isInventoryModalOpen} onClose={() => setInventoryModalOpen(false)} />
+      <EditProfileModal isOpen={isInfoModalOpen} onClose={() => setInfoModalOpen(false)}
+        showToast={(msg) => { setToastMessage(msg); setToastKey((prev) => prev + 1); }} />
+      <ProfileRewardModal isOpen={isRewardModalOpen} onClose={() => setRewardModalOpen(false)} onClaim={reclamarRecompensa} />
+      <EditGoalsModal isOpen={isGoalsModalOpen} onClose={() => setGoalsModalOpen(false)} />
+
       {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>
   );

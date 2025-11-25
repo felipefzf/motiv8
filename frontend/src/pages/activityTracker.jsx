@@ -1,11 +1,11 @@
 // src/pages/ActivityTracker.jsx
-
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import ActivityMap from "../components/ActivityMap";
-import "./ActivityTracker.css"; // 👈 usamos el CSS externo
+import "./ActivityTracker.css";
 import LiveToast from "../components/liveToast";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header"; // 👈 IMPORTANTE
 
 function ActivityTracker() {
   const { user } = useAuth();
@@ -46,7 +46,7 @@ function ActivityTracker() {
           setElapsedTime((prev) => prev + 1);
         }, 1000);
       },
-      () => {
+      (err) => {
         console.error("Error GPS inicio:", err);
         setError("Error al obtener ubicación inicial. Activa el GPS.");
       },
@@ -152,108 +152,114 @@ function ActivityTracker() {
   };
 
   return (
-    <div className="activity-container">
-      <h1 className="activity-title">MOTIV8</h1>
-      <h2 className="activity-subtitle">Registrar Actividad</h2>
+    <div className="activity-page-with-header">
+      {/* 🔹 HEADER FIJO ARRIBA */}
+      <Header title="Actividades" />
 
-      {status === "idle" && (
-        <div className="activity-select-wrapper">
-          <label className="activity-select-label">Elige tu deporte:</label>
-          <select
-            value={activityType}
-            onChange={(e) => setActivityType(e.target.value)}
-            className="activity-select"
-          >
-            <option value="Running">🏃‍♂️ Correr</option>
-            <option value="Cycling">🚴‍♀️ Ciclismo</option>
-            <option value="Walking">🚶 Caminata</option>
-          </select>
-        </div>
-      )}
+      {/* 🔹 CONTENIDO DEBAJO DEL HEADER */}
+      <div className="activity-container">
+        {/* Ya no necesitas el H1 grande con MOTIV8, eso va en el header */}
+        {/* <h1 className="activity-title">MOTIV8</h1> */}
+        <h2 className="activity-subtitle">Registrar Actividad</h2>
 
-      {status !== "idle" && (
-        <div className="activity-current">
-          Actividad:{" "}
-          <strong>
-            {activityType === "Running"
-              ? "Corriendo"
-              : activityType === "Cycling"
-              ? "Ciclismo"
-              : "Caminata"}
-          </strong>
-        </div>
-      )}
-
-      <div className="activity-timer">{formatTime(elapsedTime)}</div>
-
-      {error && <p className="activity-error">{error}</p>}
-
-      <div className="activity-buttons">
         {status === "idle" && (
-          <button
-            onClick={handleStart}
-            className="activity-btn activity-btn-start"
-          >
-            ▶ Iniciar
-          </button>
+          <div className="activity-select-wrapper">
+            <label className="activity-select-label">Elige tu deporte:</label>
+            <select
+              value={activityType}
+              onChange={(e) => setActivityType(e.target.value)}
+              className="activity-select"
+            >
+              <option value="Running">🏃‍♂️ Correr</option>
+              <option value="Cycling">🚴‍♀️ Ciclismo</option>
+              <option value="Walking">🚶 Caminata</option>
+            </select>
+          </div>
         )}
 
-        {status === "running" && (
-          <button
-            onClick={handleStop}
-            className="activity-btn activity-btn-stop"
-          >
-            ⏹ Terminar
-          </button>
+        {status !== "idle" && (
+          <div className="activity-current">
+            Actividad:{" "}
+            <strong>
+              {activityType === "Running"
+                ? "Corriendo"
+                : activityType === "Cycling"
+                ? "Ciclismo"
+                : "Caminata"}
+            </strong>
+          </div>
         )}
-      </div>
 
-      {status === "finished" && routeData && (
-        <div className="activity-summary">
-          <h3>Resumen de Actividad</h3>
+        <div className="activity-timer">{formatTime(elapsedTime)}</div>
 
-          <div className="activity-title-wrapper">
-            <label className="activity-title-label">
-              Nombre de la actividad:
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={`Ej: ${activityType} por el parque`}
-              className="activity-title-input"
-            />
-          </div>
+        {error && <p className="activity-error">{error}</p>}
 
-          <div className="activity-summary-row">
-            <p>
-              <strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km
-            </p>
-            <p>
-              <strong>Ritmo:</strong>{" "}
-              {(routeData.distanceKm / (elapsedTime / 3600)).toFixed(1)} km/h
-            </p>
-          </div>
+        <div className="activity-buttons">
+          {status === "idle" && (
+            <button
+              onClick={handleStart}
+              className="activity-btn activity-btn-start"
+            >
+              ▶ Iniciar
+            </button>
+          )}
 
-          <div className="activity-map-wrapper">
-            <ActivityMap
-              start={startPos}
-              end={endPos}
-              routeGeoJSON={routeData.geometry}
-            />
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="activity-btn-save"
-          >
-            {isSaving ? "Guardando..." : "💾 Guardar Actividad"}
-          </button>
+          {status === "running" && (
+            <button
+              onClick={handleStop}
+              className="activity-btn activity-btn-stop"
+            >
+              ⏹ Terminar
+            </button>
+          )}
         </div>
-      )}
-      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
 
+        {status === "finished" && routeData && (
+          <div className="activity-summary">
+            <h3>Resumen de Actividad</h3>
+
+            <div className="activity-title-wrapper">
+              <label className="activity-title-label">
+                Nombre de la actividad:
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={`Ej: ${activityType} por el parque`}
+                className="activity-title-input"
+              />
+            </div>
+
+            <div className="activity-summary-row">
+              <p>
+                <strong>Distancia:</strong> {routeData.distanceKm.toFixed(2)} km
+              </p>
+              <p>
+                <strong>Ritmo:</strong>{" "}
+                {(routeData.distanceKm / (elapsedTime / 3600)).toFixed(1)} km/h
+              </p>
+            </div>
+
+            <div className="activity-map-wrapper">
+              <ActivityMap
+                start={startPos}
+                end={endPos}
+                routeGeoJSON={routeData.geometry}
+              />
+            </div>
+
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="activity-btn-save"
+            >
+              {isSaving ? "Guardando..." : "💾 Guardar Actividad"}
+            </button>
+          </div>
+        )}
+        {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+      </div>
     </div>
   );
 }

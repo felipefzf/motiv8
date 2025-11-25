@@ -1,6 +1,7 @@
 /* === Estilos del perfil === */
 .profile-container {
   padding: 20px;
+  margin-top: 60px;
   color: var(--text-color);
   text-align: center;
   overflow: hidden;
@@ -132,9 +133,9 @@
 
 /* === Botón de cambio de tema (solo en profile) === */
 .theme-toggle-btn {
-  position: absolute;
-  top: 30px;
-  right: 20px;
+  position: fixed;
+  top: 6px;
+  right: 10px;
   padding: 10px 14px;
   background-color: var(--accent-color);
   color: var(--btn-text);
@@ -143,7 +144,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: all 0.3s ease;
-  z-index: 999;
+  z-index: 1000;
 }
 
 .theme-toggle-btn:hover {
@@ -153,8 +154,8 @@
 
 .btn-inventory {
   position: absolute;
-  top: 70px;
-  right: 20px;
+  top: -60px;
+  right: -130px;
   margin-top: 15px;
   padding: 10px 14px;
   background-color: var(--accent-color);
@@ -301,6 +302,21 @@
   color: var(--text-color);
 }
 
+.edit-performance {
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.edit-performance:hover {
+  background-color: #0056b3;
+}
 
 /* Botón cerrar sesión */
 .btn-cerrarsesion {
