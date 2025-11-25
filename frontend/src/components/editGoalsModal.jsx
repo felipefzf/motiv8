@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useAuth } from "../context/authContext";
 import styles from "./EditGoalsModal.module.css"; // 👈 nuevo CSS específico
+import LiveToast from "../components/liveToast";
 
 function EditGoalsModal({ isOpen, onClose }) {
   const { user, refreshUser } = useAuth();
@@ -15,6 +16,9 @@ function EditGoalsModal({ isOpen, onClose }) {
   // Estados para Cycling
   const [cycleSpeed, setCycleSpeed] = useState("");
   const [cycleDist, setCycleDist] = useState("");
+
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
 
   // Cargar datos existentes cuando se abre el modal
   useEffect(() => {
@@ -64,7 +68,8 @@ function EditGoalsModal({ isOpen, onClose }) {
       }
 
       await refreshUser();
-      alert("¡Metas actualizadas correctamente!");
+      setToastMessage("✅ ¡Metas actualizadas correctamente!");
+      setToastKey((prev) => prev + 1);
       onClose();
     } catch (err) {
       console.error(err);
@@ -75,6 +80,7 @@ function EditGoalsModal({ isOpen, onClose }) {
   };
 
   return (
+     <>
     <Modal isOpen={isOpen} onClose={onClose}>
       <form onSubmit={handleSubmit} className={styles.form}>
         <h2 className={styles.title}>Mis Metas y Rendimiento</h2>
@@ -156,7 +162,10 @@ function EditGoalsModal({ isOpen, onClose }) {
           </button>
         </div>
       </form>
-    </Modal>
+    </Modal> 
+    
+    <LiveToast key={toastKey} message={toastMessage} />
+    </>
   );
 }
 
