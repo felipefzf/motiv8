@@ -163,8 +163,22 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
   return (
     <div className={styles.container} ref={containerRef}>
+      <div>
       <h2>Únete a un Equipo</h2>
-
+      <span className={styles.teamsSubtitle}>
+        Ser parte de un equipo deportivo te ayuda a motivarte, sentirte parte de una comunidad, y unirte a otras personas con intereses similares. Busca el equipo que mejor se adapte a tus intereses y únete a él!
+      </span>
+      <br /><br />
+       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+        <h3>¿No encuentras tu equipo?</h3>
+        <button
+          onClick={openCreateModal}
+          className={`${styles.button} ${styles.createButton}`}
+        >
+          Crear Nuevo Equipo
+        </button>
+      </div>
+      </div>
       {actionError && !selectedTeam && (
         <p className={styles.error}>{actionError}</p>
       )}
@@ -193,16 +207,6 @@ function JoinTeamView({ setTeamColor, showToast }) {
       )}
 
       <hr className={styles.divider} />
-
-      <div>
-        <h3>¿No encuentras tu equipo?</h3>
-        <button
-          onClick={openCreateModal}
-          className={`${styles.button} ${styles.createButton}`}
-        >
-          Crear Nuevo Equipo
-        </button>
-      </div>
 
       {/* Modal crear equipo */}
       <Modal isOpen={isCreateModalOpen} onClose={closeCreateModal}>

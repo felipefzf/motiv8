@@ -2,27 +2,22 @@
 
 /* === Contenedor principal adaptado a navbar y responsive === */
 .container {
-  background-color: var(--card-bg, #2a2a2a);
-  border-radius: 12px;
-  box-shadow: 0 0 15px var(--accent-color, #ffd000ff);
-  text-align: center;
-  color: var(--text-color, #ffffff);
-
-  /* Fijo en su posición */
-  position: fixed;
-  top: 150px;
-  bottom: 80px; /* altura del navbar o footer */
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-
-  /* Tamaño adaptable */
-  width: clamp(280px, 80vw, 450px); /* se agranda y achica según pantalla */
-  padding: clamp(20px, 4vw, 40px); /* padding responsivo */
-
-  transition: all 0.3s ease;
+  height: 100vh; /* Ocupa toda la altura de la pantalla */
+  /* Ajuste para no tapar el Navbar inferior (aprox 80px) y el superior si tienes */
+  max-height: calc(100vh - 80px); 
+  
+  /* Visuales: TOTALMENTE TRANSPARENTE */
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  
+  /* Centrado en pantallas grandes */
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 /* === Lista de equipos (scroll solo aquí) === */
@@ -111,7 +106,7 @@
 .createButton {
   background-color: var(--accent-color, #ffd000ff);
   color: var(--bg-color, #2a2a2a);
-  margin-top: 15px;
+  margin-top: 0px;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
