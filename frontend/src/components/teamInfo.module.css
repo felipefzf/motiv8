@@ -67,6 +67,23 @@
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+.btnOcuparColor {
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: 2px solid var(--accent-color);
+  padding: 10px 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btnOcuparColor:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+
 .leavebutton {
   background-color: var(--danger);
   color: var(--btn-text);

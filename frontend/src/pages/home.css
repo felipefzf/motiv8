@@ -127,7 +127,7 @@ body {
 
 .btn-registrar {
   background-color: var(--accent-color);
-  color: var(--text-color);
+  color: var(--btn-text);
   padding: 10px 150px;
   border-radius: 5px;
   margin-top: 10px;

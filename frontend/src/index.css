@@ -49,6 +49,7 @@ html, body {
   line-height: 1.5;
   text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
+  transition: opacity 0.3s ease;
 }
 
 /* === ELEMENTOS GENERALES === */
