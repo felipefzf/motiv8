@@ -172,17 +172,36 @@ function MyTeamInfo({ setTeamColor }) {
         {useTeamColor ? "Desactivar color de tema" : "Ocupar como color de tema"}
       </button>
       <br /><br />
-      <h3>Miembros:</h3>
+      <h3 className={styles.membersTitle}>Miembros del equipo</h3>
       <ul className={styles.memberList}>
         {teamData.members?.map((member) => (
           <li key={member.uid} className={styles.memberItem}>
-            <span className={styles.memberName}>{member.name}</span>
-            <span className={styles.memberRole}> - ({member.role})</span>
-            {member.uid === user.uid && <span className={styles.you}> (Tú)</span>}
+            <div className={styles.memberChip}>
+              <div className={styles.memberMainRow}>
+                <span className={styles.memberName}>
+                  {member.name}
+                  {member.role === "Líder" && (
+                    <span className={styles.crown} aria-label="Líder" title="Líder">
+                      👑
+                    </span>
+                  )}
+                </span>
+
+                {member.uid === user.uid && (
+                  <span className={styles.memberYouBadge}>(Tú)</span>
+                )}
+              </div>
+
+              <span className={styles.memberRole}>
+                Rol: {member.role}
+              </span>
+            </div>
           </li>
         ))}
       </ul>
 
+
+      <br />
       {leaveError && <p className={styles.error}>{leaveError}</p>}
 
       <button onClick={() => setShowConfirmModal(true)} className="btn-salirEquipo">
@@ -192,22 +211,34 @@ function MyTeamInfo({ setTeamColor }) {
       {showConfirmModal && (
         <Modal isOpen={true} onClose={() => setShowConfirmModal(false)}>
           <div className={styles.confirmBox}>
-            <p>
+            <p className={styles.confirmText}>
               {user.uid === teamData.owner_uid
                 ? "⚠️ Eres el dueño. Si sales, el equipo se eliminará permanentemente para todos. ¿Estás seguro?"
                 : `¿Estás seguro de que quieres salir de "${teamData.team_name}"?`}
             </p>
+
             <div className={styles.confirmButtons}>
-              <button className="btn btn-danger" onClick={() => { setShowConfirmModal(false); handleLeaveTeam(); }}>
+              <button
+                className={styles.confirmAccept}
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  handleLeaveTeam();
+                }}
+              >
                 Aceptar
               </button>
-              <button className="btn btn-secondary" onClick={() => setShowConfirmModal(false)}>
+
+              <button
+                className={styles.confirmCancel}
+                onClick={() => setShowConfirmModal(false)}
+              >
                 Cancelar
               </button>
             </div>
           </div>
         </Modal>
       )}
+
 
       {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
     </div>

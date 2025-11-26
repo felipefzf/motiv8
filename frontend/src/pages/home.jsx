@@ -292,8 +292,7 @@ export default function Home() {
                         Objetivo: {mision.targetValue} {mision.unit}
                       </p>
                       <p>
-                        Recompensa: {mision.reward} XP / {mision.coinReward}{" "}
-                        Coins
+                        Recompensa: {mision.reward} XP / {mision.coinReward} Coins
                       </p>
 
                       {mision.completed ? (
@@ -305,11 +304,20 @@ export default function Home() {
                         </button>
                       ) : (
                         <>
-                          <progress
-                            value={progreso}
-                            max={mision.targetValue}
-                          ></progress>
-                          <p>{porcentaje.toFixed(1)}% completado</p>
+                          {/* 🔹 BARRA DE PROGRESO PERSONALIZADA */}
+                          <div className="mission-progress">
+                            <div
+                              className="mission-progress-bar"
+                              style={{ width: `${porcentaje}%` }}
+                            />
+                          </div>
+                          <p className="mission-progress-text">
+                            {porcentaje.toFixed(0)}%
+                          </p>
+                          <p>
+                            {progreso.toFixed(1)} /{" "}
+                            {mision.targetValue.toFixed(1)} {mision.unit}
+                          </p>
                           <p>
                             Te faltan {restante.toFixed(1)} {mision.unit}
                           </p>
@@ -324,22 +332,37 @@ export default function Home() {
                             {estaEsperando
                               ? "EMPAREJANDO..."
                               : estaEmparejado
-                              ? "DISOLVER"
-                              : "EMPAREJAR"}
+                                ? "DISOLVER"
+                                : "EMPAREJAR"}
                           </button>
 
-                          {emparejados[mision.id]?.length > 0 && (
-                            <div className="emparejados-list">
-                              <h5>Usuarios emparejados:</h5>
-                              <ul>
+                          {/* 🔹 Bloque de emparejados más bonito */}
+                          <div className="emparejados-wrapper">
+                            <h5 className="emparejados-title">Emparejados en esta misión</h5>
+
+                            {emparejados[mision.id]?.length > 0 ? (
+                              <div className="emparejados-chips">
                                 {emparejados[mision.id].map((u) => (
-                                  <li key={u.uid}>
-                                    {u.name} (Nivel {u.nivel})
-                                  </li>
+                                  <div
+                                    key={u.uid}
+                                    className={`emparejado-chip ${u.uid === user.uid ? "emparejado-chip-you" : ""
+                                      }`}
+                                  >
+                                    <span className="emparejado-name">
+                                      {u.name} {u.uid === user.uid && <span className="chip-you">(Tú)</span>}
+                                    </span>
+                                    <span className="emparejado-level">Nivel {u.nivel}</span>
+                                  </div>
                                 ))}
-                              </ul>
-                            </div>
-                          )}
+                              </div>
+                            ) : (
+                              <p className="emparejados-empty">
+                                Aún no hay nadie emparejado en esta misión. ¡Sé el primero en unirte! 💪
+                              </p>
+                            )}
+                          </div>
+
+
                         </>
                       )}
                     </div>

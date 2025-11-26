@@ -69,7 +69,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
   const checkEligibility = (team) => {
     const req = team.requirements || {};
-    
+
     // 1. Si no hay requisitos (o el objeto está vacío), pase libre.
     if (!req || Object.keys(req).length === 0) return true;
 
@@ -84,17 +84,17 @@ function JoinTeamView({ setTeamColor, showToast }) {
       // Convertimos a número por seguridad
       const myPace = parseFloat(myStats.pace || 0);
       const myDist = parseFloat(myStats.distance || 0);
-      
+
       // VALIDACIÓN RITMO (Menor es mejor)
       // Si el equipo pide 5.00 (req.pace) y yo tengo 6.00 (myPace) -> NO CUMPLO
       if (req.pace && req.pace > 0) {
-         if (myPace === 0 || myPace > req.pace) return false;
+        if (myPace === 0 || myPace > req.pace) return false;
       }
 
       // VALIDACIÓN DISTANCIA (Mayor es mejor)
       // Si el equipo pide 10km (req.distance) y yo corro 5km (myDist) -> NO CUMPLO
       if (req.distance && req.distance > 0) {
-         if (myDist === 0 || myDist < req.distance) return false;
+        if (myDist === 0 || myDist < req.distance) return false;
       }
     }
 
@@ -107,12 +107,12 @@ function JoinTeamView({ setTeamColor, showToast }) {
       // VALIDACIÓN VELOCIDAD (Mayor es mejor)
       // Si el equipo pide 30km/h (req.speed) y yo voy a 20km/h (mySpeed) -> NO CUMPLO
       if (req.speed && req.speed > 0) {
-         if (mySpeed === 0 || mySpeed < req.speed) return false;
+        if (mySpeed === 0 || mySpeed < req.speed) return false;
       }
 
       // VALIDACIÓN DISTANCIA (Mayor es mejor)
       if (req.distance && req.distance > 0) {
-         if (myDist === 0 || myDist < req.distance) return false;
+        if (myDist === 0 || myDist < req.distance) return false;
       }
     }
 
@@ -152,7 +152,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
       if (typeof showToast === "function") {
         showToast(`✅ Te has unido a "${data.team_name || teamName}"`);
       }
-      
+
 
       closeDetailModal();
       refreshUser();
@@ -180,7 +180,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
     if (typeof showToast === "function") {
       showToast(`🎉 Equipo "${newTeamData.team_name}" creado`);
     }
-   
+
 
     // 🎨 si el backend envía el color, lo aplicamos
     if (newTeamData.team_color) {
@@ -214,20 +214,20 @@ function JoinTeamView({ setTeamColor, showToast }) {
   return (
     <div className={styles.container} ref={containerRef}>
       <div>
-      <h2>Únete a un Equipo</h2>
-      <span className={styles.teamsSubtitle}>
-        Ser parte de un equipo deportivo te ayuda a motivarte, sentirte parte de una comunidad, y te permite unirte a otras personas con intereses similares. Busca el equipo que mejor se adapte a tus intereses y únete a él!
-      </span>
-      <br /><br />
-       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-        <h3>¿No encuentras tu equipo?</h3>
-        <button
-          onClick={openCreateModal}
-          className={`${styles.button} ${styles.createButton}`}
-        >
-          Crear Nuevo Equipo
-        </button>
-      </div>
+        <h2>Únete a un Equipo</h2>
+        <span className={styles.teamsSubtitle}>
+          Ser parte de un equipo deportivo te ayuda a motivarte, sentirte parte de una comunidad, y te permite unirte a otras personas con intereses similares. Busca el equipo que mejor se adapte a tus intereses y únete a él!
+        </span>
+        <br /><br />
+        <div className={styles.headerRow}>
+          <h3>¿No encuentras tu equipo?</h3>
+          <button
+            onClick={openCreateModal}
+            className={`${styles.button} ${styles.createButton}`}
+          >
+            Crear Nuevo Equipo
+          </button>
+        </div>
       </div>
       {actionError && !selectedTeam && (
         <p className={styles.error}>{actionError}</p>
@@ -238,42 +238,59 @@ function JoinTeamView({ setTeamColor, showToast }) {
       ) : (
         <ul className={styles.teamList}>
           {availableTeams.map((team) => {
-            
+
             // Calculamos si cumple para mostrar el aviso visual
             const isEligible = checkEligibility(team);
 
             return (
-              <li 
-                key={team.id} 
+              <li
+                key={team.id}
                 className={styles.teamItemClickable}
                 // 1. EL CLICK EN TODA LA TARJETA ABRE EL MODAL
-                onClick={() => openDetailModal(team)} 
+                onClick={() => openDetailModal(team)}
               >
                 <div className={styles.jointeam}>
                   <div className={styles.jointeambody}>
-                    <div>
-                      {team.team_image_url && (
-                        <img src={team.team_image_url} alt={team.team_name} className={styles.teamImage} />
+                    {/* Columna izquierda: imagen */}
+                    <div className={styles.teamImageWrapper}>
+                      {team.team_image_url ? (
+                        <img
+                          src={team.team_image_url}
+                          alt={team.team_name}
+                          className={styles.teamImage}
+                        />
+                      ) : (
+                        <img
+                          src={defaultTeamImage}
+                          alt={team.team_name}
+                          className={styles.teamImage}
+                        />
                       )}
-                      {!team.team_image_url && (
-                        <img src={defaultTeamImage} alt={team.team_name} className={styles.teamImage} />
-                      )}
-                      <span className={styles.teamName}>{team.team_name}</span>
-                    <span className={styles.memberCount}>({team.member_count} Miembros)</span>
-                    {/* 2. MANTENEMOS EL AVISO VISUAL (Solo informativo) */}
+                    </div>
+
+                    {/* Columna derecha: textos */}
+                    <div className={styles.teamInfoRight}>
+                      <div>
+                        <span className={styles.teamName}>{team.team_name}</span>
+                        <span className={styles.memberCount}>
+                          ({team.member_count} Miembros)
+                        </span>
+                      </div>
+
                       {!isEligible && (
-                        <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                           ⛔ Requisitos no cumplidos
+                        <div className={styles.requirementsBadgeError}>
+                          ⛔ Requisitos no cumplidos
                         </div>
                       )}
                       {isEligible && (
-                        <div style={{ fontSize: '0.75rem', color: '#28a745', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                           ✅ Requisitos cumplidos
+                        <div className={styles.requirementsBadgeOk}>
+                          ✅ Requisitos cumplidos
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+
                 {/* 3. ¡SIN BOTONES AQUÍ! */}
               </li>
             );
@@ -303,7 +320,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
       {selectedTeam && actionError && (
         <p className={styles.modalError}>{actionError}</p>
       )}
-      
+
     </div>
   );
 }

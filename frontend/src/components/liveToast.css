@@ -1,13 +1,11 @@
 .toast-container{
     position:fixed;
     top: 15px;
-    box-shadow: 0 0 15px var(--shadow-color);
 }
 .toast-header{
     background-color: var(--accent-color);
     color: var(--text-color);
 }
 .toast-body{
-    background-color: var(--btn-bg);
-
+    background-color: var(--bg-color);
 }

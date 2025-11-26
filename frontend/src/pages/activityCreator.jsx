@@ -78,8 +78,8 @@ export default function ActivityCreator() {
   };
 
   return (
-    <div className="act-container">
-      <h1 className="act-title">MOTIV8</h1>
+    <div className="activity-container">
+      <h1 className="activity-title">MOTIV8</h1>
       <form className="activity-form" onSubmit={handleSubmit}>
         <h2>Registrar Actividad</h2>
 <br />        <label>Nombre de la Actividad:</label>
