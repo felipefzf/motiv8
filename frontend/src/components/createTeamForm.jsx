@@ -39,6 +39,10 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
   const [cycleSpeedRequirement, setCycleSpeedRequirement] = useState(''); // Km/h
   const [cycleDistRequirement, setCycleDistRequirement] = useState(''); // Km
 
+  const [reqValue, setReqValue] = useState(''); // Ritmo o Velocidad
+  const [reqDist, setReqDist] = useState('');   // Distancia
+
+
   const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -58,6 +62,70 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
       reader.readAsDataURL(e.target.files[0]);
     }
   };
+
+  const validateCreatorEligibility = () => {
+    const sport = sport_type ? sport_type.toLowerCase() : '';
+
+    // Si no hay perfil de usuario, error.
+    if (!user?.performance) {
+      return { valid: false, msg: "Configura tus metas en el perfil primero." };
+    }
+
+    // === CASO RUNNING ===
+    if (sport === 'running') {
+      // 1. Usamos las variables específicas de Running
+      const reqPaceVal = runPaceRequirement ? parseFloat(runPaceRequirement) : null;
+      const reqDistVal = runDistRequirement ? parseFloat(runDistRequirement) : null;
+      
+      // Si no hay requisitos escritos, es válido.
+      if (reqPaceVal === null && reqDistVal === null) return { valid: true };
+
+      const myStats = user.performance.running || {};
+      const myPace = parseFloat(myStats.pace || 0);
+      const myDist = parseFloat(myStats.distance || 0);
+
+      // Validación Ritmo (Menor es mejor)
+      if (reqPaceVal !== null) {
+         if (myPace === 0) return { valid: false, msg: "No tienes ritmo registrado." };
+         if (myPace > reqPaceVal) return { valid: false, msg: `Tu ritmo (${myPace}) es insuficiente para el requisito (${reqPaceVal}).` };
+      }
+      // Validación Distancia
+      if (reqDistVal !== null) {
+         if (myDist === 0) return { valid: false, msg: "No tienes distancia registrada." };
+         if (myDist < reqDistVal) return { valid: false, msg: `Tu distancia (${myDist}) es menor a la exigida.` };
+      }
+    }
+
+    // === CASO CYCLING ===
+    if (sport === 'cycling' || sport === 'ciclismo') {
+      // 2. Usamos las variables específicas de Cycling
+      const reqSpeedVal = cycleSpeedRequirement ? parseFloat(cycleSpeedRequirement) : null;
+      const reqDistVal = cycleDistRequirement ? parseFloat(cycleDistRequirement) : null;
+
+      // Si no hay requisitos escritos, es válido.
+      if (reqSpeedVal === null && reqDistVal === null) return { valid: true };
+
+      const myStats = user.performance.cycling || {};
+      const mySpeed = parseFloat(myStats.speed || 0);
+      const myDist = parseFloat(myStats.distance || 0);
+
+      // Validación Velocidad (Mayor es mejor)
+      if (reqSpeedVal !== null) {
+         if (mySpeed === 0) return { valid: false, msg: "No tienes velocidad registrada." };
+         if (mySpeed < reqSpeedVal) return { valid: false, msg: `Tu velocidad (${mySpeed}) es menor a la exigida (${reqSpeedVal}).` };
+      }
+      // Validación Distancia
+      if (reqDistVal !== null) {
+         if (myDist === 0) return { valid: false, msg: "No tienes distancia registrada." };
+         if (myDist < reqDistVal) return { valid: false, msg: `Tu distancia (${myDist}) es menor a la exigida (${reqDistVal}).` };
+      }
+    }
+
+    return { valid: true };
+  };
+
+  // Llamamos a la función aquí para el feedback visual en tiempo real (deshabilitar botón)
+  const creatorStatus = validateCreatorEligibility();
 
   const onImageLoad = (e) => {
     const { width, height } = e.currentTarget;
@@ -83,6 +151,11 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
     setError("");
     setIsLoading(true);
 
+    if (!creatorStatus.valid) {
+      setError(creatorStatus.msg);
+      return;
+    }
+
     const token = localStorage.getItem("firebaseToken");
     if (!token) {
       setIsLoading(false);
@@ -97,6 +170,14 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
     if (sport_type === 'cycling' && (!cycleSpeedRequirement || !cycleDistRequirement)) {
       setError('Por favor, ingresa tu velocidad de ciclismo (km/h) y distancia (km).');
       return;
+    }
+
+    const finalValidation = validateCreatorEligibility();
+
+    if (!finalValidation.valid) {
+      setError(finalValidation.msg);
+      // 🛑 DETENEMOS LA FUNCIÓN AQUÍ 🛑
+      return; 
     }
 
     const requirementsData = {
@@ -141,6 +222,19 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
     }
   };
 
+  React.useEffect(() => {
+    console.log("⚡ CAMBIO DE ESTADO DETECTADO:", {
+      deporte: sport_type,
+      valor_escrito: reqValue,
+      distancia_escrita: reqDist
+    });
+    
+    // Ejecutamos la validación manual aquí para ver qué dice
+    const resultado = validateCreatorEligibility();
+    console.log("Resultado de validación en tiempo real:", resultado);
+
+  }, [sport_type, reqValue, reqDist]);
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.formInner}>
@@ -174,18 +268,84 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
 
         <div className={styles.inputGroup}>
           <label htmlFor="sport_type">Deporte</label>
+          <div className={styles.inputGroup}>
           <select
             id="sport_type"
             value={sport_type}
             onChange={(e) => setSportType(e.target.value)}
             required
-            disabled={isLoading}
+            className={styles.selectFull}
           >
-            <option value="">Selecciona un deporte</option>
-            <option value="Running">Running</option>
-            <option value="Cycling">Cycling</option>
+            <option value="">Deporte del equipo</option>
+            <option value="running">Running</option>
+            <option value="cycling">Cycling</option>
           </select>
         </div>
+
+        {sport_type === 'running' && (
+          <>
+            <div className={styles.inputGroup}>
+              <label htmlFor="runPaceRequirement">Ritmo promedio de entrenamientos (min/km)</label>
+              <input
+                className={styles.inputFull}
+                type="number"
+                id="runPaceRequirement"
+                value={runPaceRequirement}
+                onChange={(e) => setRunPaceRequirement(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="runDistRequirement">Distancia promedio de entrenamientos (km)</label>
+              <input
+                className={styles.inputFull}
+                type="number"
+                id="runDistRequirement"
+                value={runDistRequirement}
+                onChange={(e) => setRunDistRequirement(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+          </>
+        )}
+
+        {sport_type === 'cycling' && (
+          <>
+            <div className={styles.inputGroup}>
+              <label htmlFor="cyclePaceRequirement">Velocidad promedio de entrenamientos (km/h)</label>
+              <input
+                className={styles.inputFull}
+                type="number"
+                id="cyclePaceRequirement"
+                value={cycleSpeedRequirement}
+                onChange={(e) => setCycleSpeedRequirement(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className={styles.inputGroup}>
+              <label htmlFor="cycleDistRequirement">Distancia promedio de entrenamientos (km)</label>
+              <input
+                className={styles.inputFull}
+                type="number"
+                id="cycleDistRequirement"
+                value={cycleDistRequirement}
+                onChange={(e) => setCycleDistRequirement(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+          </>
+        )}
+        </div>
+
+        {!creatorStatus.valid && (
+        <div style={{ padding: 10, backgroundColor: '#ffe6e6', color: '#d00', borderRadius: 5, fontSize: '0.9em', marginTop: 10 }}>
+          ⚠️ <strong>No puedes crear este equipo:</strong> {creatorStatus.msg}
+        </div>
+      )}
 
         <div className={styles.inputGroup}>
           <label htmlFor="team_color">Color del equipo</label>
@@ -254,20 +414,20 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
         <canvas ref={canvasRef} className={styles.hiddenCanvas} />
 
         <div className={styles.buttonContainer}>
-          
-          <button
-            type="submit"
-            className={`${styles.buttonBase} ${styles.submitButton}`}
-            disabled={isLoading}
-          >
-            {isLoading ? "Creando..." : "Crear Equipo"}
-          </button>
           <button
             type="button"
             onClick={onClose}
             className={`${styles.buttonBase} ${styles.cancelButton}`}
           >
             Cancelar
+          </button>
+          <button
+            type="submit"
+            className={`${styles.buttonBase} ${styles.submitButton}`}
+            disabled={isLoading || !creatorStatus.valid}
+            style={{ opacity: !creatorStatus.valid ? 0.5 : 1 }}
+          >
+            {isLoading ? "Creando..." : "Crear Equipo"}
           </button>
         </div>
       </div>

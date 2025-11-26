@@ -18,6 +18,8 @@ import API_URL from "../config";
 import EditGoalsModal from "../components/EditGoalsModal.jsx";
 import ActivityMap from "../components/activityMap.jsx";
 import Header from "../components/Header.jsx";
+import Bicycle from "../assets/bicycle.png";
+import Running from "../assets/run.png";
 
 export default function Profile({ toggleTheme, setTeamColor }) {
   const { user } = useAuth();
@@ -250,9 +252,14 @@ export default function Profile({ toggleTheme, setTeamColor }) {
       />
 
       <div className="profile-container">
-        <p>
-          Coins: <span className="profile-highlight">{stats?.coins || 0}</span>
-        </p>
+        <p>Coins: <span className="profile-highlight">{stats?.coins || 0}</span></p>
+        
+          {user.main_sport === 'Running' &&
+            <img src={Running} alt="Running" className="sportIcon" />
+          }
+          {user.main_sport === 'Cycling' &&
+            <img src={Bicycle} alt="Cycling" className="sportIcon" />
+          }
 
         <div className="profile-content">
           <div className="profile-image-wrapper">
@@ -327,6 +334,11 @@ export default function Profile({ toggleTheme, setTeamColor }) {
                 Reclama tu recompensa 🎁
               </button>
             )}
+          {stats && stats.nivelActual % 2 === 0 && stats.ultimoNivelRecompensado !== stats.nivelActual && (
+            <button className="btn-recompensa" onClick={() => setRewardModalOpen(true)}>
+              Reclama tu recompensa 🎁
+            </button>
+          )}          
 
           <br />
           <p>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authContext';
 import './login.css'; // 👈 Importamos los estilos externos
 import API_URL from '../config'; // (Ajusta la ruta de importación)
 

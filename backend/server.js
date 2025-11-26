@@ -693,6 +693,17 @@ app.post(
     if (user.team_member) return res.status(400).send("Ya estás en un equipo.");
 
     try {
+      
+    let requirementsObj = {};
+    
+    if (requirements) {
+      try {
+        requirementsObj = JSON.parse(requirements);
+      } catch (e) {
+        console.error("Error parseando requisitos:", e);
+        requirementsObj = {}; // Fallback si falla
+        }
+      }
       // 1. Crea el documento del equipo PRIMERO (sin la URL)
       const newTeamRef = await db.collection("teams").add({
         team_name,
@@ -703,7 +714,7 @@ app.post(
         members: [{ uid: user.uid, role: "Líder👑" }],
         team_image_url: null, // Empezará como nulo
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        requirements: requirements || {},
+        requirements: requirementsObj || {},
       });
 
       let teamImageUrl = null;
@@ -828,6 +839,8 @@ app.get("/api/teams/available", verifyToken, async (req, res) => {
           sport_type: teamData.sport_type || "No especificado", // Add sport_type
           member_count: teamData.members.length,
           members: memberDetails, // Add member details array
+          requirements: teamData.requirements || {}, // Add requirements object
+          team_image_url: teamData.team_image_url || null, // Add team_image_url
         });
       }
     });
@@ -976,6 +989,8 @@ app.get("/api/teams/:teamId/details", verifyToken, async (req, res) => {
     res.status(200).json({
       id: teamDoc.id,
       ...teamData,
+      requirements: teamData.requirements || {},
+      team_image_url: teamData.team_image_url || null,
       members: memberDetails,
     });
   } catch (error) {

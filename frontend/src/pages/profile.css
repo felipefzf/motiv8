@@ -6,6 +6,7 @@
   text-align: center;
   overflow: hidden;
   background-color: var(--bg-color);
+  z-index: -2;
 }
 
 .profile-title {
@@ -451,4 +452,10 @@ input:checked + .slider:before {
   margin: 5px 0;
 }
 
-
+.sportIcon {
+  width: 500px;
+  height: 500px;
+  position: absolute;
+  z-index: 1;
+  opacity: 0.2;
+}

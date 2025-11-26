@@ -6,6 +6,7 @@ import TeamDetailModal from "./teamDetailModal";
 import styles from "./JoinTeam.module.css";
 import API_URL from "../config";
 import LiveToast from "../components/liveToast";
+import defaultTeamImage from "../assets/default-team-logo-500.png";
 
 function JoinTeamView({ setTeamColor, showToast }) {
   const { user, refreshUser, updateUserTeamStatus } = useAuth();
@@ -16,9 +17,6 @@ function JoinTeamView({ setTeamColor, showToast }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
-  
-  
 
   const containerRef = useRef(null);
 
@@ -67,6 +65,58 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
     document.documentElement.style.setProperty("--accent-color", color);
     document.documentElement.style.setProperty("--shadow-color", color);
+  };
+
+  const checkEligibility = (team) => {
+    const req = team.requirements || {};
+    
+    // 1. Si no hay requisitos (o el objeto está vacío), pase libre.
+    if (!req || Object.keys(req).length === 0) return true;
+
+    // 2. Si hay requisitos pero el usuario no tiene datos, rebota.
+    if (!user?.performance) return false;
+
+    const sport = team.sport_type ? team.sport_type.toLowerCase() : '';
+
+    // === CASO RUNNING ===
+    if (sport === 'running') {
+      const myStats = user.performance.running || {};
+      // Convertimos a número por seguridad
+      const myPace = parseFloat(myStats.pace || 0);
+      const myDist = parseFloat(myStats.distance || 0);
+      
+      // VALIDACIÓN RITMO (Menor es mejor)
+      // Si el equipo pide 5.00 (req.pace) y yo tengo 6.00 (myPace) -> NO CUMPLO
+      if (req.pace && req.pace > 0) {
+         if (myPace === 0 || myPace > req.pace) return false;
+      }
+
+      // VALIDACIÓN DISTANCIA (Mayor es mejor)
+      // Si el equipo pide 10km (req.distance) y yo corro 5km (myDist) -> NO CUMPLO
+      if (req.distance && req.distance > 0) {
+         if (myDist === 0 || myDist < req.distance) return false;
+      }
+    }
+
+    // === CASO CYCLING ===
+    if (sport === 'cycling' || sport === 'ciclismo') {
+      const myStats = user.performance.cycling || {};
+      const mySpeed = parseFloat(myStats.speed || 0);
+      const myDist = parseFloat(myStats.distance || 0);
+
+      // VALIDACIÓN VELOCIDAD (Mayor es mejor)
+      // Si el equipo pide 30km/h (req.speed) y yo voy a 20km/h (mySpeed) -> NO CUMPLO
+      if (req.speed && req.speed > 0) {
+         if (mySpeed === 0 || mySpeed < req.speed) return false;
+      }
+
+      // VALIDACIÓN DISTANCIA (Mayor es mejor)
+      if (req.distance && req.distance > 0) {
+         if (myDist === 0 || myDist < req.distance) return false;
+      }
+    }
+
+    return true; // Si pasa todas las pruebas, es apto.
   };
 
   // 👉 unirse a un equipo
@@ -166,7 +216,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
       <div>
       <h2>Únete a un Equipo</h2>
       <span className={styles.teamsSubtitle}>
-        Ser parte de un equipo deportivo te ayuda a motivarte, sentirte parte de una comunidad, y unirte a otras personas con intereses similares. Busca el equipo que mejor se adapte a tus intereses y únete a él!
+        Ser parte de un equipo deportivo te ayuda a motivarte, sentirte parte de una comunidad, y te permite unirte a otras personas con intereses similares. Busca el equipo que mejor se adapte a tus intereses y únete a él!
       </span>
       <br /><br />
        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
@@ -187,22 +237,47 @@ function JoinTeamView({ setTeamColor, showToast }) {
         <p>No hay equipos disponibles para unirse.</p>
       ) : (
         <ul className={styles.teamList}>
-          {availableTeams.map((team) => (
-            <li
-              key={team.id}
-              className={styles.teamItemClickable}
-              onClick={() => openDetailModal(team)}
-            >
-              <div className={styles.jointeam}>
-                <div className={styles.jointeambody}>
-                  <span className={styles.teamName}>{team.team_name}</span>
-                  <span className={styles.memberCount}>
-                    ({team.member_count} miembro/s)
-                  </span>
+          {availableTeams.map((team) => {
+            
+            // Calculamos si cumple para mostrar el aviso visual
+            const isEligible = checkEligibility(team);
+
+            return (
+              <li 
+                key={team.id} 
+                className={styles.teamItemClickable}
+                // 1. EL CLICK EN TODA LA TARJETA ABRE EL MODAL
+                onClick={() => openDetailModal(team)} 
+              >
+                <div className={styles.jointeam}>
+                  <div className={styles.jointeambody}>
+                    <div>
+                      {team.team_image_url && (
+                        <img src={team.team_image_url} alt={team.team_name} className={styles.teamImage} />
+                      )}
+                      {!team.team_image_url && (
+                        <img src={defaultTeamImage} alt={team.team_name} className={styles.teamImage} />
+                      )}
+                      <span className={styles.teamName}>{team.team_name}</span>
+                    <span className={styles.memberCount}>({team.member_count} Miembros)</span>
+                    {/* 2. MANTENEMOS EL AVISO VISUAL (Solo informativo) */}
+                      {!isEligible && (
+                        <div style={{ fontSize: '0.75rem', color: '#dc3545', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                           ⛔ Requisitos no cumplidos
+                        </div>
+                      )}
+                      {isEligible && (
+                        <div style={{ fontSize: '0.75rem', color: '#28a745', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                           ✅ Requisitos cumplidos
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+                {/* 3. ¡SIN BOTONES AQUÍ! */}
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -222,6 +297,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
         onClose={closeDetailModal}
         onJoin={handleJoinTeam}
         team={selectedTeam}
+        canJoin={selectedTeam ? checkEligibility(selectedTeam) : false}
       />
 
       {selectedTeam && actionError && (

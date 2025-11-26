@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Modal from './modal'; // Asumiendo que tu Modal base está en './Modal'
 import styles from './teamDetailModal.module.css'; // Reutilizamos los estilos
 import API_URL from '../config'; 
+import Bicycle from '../assets/bicycle.png';
+import Running from '../assets/run.png';
 
 
-function TeamDetailModal({ team, isOpen, onClose, onJoin }) {
+function TeamDetailModal({ team, isOpen, onClose, onJoin, canJoin }) {
   // 'team' es el objeto básico de la lista (sin nombres de miembros)
   
   const [details, setDetails] = useState(null); // Aquí guardaremos los detalles completos
@@ -61,6 +63,53 @@ function TeamDetailModal({ team, isOpen, onClose, onJoin }) {
           <h2>{team.team_name}</h2>
           <p className={styles.sportType}>Deporte: {team.sport_type}</p>
           <p className={styles.description}>{team.description}</p>
+          {team.sport_type === 'Running' ? (
+            <img src={Running} alt="Running" className={styles.sportIcon} />
+          ) : (
+            <img src={Bicycle} alt="Cycling" className={styles.sportIcon} />
+          )}
+
+          <div style={{ 
+            backgroundColor: '#fff3cd', 
+            border: '1px solid #ffeeba', 
+            borderRadius: '5px', 
+            padding: '10px', 
+            margin: '15px 0' 
+          }}>
+            <h4 style={{ margin: '0 0 5px 0', color: '#856404', fontSize: '1rem' }}>
+              Requisitos de Entrada:
+            </h4>
+            
+            {/* Verificamos si requirements existe y tiene alguna llave */}
+            {(!team.requirements || Object.keys(team.requirements).length === 0) ? (
+               <p className={styles.noRequirements}>Ninguno. ¡Todos bienvenidos!</p>
+            ) : (
+               <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', color: '#856404' }}>
+                 
+                 {/* RITMO (Running) */}
+                 {team.requirements.pace > 0 && (
+                   <li>🏃‍♂️ Ritmo máx: <strong>{team.requirements.pace} min/km</strong></li>
+                 )}
+                 
+                 {/* VELOCIDAD (Cycling) */}
+                 {team.requirements.speed > 0 && (
+                   <li>🚴‍♀️ Velocidad mínima: <strong>{team.requirements.speed} km/h</strong></li>
+                 )}
+                 
+                 {/* DISTANCIA (Ambos) */}
+                 {team.requirements.distance > 0 && (
+                   <li>📏 Distancia mínima: <strong>{team.requirements.distance} km</strong></li>
+                 )}
+               </ul>
+            )}
+
+            {/* Mensaje de error si no cumple */}
+            {!canJoin && (
+              <div style={{ borderTop: '1px solid #faebcc', marginTop: '8px', paddingTop: '5px', color: '#dc3545', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                ⛔ Tu rendimiento actual no es suficiente para unirte.
+              </div>
+            )}
+          </div>
           
           <h3>Miembros ({team.member_count}):</h3>
 
@@ -88,9 +137,23 @@ function TeamDetailModal({ team, isOpen, onClose, onJoin }) {
         <button onClick={onClose} className={`${styles.button} ${styles.cancelButton}`}>
           Cerrar
         </button>
-        <button onClick={() => onJoin(team.id, team.team_name)} className={`${styles.button} ${styles.joinButton}`}>
-          Unirse al Equipo
-        </button>
+        <button 
+              onClick={() => onJoin(team.id, team.team_name)} 
+              
+              // A. Deshabilita la funcionalidad
+              disabled={!canJoin} 
+              
+              // B. Cambia el estilo visualmente
+              className={`${styles.button} ${styles.joinButton}`}
+              style={{ 
+                opacity: canJoin ? 1 : 0.5, 
+                cursor: canJoin ? 'pointer' : 'not-allowed',
+                backgroundColor: canJoin ? '#28a745' : '#ccc' // Verde si puede, Gris si no
+              }}
+            >
+              {/* C. Cambia el texto para ser claro */}
+              {canJoin ? 'Unirse al Equipo' : 'Requisitos no cumplidos'}
+            </button>
       </div>
     </Modal>
   );
