@@ -8,7 +8,7 @@ import admin from "firebase-admin";
 import { createRequire } from "module"; // Importa createRequire
 import { verifyToken, isAdmin } from "./middlewares/authMiddleware.js"; // <-- IMPORTA
 import multer from "multer";
-import 'dotenv/config'
+import "dotenv/config";
 
 
 const require = createRequire(import.meta.url);
@@ -20,14 +20,14 @@ const serviceAccount = {
   // ¡TRUCO IMPORTANTE! Las claves privadas tienen saltos de línea (\n)
   // que a veces se rompen en las variables de entorno. Esto lo arregla:
   private_key: process.env.FIREBASE_PRIVATE_KEY
-    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
     : undefined,
   client_email: process.env.FIREBASE_CLIENT_EMAIL,
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri: "https://accounts.google.com/o/oauth2/auth",
   token_uri: "https://oauth2.googleapis.com/token",
   auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
+  client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
 };
 
 admin.initializeApp({
@@ -41,7 +41,6 @@ const bucket = admin.storage().bucket("gs://motiv8-b965b.firebasestorage.app");
 
 const app = express();
 const server = http.createServer(app); // 👈 servidor HTTP base
-
 
 export const io = new Server(server, {
   cors: {
@@ -65,14 +64,13 @@ io.on("connection", (socket) => {
   });
 });
 
-
 app.use(express.json());
 app.use(
   cors({
     origin: [
-    "http://localhost:5173", 
-    "https://motiv8-b965b.web.app", // <-- ¡AÑADE TU DOMINIO DE FIREBASE AQUÍ!
-    "https://motiv8-b965b.firebaseapp.com" // (Añade también este por si acaso)
+      "http://localhost:5173",
+      "https://motiv8-b965b.web.app", // <-- ¡AÑADE TU DOMINIO DE FIREBASE AQUÍ!
+      "https://motiv8-b965b.firebaseapp.com", // (Añade también este por si acaso)
     ], // ¡IMPORTANTE! Asegúrate de que este sea el puerto donde corre tu frontend
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -91,21 +89,25 @@ app.use("/api", testRoutes);
 
 // FUNCIONES login y register usuarios
 // Register: Registrar un nuevo usuario
-app.post("/api/auth/register", upload.single("profile_image_file"), async (req, res) => {
+app.post(
+  "/api/auth/register",
+  upload.single("profile_image_file"),
+  async (req, res) => {
     try {
-      const { email, password, name, region, comuna, main_sport, performance } = req.body;
+      const { email, password, name, region, comuna, main_sport, performance } =
+        req.body;
       const file = req.file;
 
       let performanceObj = {};
-        if (performance) {
-          try {
-            performanceObj = JSON.parse(performance);
-          } catch (e) {
-            console.error("Error parseando performance:", e);
-            // Si falla, guardamos un objeto vacío para no romper la DB
-            performanceObj = {}; 
-          }
+      if (performance) {
+        try {
+          performanceObj = JSON.parse(performance);
+        } catch (e) {
+          console.error("Error parseando performance:", e);
+          // Si falla, guardamos un objeto vacío para no romper la DB
+          performanceObj = {};
         }
+      }
 
       // --- PASO 1: Crear el usuario en Firebase Authentication ---
       // Esto crea el registro de email/contraseña
@@ -207,7 +209,11 @@ app.get("/api/auth/me", verifyToken, (req, res) => {
 });
 
 // Ruta para actualizar la foto de perfil
-app.post("/api/users/avatar", verifyToken, upload.single("profileImageFile"), async (req, res) => {
+app.post(
+  "/api/users/avatar",
+  verifyToken,
+  upload.single("profileImageFile"),
+  async (req, res) => {
     const user = req.user;
     const file = req.file;
 
@@ -295,35 +301,77 @@ app.put("/api/users/profile", verifyToken, express.json(), async (req, res) => {
   }
 });
 
-app.put('/api/users/goals', verifyToken, express.json(), async (req, res) => {
+
+app.get('/api/profile-locations', verifyToken, async (req, res) => {
+  const userId = req.user.uid;
+  const GEOAPIFY_API_KEY = "8e6613c9028d433cb7b81f5622af46da";
+
+  try {
+    const snapshot = await db.collection('activities')
+      .where('userId', '==', userId)
+      .get();
+
+    if (snapshot.empty) return res.status(200).json([]);
+
+    const geoapifyBaseUrl = "https://api.geoapify.com/v1/geocode/reverse";
+    const visitedLocations = new Set();
+    const requests = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const coords = [data.startLocation, data.endLocation].filter(Boolean);
+      coords.forEach(loc => {
+        requests.push(
+          axios.get(geoapifyBaseUrl, {
+            params: { lat: loc.lat, lon: loc.lng, apiKey: GEOAPIFY_API_KEY }
+          }).then(resp => {
+            const props = resp.data.features[0]?.properties;
+            const comuna = props.suburb || props.city || props.county || props.state || "Ubicación desconocida";
+            visitedLocations.add(comuna);
+          }).catch(() => null)
+        );
+      });
+    });
+
+    await Promise.all(requests);
+    res.status(200).json(Array.from(visitedLocations));
+
+  } catch (error) {
+    console.error("Error obteniendo ubicaciones:", error);
+    res.status(500).send("Error interno al obtener ubicaciones.");
+  }
+});
+
+
+app.put("/api/users/goals", verifyToken, express.json(), async (req, res) => {
   const user = req.user; // Obtenido del token
-  const { performance } = req.body; 
+  const { performance } = req.body;
 
   // Validación básica
   if (!performance) {
-    return res.status(400).send('Se requieren datos de rendimiento (performance).');
+    return res
+      .status(400)
+      .send("Se requieren datos de rendimiento (performance).");
   }
 
   try {
     // Actualizamos el documento del usuario en Firestore.
     // Al pasar el objeto 'performance' directamente, Firestore lo guardará como un Mapa.
-    await db.collection('users').doc(user.uid).update({
-      performance: performance
+    await db.collection("users").doc(user.uid).update({
+      performance: performance,
     });
 
     console.log(`Metas actualizadas para el usuario ${user.uid}`);
 
-    res.status(200).json({ 
-      message: 'Metas actualizadas correctamente',
-      performance // Devolvemos lo que guardamos para confirmar
+    res.status(200).json({
+      message: "Metas actualizadas correctamente",
+      performance, // Devolvemos lo que guardamos para confirmar
     });
-
   } catch (error) {
     console.error("Error al actualizar metas:", error);
     res.status(500).send("Error interno al actualizar las metas.");
   }
 });
-
 
 // CRUD Misiones
 // CREATE: Crear Misión
@@ -433,7 +481,7 @@ app.put("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
       type,
       targetValue: Number(targetValue),
       unit,
-      reward: Number(reward),        // XP
+      reward: Number(reward), // XP
       coinReward: Number(coinReward), // 👈 Coins
       startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(endDate) : null,
@@ -470,111 +518,143 @@ app.delete("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-
 // FUNCIONES Actividades:
 // Guardar  nueva actividad y actualizar estadísticas
-app.post('/api/activities', verifyToken, express.json(), async (req, res) => {
+
+app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
   const user = req.user;
-  
-  // 1. Desestructuramos los datos que envía el frontend
-  const { 
+  const {
     title,
-    type, 
-    distance, // en km
-    time,     // en segundos
-    avgSpeed, 
-    path,     // Array de coordenadas o GeoJSON
-    startLocation, 
-    endLocation, 
-    date 
+    type,
+    distance,
+    time,
+    avgSpeed,
+    path,
+    startLocation,
+    endLocation,
+    date,
   } = req.body;
 
-  // 2. Validaciones básicas
   if (distance === undefined || time === undefined) {
-    return res.status(400).send('Faltan datos obligatorios (distancia o tiempo).');
+    return res
+      .status(400)
+      .send("Faltan datos obligatorios (distancia o tiempo).");
   }
 
   try {
     let firestorePath = [];
-    
     if (Array.isArray(path) && path.length > 0) {
-      // Verificamos si el primer elemento es un array (formato OSRM)
       if (Array.isArray(path[0])) {
-         firestorePath = path.map(coord => ({
-           lng: coord[0],
-           lat: coord[1]
-         }));
+        firestorePath = path.map((coord) => ({ lng: coord[0], lat: coord[1] }));
       } else {
-         // Si ya son objetos (formato manual), lo dejamos igual
-         firestorePath = path;
+        firestorePath = path;
       }
     }
-    // 3. Prepara el objeto de la actividad
+
+    // 🔍 Geoapify Reverse Geocoding
+    const GEOAPIFY_API_KEY = "8e6613c9028d433cb7b81f5622af46da"; // ⚠️ Inserta tu API Key aquí
+    let startLocationName = null;
+    let endLocationName = null;
+
+    const geoapifyBaseUrl = "https://api.geoapify.com/v1/geocode/reverse";
+
+    const requests = [];
+    if (startLocation) {
+      requests.push(
+        axios
+          .get(geoapifyBaseUrl, {
+            params: {
+              lat: startLocation.lat,
+              lon: startLocation.lng,
+              apiKey: GEOAPIFY_API_KEY,
+            },
+          })
+          .then((resp) => {
+            startLocationName =
+              resp.data.features[0]?.properties?.formatted || null;
+          })
+          .catch(() => (startLocationName = null))
+      );
+    }
+
+    if (endLocation) {
+      requests.push(
+        axios
+          .get(geoapifyBaseUrl, {
+            params: {
+              lat: endLocation.lat,
+              lon: endLocation.lng,
+              apiKey: GEOAPIFY_API_KEY,
+            },
+          })
+          .then((resp) => {
+            endLocationName =
+              resp.data.features[0]?.properties?.formatted || null;
+          })
+          .catch(() => (endLocationName = null))
+      );
+    }
+
+    await Promise.all(requests);
+
     const newActivity = {
-      title: title || 'Actividad',
-      userId: user.uid, // Vinculamos la actividad al usuario
-      userName: user.name || 'Usuario', // Opcional: útil para leaderboards
-      type: type || 'running',
+      title: title || "Actividad",
+      userId: user.uid,
+      userName: user.name || "Usuario",
+      type: type || "running",
       distance: parseFloat(distance),
       time: parseInt(time),
       avgSpeed: parseFloat(avgSpeed),
       path: firestorePath || [],
       startLocation: startLocation || null,
       endLocation: endLocation || null,
+      startLocationName,
+      endLocationName,
       date: date || new Date().toISOString(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    // 4. Usamos un "Batch" (Lote) o escritura atómica para hacer dos cosas a la vez:
-    //    a) Guardar la actividad en la colección 'activities'
-    //    b) Actualizar las estadísticas totales del usuario en 'users' (o 'user_stats')
-    
     const batch = db.batch();
-
-    // a) Referencia para la nueva actividad
-    const activityRef = db.collection('activities').doc(); // Genera ID automático
+    const activityRef = db.collection("activities").doc();
     batch.set(activityRef, newActivity);
 
-    // b) Referencia para las estadísticas del usuario
-    // (Asumimos que guardas stats en el documento del usuario, o en una subcolección)
-    // Aquí actualizaremos el documento principal del usuario en 'users'
-    const userStatsRef = db.collection('users').doc(user.uid);
-
+    const userStatsRef = db.collection("users").doc(user.uid);
     batch.update(userStatsRef, {
-      // Usamos FieldValue.increment para sumar sin leer primero (es atómico y seguro)
-      "stats.distanciaTotalKm": admin.firestore.FieldValue.increment(parseFloat(distance)),
-      "stats.tiempoTotalRecorridoMin": admin.firestore.FieldValue.increment(Math.floor(parseInt(time) / 60)),
-      "stats.misionesCompletas": admin.firestore.FieldValue.increment(1), // Cuenta como 1 actividad más
-      // Opcional: Actualizar última actividad
-      "lastActivityDate": new Date().toISOString()
+      "stats.distanciaTotalKm": admin.firestore.FieldValue.increment(
+        parseFloat(distance)
+      ),
+      "stats.tiempoTotalRecorridoMin": admin.firestore.FieldValue.increment(
+        Math.floor(parseInt(time) / 60)
+      ),
+      "stats.misionesCompletas": admin.firestore.FieldValue.increment(1),
+      lastActivityDate: new Date().toISOString(),
     });
 
-    // 5. Ejecutar ambas operaciones
     await batch.commit();
 
-    console.log(`Actividad guardada para ${user.email}: ${distance}km en ${time}s`);
-
-    res.status(201).json({ 
-      message: 'Actividad guardada exitosamente', 
+    res.status(201).json({
+      message: "Actividad guardada exitosamente",
       id: activityRef.id,
-      ...newActivity 
+      ...newActivity,
     });
-
   } catch (error) {
     console.error("Error al guardar la actividad:", error);
-    res.status(500).send(error.message || 'Error interno al procesar la actividad.');
+    res
+      .status(500)
+      .send(error.message || "Error interno al procesar la actividad.");
   }
 });
 
 // Ruta para obtener el historial de actividades del usuario
-app.get('/api/activities', verifyToken, async (req, res) => {
+app.get("/api/activities", verifyToken, async (req, res) => {
   const user = req.user;
 
   try {
-    const snapshot = await db.collection('activities')
-      .where('userId', '==', user.uid) // Filtra por usuario
-      .orderBy('createdAt', 'desc')     // Ordena por fecha (más reciente primero)
-      .limit(20)                        // Trae solo las últimas 20 (paginación básica)
+    const snapshot = await db
+      .collection("activities")
+      .where("userId", "==", user.uid) // Filtra por usuario
+      .orderBy("createdAt", "desc") // Ordena por fecha (más reciente primero)
+      .limit(20) // Trae solo las últimas 20 (paginación básica)
       .get();
 
     if (snapshot.empty) {
@@ -582,26 +662,29 @@ app.get('/api/activities', verifyToken, async (req, res) => {
     }
 
     const activities = [];
-    snapshot.forEach(doc => {
+    snapshot.forEach((doc) => {
       activities.push({ id: doc.id, ...doc.data() });
     });
 
     res.status(200).json(activities);
-
   } catch (error) {
     console.error("Error fetching activities:", error);
     res.status(500).send("Error al obtener el historial de actividades.");
   }
 });
 
-
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post("/api/teams", verifyToken, upload.single("teamImageFile"), async (req, res) => {
+app.post(
+  "/api/teams",
+  verifyToken,
+  upload.single("teamImageFile"),
+  async (req, res) => {
     console.log("req.file (lo que recibió multer):", req.file);
     console.log("req.body (los campos de texto):", req.body);
 
-    const { team_name, sport_type, description, team_color, requirements } = req.body;
+    const { team_name, sport_type, description, team_color, requirements } =
+      req.body;
     const user = req.user;
 
     const file = req.file;
@@ -1127,7 +1210,6 @@ app.post("/api/user-missions/complete", verifyToken, async (req, res) => {
   }
 });
 
-
 app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
   const userId = req.user?.uid;
   if (!userId) return res.status(401).send("No autenticado.");
@@ -1136,7 +1218,9 @@ app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
     // 1) Leer contador simple de clics
     const statsRef = db.collection("userStats").doc(userId);
     const statsDoc = await statsRef.get();
-    const clicks = statsDoc.exists ? Number(statsDoc.data().assignClicks || 0) : 0;
+    const clicks = statsDoc.exists
+      ? Number(statsDoc.data().assignClicks || 0)
+      : 0;
 
     // 2) Si ya llegó al límite (3), no asignar y avisar al frontend
     if (clicks >= 3) {
@@ -1163,7 +1247,10 @@ app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
 
     // 4) Seleccionar 3 misiones aleatorias (tu lógica actual)
     const snapshot = await db.collection("missions").get();
-    const allMissions = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const allMissions = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     if (allMissions.length < 3) {
       return res.status(400).send("No hay suficientes misiones disponibles.");
@@ -1197,7 +1284,6 @@ app.post("/api/user-missions/assign-3", verifyToken, async (req, res) => {
     return res.status(500).send("Error interno al asignar misiones.");
   }
 });
-
 
 // ASIGNAR MISIONES
 
@@ -1262,7 +1348,7 @@ app.post("/api/user/initStats", async (req, res) => {
     tiempoTotalRecorridoMin: 0,
     misionesCompletas: 0,
     insigniasGanadas: 0,
-    coins:0,
+    coins: 0,
     userId: uid,
     ultimaActualizacion: admin.firestore.FieldValue.serverTimestamp(),
   };
@@ -1349,8 +1435,6 @@ app.post(
     }
   }
 );
-
-
 
 app.post("/api/user-missions/claim", verifyToken, async (req, res) => {
   const userId = req.user.uid;
@@ -1506,9 +1590,6 @@ function calcularProgresoNivel(puntos) {
   };
 }
 
-
-
-
 app.get("/api/user-locations", verifyToken, async (req, res) => {
   const userId = req.user.uid;
   try {
@@ -1597,7 +1678,6 @@ app.get("/api/ranking", async (req, res) => {
   }
 });
 
-
 // --- SHOP ---
 
 app.post("/api/shop/items", verifyToken, isAdmin, async (req, res) => {
@@ -1651,7 +1731,9 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
     const statsDoc = await userStatsRef.get();
 
     if (!statsDoc.exists) {
-      return res.status(404).send("No se encontraron estadísticas del usuario.");
+      return res
+        .status(404)
+        .send("No se encontraron estadísticas del usuario.");
     }
 
     const stats = statsDoc.data();
@@ -1688,7 +1770,6 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
 //--- MATCH
 const missionGroups = {};
 const missionEvents = {}; // { missionId: [ { uid, message, timestamp } ] }
-
 
 // Iniciar emparejamiento
 app.post("/api/match/start", verifyToken, async (req, res) => {
@@ -1736,7 +1817,9 @@ app.post("/api/match/stop", async (req, res) => {
 
   // ✅ Eliminar del grupo en memoria
   if (missionGroups[missionId]) {
-    missionGroups[missionId] = missionGroups[missionId].filter(u => u.uid !== uid);
+    missionGroups[missionId] = missionGroups[missionId].filter(
+      (u) => u.uid !== uid
+    );
   }
 
   // ✅ Eliminar del grupo en Firestore
@@ -1746,7 +1829,7 @@ app.post("/api/match/stop", async (req, res) => {
 
     if (matchDoc.exists) {
       const users = matchDoc.data().users || [];
-      const updatedUsers = users.filter(u => u.uid !== uid);
+      const updatedUsers = users.filter((u) => u.uid !== uid);
       await matchRef.set({ missionId, users: updatedUsers });
     }
   } catch (err) {
@@ -1759,12 +1842,11 @@ app.post("/api/match/stop", async (req, res) => {
     uid,
     message: `${name} abandonó el grupo`,
     timestamp: Date.now(),
-    type: "userLeft"
+    type: "userLeft",
   });
 
   res.json({ success: true });
 });
-
 
 app.get("/api/match/:missionId/events", (req, res) => {
   const { missionId } = req.params;
@@ -1774,8 +1856,6 @@ app.get("/api/match/:missionId/events", (req, res) => {
   );
   res.json(recentEvents);
 });
-
-
 
 // Obtener usuarios emparejados
 app.get("/api/match/:missionId", verifyToken, async (req, res) => {
@@ -1841,13 +1921,15 @@ app.post("/api/user-missions/mark-completed", verifyToken, async (req, res) => {
       io.to(missionId).emit("missionCompleted", { missionId });
     }
 
-    res.status(200).json({ message: "Misión marcada como completada para el grupo." });
+    res
+      .status(200)
+      .json({ message: "Misión marcada como completada para el grupo." });
   } catch (error) {
     console.error("Error marcando misión como completada:", error);
     res.status(500).send("Error interno.");
   }
 });
-//--RECOMPENSAS DE NIVEL 
+//--RECOMPENSAS DE NIVEL
 
 app.post("/api/profile/reward", verifyToken, async (req, res) => {
   const userId = req.user.uid;
@@ -1858,7 +1940,9 @@ app.post("/api/profile/reward", verifyToken, async (req, res) => {
     const statsDoc = await userStatsRef.get();
 
     if (!statsDoc.exists) {
-      return res.status(404).send("No se encontraron estadísticas del usuario.");
+      return res
+        .status(404)
+        .send("No se encontraron estadísticas del usuario.");
     }
 
     const stats = statsDoc.data();
@@ -1867,7 +1951,9 @@ app.post("/api/profile/reward", verifyToken, async (req, res) => {
 
     // ✅ Validación: solo niveles múltiplos de 2 y no repetidos
     if (nivelActual % 2 !== 0 || nivelActual <= ultimoNivelRecompensado) {
-      return res.status(403).send("Ya reclamaste recompensa en este nivel o no corresponde.");
+      return res
+        .status(403)
+        .send("Ya reclamaste recompensa en este nivel o no corresponde.");
     }
 
     let recompensa = null;
@@ -1925,9 +2011,10 @@ function recompensaBoost() {
 
 function recompensaCupon() {
   const prob = Math.random();
-  return prob <= 0.2 ? "Cupón 20% PREMIUM" : "Sigue intentándolo en el próximo nivel";
+  return prob <= 0.2
+    ? "Cupón 20% PREMIUM"
+    : "Sigue intentándolo en el próximo nivel";
 }
-
 
 // --- INICIO DEL SERVIDOR ---
 app.listen(PORT, () => {
