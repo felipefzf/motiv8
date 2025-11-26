@@ -367,7 +367,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             Mi rendimiento
           </h3>
           <div className="container text-center" style={{ marginTop: "10px" }}>
-            <div className="row row-cols-2">
+            <div className="performance">
               <div className="card-profile">
                 <div className="card-body performance-card-body">
                   <h5 className="performance-card-title">🏃‍♂️ Running</h5>
