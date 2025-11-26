@@ -223,10 +223,10 @@
   width: 100%;
 
   /* que el form se ajuste al tamaño del modal */
-  max-height: 90vh;
+  max-height: 200vh;
   padding: 16px;
 
-  overflow-y: auto;   /* 👈 AQUÍ está el scroll */
+  overflow-y: hidden;   /* 👈 AQUÍ está el scroll */
   box-sizing: border-box;
 }
 

@@ -77,6 +77,26 @@
   object-fit: contain;
 }
 
+.btn-inventory {
+  position: absolute;
+  top: -60px;
+  right: -130px;
+  margin-top: 15px;
+  padding: 10px 14px;
+  background-color: var(--accent-color);
+  color: var(--btn-text);
+  border: 2px solid var(--accent-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-inventory:hover {
+  background-color: var(--accent-color);
+  transform: scale(1.05);
+}
+
 /* Botón editar info normal */
 .edit-info {
   margin-top: 20px;
@@ -87,7 +107,12 @@
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.edit-info:hover{
+  background-color: var(--accent-color);
+  transform: scale(1.05);
 }
 
 .profile-name {
@@ -231,26 +256,6 @@ input:checked + .slider:before {
 }
 
 
-.btn-inventory {
-  position: absolute;
-  top: -60px;
-  right: -130px;
-  margin-top: 15px;
-  padding: 10px 14px;
-  background-color: var(--accent-color);
-  color: var(--btn-text);
-  border: 2px solid var(--accent-color);
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.btn-inventory:hover {
-  background-color: var(--accent-color);
-  color: var(--bg-color);
-}
-
 .ubi-list {
   display: inline-block;
   background-color: var(--accent-color);
@@ -390,11 +395,12 @@ input:checked + .slider:before {
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
 }
 
 .edit-performance:hover {
-  background-color: #0056b3;
+  background-color: var(--accent-color);
+  transform: scale(1.05);
 }
 
 /* Botón cerrar sesión */
@@ -427,14 +433,7 @@ input:checked + .slider:before {
   margin: 0;
 }
 
-.performance-edit-btn {
-  background: none;
-  border: none;
-  color: #007bff;
-  cursor: pointer;
-  font-size: 0.9em;
-  text-decoration: underline;
-}
+
 
 /* Grid de rendimiento */
 .performance-grid {

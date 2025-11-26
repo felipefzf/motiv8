@@ -13,7 +13,6 @@
   --btn-bg: #444;
   --btn-text: #fff;
   --btn-solo-bg: #444;
-  --btn-emparejar-bg: #0066cc;
   --btn-recompensa-bg: #28a745;
 }
 
@@ -30,7 +29,6 @@
   --btn-bg: #444;
   --btn-text: #fff;
   --btn-solo-bg: #444;
-  --btn-emparejar-bg: #0066cc;
   --btn-recompensa-bg: #28a745;
 }
 
@@ -58,9 +56,7 @@ a {
   text-decoration: none;
 }
 
-a:hover {
-  color: var(--btn-emparejar-bg);
-}
+
 
 button {
   background-color: var(--button-bg);
@@ -115,9 +111,6 @@ button {
   background-color: var(--btn-solo-bg);
 }
 
-.btn-emparejar {
-  background-color: var(--btn-emparejar-bg);
-}
 
 .btn-completar {
   background-color: var(--btn-completar-bg);
@@ -131,6 +124,11 @@ button {
 .btn-salirEquipo {
   background-color: #d42020;
   color: #fff;
+}
+
+.btn-salirEquipo:hover {
+  transform: scale(1.05);
+
 }
 
 /* === FORMULARIOS === */

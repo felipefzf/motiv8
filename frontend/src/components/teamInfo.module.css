@@ -79,18 +79,6 @@
 }
 
 .btnOcuparColor:hover {
-  filter: brightness(1.2);
-  transform: scale(1.05);
-}
-
-
-.leavebutton {
-  background-color: var(--danger);
-  color: var(--btn-text);
-}
-
-.leavebutton:hover {
-  background-color: var(--danger-hover);
   transform: scale(1.05);
 }
 
@@ -160,4 +148,163 @@
   box-shadow: 0 0 10px var(--shadow-color);
   display: block;
   margin: 0 auto 20px auto; /* Centrado */
+}
+
+.confirmBox {
+  background-color: #111;
+  border-radius: 10px;
+  padding: 20px 24px 18px;
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 0 12px var(--accent-color);
+  text-align: center;
+}
+
+.confirmText {
+  margin: 0 0 18px 0;
+  color: #ffffff;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.confirmButtons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.confirmAccept {
+  min-width: 110px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #d42020;
+  color: #ffffff;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+
+}
+.confirmCancel {
+  min-width: 110px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #3f3f3f;
+  color: #ffffff;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.confirmAccept:hover{
+  transform: translateY(-1px);
+  background-color: #d42020;
+}
+
+.confirmCancel:hover {
+  transform: translateY(-1px);
+  background-color: #555;
+}
+
+.confirmAccept:active,
+.confirmCancel:active {
+  transform: translateY(0);
+  opacity: 0.8;
+}
+
+.membersTitle {
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: left;
+}
+
+/* Contenedor de la lista */
+.memberList {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Item de lista (solo para espaciado) */
+.memberItem {
+  margin: 0;
+}
+
+/* “Tarjeta pill” del miembro */
+.memberChip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  background: color-mix(in srgb, var(--card-bg) 80%, var(--accent-color) 4%);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, var(--accent-color) 20%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+              background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.memberChip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Columna izquierda: nombre + badge */
+.memberMainRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Nombre */
+.memberName {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+/* Rol alineado a la derecha */
+.memberRole {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  color: var(--text-color);
+}
+
+/* Badge de “Tú” */
+.memberYouBadge {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-color);          /* 🎯 color más notorio */
+  color: var(--te);                   /* texto contraste (fondo global) */
+  border: 1px solid var(--accent-color);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--accent-color) 60%, transparent);
+}
+/* Opcional: dar un glow extra a la tarjeta cuando es el usuario */
+.memberItem:has(.memberYouBadge) .memberChip {
+  background: color-mix(in srgb, var(--accent-color) 60%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-color) 50%, transparent);
+}
+
+.memberName {
+  font-weight: 600;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 6px; /* espacio entre nombre y corona */
+}
+
+.crown {
+  font-size: 1rem;
 }
