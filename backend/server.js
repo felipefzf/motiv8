@@ -521,6 +521,7 @@ app.delete("/api/missions/:id", verifyToken, isAdmin, async (req, res) => {
 // FUNCIONES Actividades:
 // Guardar  nueva actividad y actualizar estadísticas
 
+
 app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
   const user = req.user;
   const {
@@ -536,9 +537,7 @@ app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
   } = req.body;
 
   if (distance === undefined || time === undefined) {
-    return res
-      .status(400)
-      .send("Faltan datos obligatorios (distancia o tiempo).");
+    return res.status(400).send("Faltan datos obligatorios (distancia o tiempo).");
   }
 
   try {
@@ -552,26 +551,21 @@ app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
     }
 
     // 🔍 Geoapify Reverse Geocoding
-    const GEOAPIFY_API_KEY = "8e6613c9028d433cb7b81f5622af46da"; // ⚠️ Inserta tu API Key aquí
+    const GEOAPIFY_API_KEY = "8e6613c9028d433cb7b81f5622af46da";
     let startLocationName = null;
     let endLocationName = null;
 
     const geoapifyBaseUrl = "https://api.geoapify.com/v1/geocode/reverse";
-
     const requests = [];
+
     if (startLocation) {
       requests.push(
         axios
           .get(geoapifyBaseUrl, {
-            params: {
-              lat: startLocation.lat,
-              lon: startLocation.lng,
-              apiKey: GEOAPIFY_API_KEY,
-            },
+            params: { lat: startLocation.lat, lon: startLocation.lng, apiKey: GEOAPIFY_API_KEY },
           })
           .then((resp) => {
-            startLocationName =
-              resp.data.features[0]?.properties?.formatted || null;
+            startLocationName = resp.data.features[0]?.properties?.formatted || null;
           })
           .catch(() => (startLocationName = null))
       );
@@ -581,15 +575,10 @@ app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
       requests.push(
         axios
           .get(geoapifyBaseUrl, {
-            params: {
-              lat: endLocation.lat,
-              lon: endLocation.lng,
-              apiKey: GEOAPIFY_API_KEY,
-            },
+            params: { lat: endLocation.lat, lon: endLocation.lng, apiKey: GEOAPIFY_API_KEY },
           })
           .then((resp) => {
-            endLocationName =
-              resp.data.features[0]?.properties?.formatted || null;
+            endLocationName = resp.data.features[0]?.properties?.formatted || null;
           })
           .catch(() => (endLocationName = null))
       );
@@ -620,30 +609,59 @@ app.post("/api/activities", verifyToken, express.json(), async (req, res) => {
 
     const userStatsRef = db.collection("users").doc(user.uid);
     batch.update(userStatsRef, {
-      "stats.distanciaTotalKm": admin.firestore.FieldValue.increment(
-        parseFloat(distance)
-      ),
-      "stats.tiempoTotalRecorridoMin": admin.firestore.FieldValue.increment(
-        Math.floor(parseInt(time) / 60)
-      ),
-      "stats.misionesCompletas": admin.firestore.FieldValue.increment(1),
+      "stats.distanciaTotalKm": admin.firestore.FieldValue.increment(parseFloat(distance)),
+      "stats.tiempoTotalRecorridoMin": admin.firestore.FieldValue.increment(Math.floor(parseInt(time) / 60)),
       lastActivityDate: new Date().toISOString(),
     });
+
+    // ✅ NUEVO: Actualizar progreso de misiones
+    const userMissionRef = db.collection("user_missions").doc(user.uid);
+    const userMissionDoc = await userMissionRef.get();
+
+    if (userMissionDoc.exists) {
+      const data = userMissionDoc.data();
+      const updatedMissions = data.missions.map((m) => {
+        let nuevoProgreso = m.progressValue || 0;
+
+        // Si la misión es por distancia (km)
+        if (m.unit === "km") {
+          nuevoProgreso += parseFloat(distance);
+        }
+
+        // Si la misión es por tiempo (min)
+        if (m.unit === "min") {
+          nuevoProgreso += Math.floor(parseInt(time) / 60);
+        }
+
+        const completada = nuevoProgreso >= m.targetValue;
+
+        return {
+          ...m,
+          progressValue: nuevoProgreso,
+          completed: completada,
+        };
+      });
+
+      await userMissionRef.set({
+        ...data,
+        missions: updatedMissions,
+        assignedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
 
     await batch.commit();
 
     res.status(201).json({
-      message: "Actividad guardada exitosamente",
+      message: "Actividad guardada y misiones actualizadas exitosamente",
       id: activityRef.id,
       ...newActivity,
     });
   } catch (error) {
     console.error("Error al guardar la actividad:", error);
-    res
-      .status(500)
-      .send(error.message || "Error interno al procesar la actividad.");
+    res.status(500).send(error.message || "Error interno al procesar la actividad.");
   }
 });
+
 
 // Ruta para obtener el historial de actividades del usuario
 app.get("/api/activities", verifyToken, async (req, res) => {
