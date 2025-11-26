@@ -160,12 +160,11 @@
   margin-top: 10px;
   margin-bottom: 10px;
   background-color: var(--card-bg);
-  border-radius: 10px;
+  border-radius: 11px;
   padding: 10px;
   text-align: center;
   box-shadow: 0 2px 6px var(--shadow-color);
   border: 1px solid var(--border-color);
-  
 }
 
 /* Barra de progreso */
