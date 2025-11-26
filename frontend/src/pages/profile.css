@@ -147,10 +147,20 @@
   border-radius: 10px;
 }
 
-/* === Card del perfil === */
+/* Contenedor de las cards de rendimiento */
+.row.row-cols-2 {
+  display: flex;           /* forzamos flex */
+  flex-wrap: nowrap;       /* que no se vayan a otra línea */
+  justify-content: center; /* centradas */
+  gap: 20px;               /* espacio entre ambas */
+}
+
+/* Cada card de rendimiento */
 .card-profile {
+  margin-top: 10px;
+  margin-bottom: 10px;
   background-color: var(--card-bg);
-  border-radius: 10px;
+  border-radius: 11px;
   padding: 10px;
   text-align: center;
   box-shadow: 0 2px 6px var(--shadow-color);
@@ -370,16 +380,17 @@ input:checked + .slider:before {
   padding: 15px;
   background-color: var(--card-bg);
   color: var(--text-color);
-
 }
 
-/* Título de la card de rendimiento: usa el color del texto del tema */
+/* Título de la card de rendimiento:
+   ahora usa accent-color (Running / Ciclismo) */
 .performance-card-title {
-  color: var(--text-color);  /* mismo color que el texto normal */
   margin-bottom: 10px;
+  color: var(--accent-color);
+  font-weight: 600;
 }
 
-/* Texto de métricas en rendimiento: también usa el color general */
+/* Texto de métricas en rendimiento */
 .performance-text {
   font-size: 0.9em;
   margin: 5px 0;
@@ -422,39 +433,50 @@ input:checked + .slider:before {
 
 /* === Cards de rendimiento (Running / Ciclismo) === */
 .performance-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 30px;
   width: 100%;
 }
 
-.performance-title {
-  margin: 0;
-}
-
-
-
-/* Grid de rendimiento */
+/* Contenedor de ambas cards */
 .performance-grid {
   margin-top: 10px;
   width: 100%;
+  display: flex;            /* 👈 en fila */
+  gap: 24px;                /* 👈 separación entre cards */
+  justify-content: center;
+  align-items: stretch;
 }
 
+/* Cada card de rendimiento (asegúrate de que el JSX use esta clase) */
+.performance-card {
+  flex: 1;
+  background-color: var(--card-bg);
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+  padding: 16px;
+}
+
+/* Contenido interno de las cards de rendimiento */
+.performance-card-body {
+  border-radius: 10px;
+  padding: 10px 5px;
+  background-color: transparent;
+  color: var(--text-color);
+}
+
+/* Título de la card de rendimiento en accent-color */
 .performance-card-title {
-  color: #555;
   margin-bottom: 10px;
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
+/* Texto de métricas en rendimiento */
 .performance-text {
   font-size: 0.9em;
   margin: 5px 0;
+  color: var(--text-color);
 }
 
-.sportIcon {
-  width: 500px;
-  height: 500px;
-  position: absolute;
-  z-index: 1;
-  opacity: 0.2;
-}
