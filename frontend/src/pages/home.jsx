@@ -314,10 +314,7 @@ export default function Home() {
                           <p className="mission-progress-text">
                             {porcentaje.toFixed(0)}%
                           </p>
-                          <p>
-                            {progreso.toFixed(1)} /{" "}
-                            {mision.targetValue.toFixed(1)} {mision.unit}
-                          </p>
+                          
                           <p>
                             Te faltan {restante.toFixed(1)} {mision.unit}
                           </p>

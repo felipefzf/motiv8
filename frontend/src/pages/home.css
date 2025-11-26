@@ -145,6 +145,11 @@ body {
   background-color: var(--btn-recompensa-bg);
 }
 
+.btn-recompensa:hover {
+  background-color: var(--btn-recompensa-bg);
+  transform: scale(1.05);
+}
+
 .btn-registrar {
   background-color: var(--accent-color);
   color: var(--btn-text);
