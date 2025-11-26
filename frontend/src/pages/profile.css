@@ -147,26 +147,6 @@
   border-radius: 10px;
 }
 
-/* Contenedor de las cards de rendimiento */
-.row.row-cols-2 {
-  display: flex;           /* forzamos flex */
-  flex-wrap: nowrap;       /* que no se vayan a otra línea */
-  justify-content: center; /* centradas */
-  gap: 20px;               /* espacio entre ambas */
-}
-
-/* Cada card de rendimiento */
-.card-profile {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  background-color: var(--card-bg);
-  border-radius: 11px;
-  padding: 10px;
-  text-align: center;
-  box-shadow: 0 2px 6px var(--shadow-color);
-  border: 1px solid var(--border-color);
-}
-
 /* Barra de progreso */
 .progress-bar-container {
   width: 100%;
@@ -431,6 +411,28 @@ input:checked + .slider:before {
   transform: scale(1.02);
 }
 
+.performance {
+  display: flex;
+  flex-wrap: nowrap;        /* que no se bajen */
+  justify-content: center;  /* centradas */
+  align-items: stretch;
+  gap: 20px;                /* separación entre cards */
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+/* Cada card ocupa mitad del ancho aprox */
+.card-profile {
+  flex: 1 1 0;
+  background-color: var(--card-bg);
+  border-radius: 14px;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 6px var(--shadow-color);
+
+}
 /* === Cards de rendimiento (Running / Ciclismo) === */
 .performance-section {
   margin-top: 30px;
