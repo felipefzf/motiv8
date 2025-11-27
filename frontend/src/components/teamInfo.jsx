@@ -165,7 +165,6 @@ function MyTeamInfo({ setTeamColor }) {
   const isOwner = user?.uid === teamData.owner_uid; // Verificar si es el dueño
   const val = (value, unit) => (value ? `${value} ${unit}` : "--");
 
-
   return (
     <div className={styles.container}>
       <div className={styles.headerSection}>
