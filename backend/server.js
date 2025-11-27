@@ -693,11 +693,7 @@ app.get("/api/activities", verifyToken, async (req, res) => {
 
 //FUNCIONES Equipos
 // Crear un Nuevo Equipo
-app.post(
-  "/api/teams",
-  verifyToken,
-  upload.single("teamImageFile"),
-  async (req, res) => {
+app.post("/api/teams", verifyToken, upload.single("teamImageFile"), async (req, res) => {
     console.log("req.file (lo que recibió multer):", req.file);
     console.log("req.body (los campos de texto):", req.body);
 
@@ -823,8 +819,6 @@ app.post("/api/teams/:teamId/join", verifyToken, async (req, res) => {
 });
 
 // Obtener Equipos Disponibles (Equipos a los que el usuario no pertenece)
-// In server.js
-
 app.get("/api/teams/available", verifyToken, async (req, res) => {
   const userId = req.user.uid;
 
@@ -957,6 +951,82 @@ app.get("/api/teams/my-team", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Error fetching user's team:", error);
     res.status(500).send("Internal server error while fetching your team.");
+  }
+});
+
+// Editar equipo
+app.put('/api/teams/:teamId', verifyToken, upload.single('teamImageFile'), async (req, res) => {
+  const { teamId } = req.params;
+  const { team_name, description, sport_type, team_color, requirements } = req.body;
+  const user = req.user;
+  const file = req.file;
+
+  try {
+    const teamRef = db.collection('teams').doc(teamId);
+    const teamDoc = await teamRef.get();
+
+    if (!teamDoc.exists) {
+      return res.status(404).send('Equipo no encontrado.');
+    }
+
+    const currentData = teamDoc.data();
+
+    // 1. SEGURIDAD: Solo el dueño puede editar
+    if (currentData.owner_uid !== user.uid) {
+      return res.status(403).send('Solo el líder puede editar el equipo.');
+    }
+
+    // 2. Preparar objeto de actualización
+    const updateData = {
+      team_name,
+      description,
+      sport_type,
+      team_color: team_color || '#CCCCCC',
+    };
+
+    if (requirements) {
+      try {
+        updateData.requirements = JSON.parse(requirements);
+      } catch (e) {
+        console.error("Error parseando requirements en edit:", e);
+        // Si falla el parseo, no actualizamos este campo
+      }
+    }
+
+    // 4. Manejar Imagen (Solo si se subió una NUEVA)
+    if (file) {
+      const fileName = `team_logos/${teamId}-${file.originalname}`; // Reutilizamos ID
+      const blob = bucket.file(fileName);
+      const blobStream = blob.createWriteStream({
+        metadata: { contentType: file.mimetype },
+      });
+
+      await new Promise((resolve, reject) => {
+        blobStream.on('error', (err) => reject(err));
+        blobStream.on('finish', async () => {
+          try {
+            const [url] = await blob.getSignedUrl({
+              action: 'read',
+              expires: '03-09-2491'
+            });
+            updateData.team_image_url = url; // Agregamos la URL al update
+            resolve(url);
+          } catch (err) {
+            reject(new Error("Error al firmar URL."));
+          }
+        });
+        blobStream.end(file.buffer);
+      });
+    }
+
+    // 5. Actualizar en Firestore
+    await teamRef.update(updateData);
+
+    res.status(200).json({ message: 'Equipo actualizado correctamente', ...updateData });
+
+  } catch (error) {
+    console.error("Error al editar equipo:", error);
+    res.status(500).send('Error interno al editar el equipo.');
   }
 });
 
@@ -1336,11 +1406,7 @@ app.get("/api/users/:uid", async (req, res) => {
   }
 });
 
-app.post(
-  "/api/users/avatar",
-  verifyToken,
-  upload.single("avatarFile"),
-  async (req, res) => {
+app.post("/api/users/avatar", verifyToken, upload.single("avatarFile"), async (req, res) => {
     try {
       const user = req.user;
       const file = req.file;
