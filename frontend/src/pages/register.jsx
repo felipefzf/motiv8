@@ -1,41 +1,42 @@
 // frontend/src/App.jsx
-import React, { useState, useRef, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Register.css'; // 👈 Importamos los estilos externos
-import { regionesYcomunas } from "../utils/funcionUtils"
-import axios from 'axios';
-import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
-import { canvasPreview, getCanvasBlob } from '../utils/canvasPreview';
-import styles from '../components/CreateTeamForm.module.css';
-import API_URL from '../config'; // (Ajusta la ruta de importación)
+import React, { useState, useRef, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Register.css"; // 👈 Importamos los estilos externos
+import { regionesYcomunas } from "../utils/funcionUtils";
+import axios from "axios";
+import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { canvasPreview, getCanvasBlob } from "../utils/canvasPreview";
+import styles from "../components/CreateTeamForm.module.css";
+import API_URL from "../config"; // (Ajusta la ruta de importación)
+import LiveToast from "../components/liveToast";
 
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   return centerCrop(
-    makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
-    mediaWidth, mediaHeight
+    makeAspectCrop({ unit: "%", width: 90 }, aspect, mediaWidth, mediaHeight),
+    mediaWidth,
+    mediaHeight
   );
 }
 
 export default function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const [region, setRegion] = useState(''); 
-  const [comuna, setComuna] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
+  const [region, setRegion] = useState("");
+  const [comuna, setComuna] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const [main_sport, setMain_sport] = useState('');
+  const [main_sport, setMain_sport] = useState("");
 
-  const [runPace, setRunPace] = useState(''); // Minutos por km (ej. 5.30)
-  const [runDist, setRunDist] = useState(''); // Km
+  const [runPace, setRunPace] = useState(""); // Minutos por km (ej. 5.30)
+  const [runDist, setRunDist] = useState(""); // Km
 
-  const [cycleSpeed, setCycleSpeed] = useState(''); // Km/h
-  const [cycleDist, setCycleDist] = useState(''); // Km
+  const [cycleSpeed, setCycleSpeed] = useState(""); // Km/h
+  const [cycleDist, setCycleDist] = useState(""); // Km
 
-
-  const [imgSrc, setImgSrc] = useState('');
+  const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -43,11 +44,16 @@ export default function Register() {
   const imgRef = useRef(null);
   const canvasRef = useRef(null);
 
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
+
   const onSelectFile = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setCrop(undefined);
       const reader = new FileReader();
-      reader.addEventListener('load', () => setImgSrc(reader.result.toString()));
+      reader.addEventListener("load", () =>
+        setImgSrc(reader.result.toString())
+      );
       reader.readAsDataURL(e.target.files[0]);
     }
   };
@@ -65,7 +71,7 @@ export default function Register() {
       const blob = await getCanvasBlob(canvasRef.current);
       setBlobToSend(blob);
       setPreviewUrl(URL.createObjectURL(blob));
-      setImgSrc(''); // Ocultar cropper
+      setImgSrc(""); // Ocultar cropper
     }
   };
 
@@ -73,69 +79,73 @@ export default function Register() {
     const selectedRegion = e.target.value;
     setRegion(selectedRegion);
     // 💡 Resetear la comuna cuando cambia la región
-    setComuna(''); 
+    setComuna("");
   };
   const handleComunaChange = (e) => {
     setComuna(e.target.value);
   };
 
-  const comunasDeRegion = region 
-    ? regionesYcomunas.find(r => r.region === region)?.comunas || []
+  const comunasDeRegion = region
+    ? regionesYcomunas.find((r) => r.region === region)?.comunas || []
     : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     if (!region || !comuna) {
-        setError('Por favor, selecciona una Región y una Comuna.');
-        return;
+      setError("Por favor, selecciona una Región y una Comuna.");
+      return;
     }
 
     // Validar entradas numéricas
-    if (main_sport === 'running' && (!runPace || !runDist)) {
-      setError('Por favor, ingresa tu ritmo de corrida (minutos por km) y distancia (km).');
+    if (main_sport === "running" && (!runPace || !runDist)) {
+      setError(
+        "Por favor, ingresa tu ritmo de corrida (minutos por km) y distancia (km)."
+      );
       return;
     }
-    if (main_sport === 'cycling' && (!cycleSpeed || !cycleDist)) {
-      setError('Por favor, ingresa tu velocidad de ciclismo (km/h) y distancia (km).');
+    if (main_sport === "cycling" && (!cycleSpeed || !cycleDist)) {
+      setError(
+        "Por favor, ingresa tu velocidad de ciclismo (km/h) y distancia (km)."
+      );
       return;
     }
 
     // Preparar datos de rendimiento
     const performanceData = {
-      running: { 
-        pace: runPace ? parseFloat(runPace) : null, 
-        distance: runDist ? parseFloat(runDist) : null 
+      running: {
+        pace: runPace ? parseFloat(runPace) : null,
+        distance: runDist ? parseFloat(runDist) : null,
       },
-      cycling: { 
-        speed: cycleSpeed ? parseFloat(cycleSpeed) : null, 
-        distance: cycleDist ? parseFloat(cycleDist) : null 
-      }
+      cycling: {
+        speed: cycleSpeed ? parseFloat(cycleSpeed) : null,
+        distance: cycleDist ? parseFloat(cycleDist) : null,
+      },
     };
 
     setIsLoading(true);
 
-    console.log("Preparando FormData")
+    console.log("Preparando FormData");
 
     const formData = new FormData();
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('name', name);
-    formData.append('region', region);
-    formData.append('comuna', comuna);
-    formData.append('main_sport', main_sport);
-  formData.append('performance', JSON.stringify(performanceData));
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("name", name);
+    formData.append("region", region);
+    formData.append("comuna", comuna);
+    formData.append("main_sport", main_sport);
+    formData.append("performance", JSON.stringify(performanceData));
 
     console.log("Estado del Blob de imagen:", blobToSend);
 
     if (blobToSend) {
-      formData.append('profile_image_file', blobToSend, 'avatar.jpg');
+      formData.append("profile_image_file", blobToSend, "avatar.jpg");
     }
 
     try {
       console.log("Enviando fetch al backend...");
       const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
@@ -147,11 +157,15 @@ export default function Register() {
       }
 
       const newUser = await response.json();
-      console.log('Usuario registrado:', newUser);
-      await axios.post('/api/user/initStats', { uid: newUser.uid });
-      alert('Registro exitoso. Puedes iniciar sesión ahora.');
-      window.location.href = '/login';
-      
+      console.log("Usuario registrado:", newUser);
+      await axios.post("/api/user/initStats", { uid: newUser.uid });
+
+      setToastMessage("✅ Registro exitoso. ¡Puedes iniciar sesión ahora!");
+      setToastKey((prev) => prev + 1);
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
     } catch (err) {
       setError(err.message);
     }
@@ -159,8 +173,8 @@ export default function Register() {
 
   return (
     <div className="register-container">
-      <h1 className='register-title'>MOTIV8</h1>
-      <h2 className='register-subtitle'>Registrar Usuario</h2>
+      <h1 className="register-title">MOTIV8</h1>
+      <h2 className="register-subtitle">Registrar Usuario</h2>
       <form onSubmit={handleSubmit} className="register-form">
         <div className="form-group">
           <input
@@ -194,23 +208,23 @@ export default function Register() {
             placeholder="Contraseña"
           />
         </div>
-        
+
         <div className="form-group">
           <select
             id="main_sport"
             value={main_sport}
             onChange={(e) => setMain_sport(e.target.value)}
             required
-            className='register-select'
+            className="register-select"
           >
             <option value="">cuál es tu Deporte Principal?</option>
             <option value="running">Running</option>
             <option value="cycling">Cycling</option>
           </select>
         </div>
-        
+
         {/* Campos de Rendimiento */}
-        {main_sport === 'running' && (
+        {main_sport === "running" && (
           <div className="form-group">
             <input
               type="number"
@@ -222,7 +236,7 @@ export default function Register() {
             />
           </div>
         )}
-        {main_sport === 'running' && (
+        {main_sport === "running" && (
           <div className="form-group">
             <input
               type="number"
@@ -234,7 +248,7 @@ export default function Register() {
             />
           </div>
         )}
-        {main_sport === 'cycling' && (
+        {main_sport === "cycling" && (
           <div className="form-group">
             <input
               type="number"
@@ -246,7 +260,7 @@ export default function Register() {
             />
           </div>
         )}
-        {main_sport === 'cycling' && (
+        {main_sport === "cycling" && (
           <div className="form-group">
             <input
               type="number"
@@ -259,7 +273,9 @@ export default function Register() {
           </div>
         )}
         <div>
-          <label style={{fontWeight: 'bold'}}>Foto de Perfil (Opcional):</label>
+          <label style={{ fontWeight: "bold" }}>
+            Foto de Perfil (Opcional):
+          </label>
           <input type="file" accept="image/*" onChange={onSelectFile} />
         </div>
 
@@ -273,9 +289,25 @@ export default function Register() {
               aspect={1}
               circularCrop
             >
-              <img ref={imgRef} alt="Crop me" src={imgSrc} onLoad={onImageLoad} style={{ maxHeight: '300px' }} />
+              <img
+                ref={imgRef}
+                alt="Crop me"
+                src={imgSrc}
+                onLoad={onImageLoad}
+                style={{ maxHeight: "300px" }}
+              />
             </ReactCrop>
-            <button type="button" onClick={handleSaveCrop} style={{marginTop: 10, padding: '5px 10px', background: 'green', color: 'white', border: 'none'}}>
+            <button
+              type="button"
+              onClick={handleSaveCrop}
+              style={{
+                marginTop: 10,
+                padding: "5px 10px",
+                background: "green",
+                color: "white",
+                border: "none",
+              }}
+            >
               Confirmar Recorte
             </button>
           </div>
@@ -283,13 +315,29 @@ export default function Register() {
 
         {/* Vista Previa Final */}
         {!!previewUrl && !imgSrc && (
-          <div style={{textAlign: 'center'}}>
-            <img src={previewUrl} alt="Avatar Previo" style={{width: 100, height: 100, borderRadius: '50%', border: '2px solid #ccc'}} />
+          <div style={{ textAlign: "center" }}>
+            <img
+              src={previewUrl}
+              alt="Avatar Previo"
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                border: "2px solid #ccc",
+              }}
+            />
           </div>
         )}
 
         {/* Canvas Oculto */}
-        <canvas ref={canvasRef} style={{ display: 'none', width: completedCrop?.width, height: completedCrop?.height }} />
+        <canvas
+          ref={canvasRef}
+          style={{
+            display: "none",
+            width: completedCrop?.width,
+            height: completedCrop?.height,
+          }}
+        />
 
         <div className="form-group">
           <select
@@ -298,7 +346,7 @@ export default function Register() {
             onChange={handleRegionChange}
             required
             // Asegúrate de definir esta clase en Register.css
-            className='register-select' 
+            className="register-select"
           >
             <option value="">Selecciona una Región</option>
             {/* Mapeamos las opciones usando tu array regionesYcomunas */}
@@ -318,8 +366,8 @@ export default function Register() {
             onChange={handleComunaChange}
             required
             // Deshabilitado si no hay región seleccionada
-            disabled={!region} 
-            className='register-select'
+            disabled={!region}
+            className="register-select"
           >
             <option value="">Selecciona una Comuna</option>
             {/* Mapeamos las comunas filtradas */}
@@ -338,9 +386,10 @@ export default function Register() {
         <Link to="/login" className="back-link">
           Volver a Login
         </Link>
-      </form>
+      </form> {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
 
       {error && <p className="error-message">{error}</p>}
+      
     </div>
   );
 }
