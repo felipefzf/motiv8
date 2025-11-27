@@ -71,22 +71,28 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (!token) return;
-    const s = io(`${API_URL}`, { auth: { token } });
-    setSocket(s);
+  
+useEffect(() => {
+  if (!token) return;
+  const s = io(`${API_URL}`, { auth: { token } });
+  setSocket(s);
 
-    s.on("missionCompleted", ({ missionId }) => {
-      console.log("Misión completada en grupo:", missionId);
-      fetchMisiones();
-    });
+  s.on("missionCompleted", ({ missionId }) => {
+    console.log("Misión completada en grupo:", missionId);
+    fetchMisiones();
+  });
 
-    s.on("pairingStatus", ({ missionId, users }) => {
-      setEmparejados((prev) => ({ ...prev, [missionId]: users }));
-    });
+  s.on("pairingStatus", ({ missionId, users }) => {
+    setEmparejados((prev) => ({ ...prev, [missionId]: users }));
+  });
 
-    return () => s.disconnect();
-  }, [token]);
+
+
+  return () => {
+    s.disconnect();
+  };
+}, [token]);
+
 
   useEffect(() => {
     if (!socket || misiones.length === 0) return;
@@ -116,6 +122,16 @@ export default function Home() {
       setMisiones(res.data.missions);
       setToastMessage("🎉 Recompensa reclamada");
       setToastKey((prev) => prev + 1);
+
+      
+    const nuevoNivel = res.data.stats?.nivelActual;
+    if (nuevoNivel && nuevoNivel > (user.nivel || 1)) {
+      setTimeout(() => {
+        setToastMessage(`🔥 ¡Subiste al nivel ${nuevoNivel}!`);
+        setToastKey((prev) => prev + 1);
+      }, 1000); // pequeño delay para no solapar toasts
+    }
+
 
       await axios.post(
         `${API_URL}/api/match/stop`,
