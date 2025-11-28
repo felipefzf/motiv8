@@ -1,0 +1,312 @@
+/* Contenedor principal del modal de eventos (equivalente a style del wrapper) */
+.form {
+  background-color: var(--card-bg, #111);
+  padding: 20px;
+  border-radius: 10px;
+  color: var(--text-color, #fff);
+}
+
+/* --- CABECERA: <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 20}}> --- */
+.eventsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* <h2 className={styles.title} style={{margin:0, fontSize:'1.5rem'}}> */
+.eventsTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+/* Botón "Volver a lista": 
+   style={{background:'none', border:'none', color:'#666', cursor:'pointer', textDecoration:'underline'}} 
+*/
+.backButton {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Botón "+ Crear Nuevo Evento":
+   style={{width: '100%', marginBottom: 20, backgroundColor: '#17a2b8'}}
+*/
+.createEventButton {
+  width: 100%;
+  margin-bottom: 20px;
+  background-color: #17a2b8;
+  color: #fff;
+}
+
+/* Contenedor lista de eventos:
+   style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}
+*/
+.eventsList {
+  max-height: 400px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Texto "Cargando..." -> style={{textAlign:'center'}} */
+.loadingText {
+  text-align: center;
+}
+
+/* Texto "No hay eventos próximos." -> style={{textAlign:'center', color:'#888'}} */
+.emptyText {
+  text-align: center;
+  color: #888;
+}
+
+/* Card de evento:
+   style={{border: '1px solid #ddd', borderRadius: 8, padding: 12, background: '#f9f9f9'}}
+*/
+.eventCard {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9f9f9;
+}
+
+/* Header de la card:
+   style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px dashed #ddd', paddingBottom: 10}}
+*/
+.eventCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #ddd;
+  padding-bottom: 10px;
+}
+
+/* Contenedor de título + tipo (no tenía estilo inline, pero es útil tenerlo) */
+.eventMainInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Título de evento:
+   style={{margin:'0 0 5px 0', color:'#333'}}
+*/
+.eventTitle {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+/* Badge de tipo:
+   style={{fontSize:'0.8em', background:'#e9ecef', padding:'2px 6px', borderRadius:4, color:'#555'}}
+*/
+.eventTypeBadge {
+  font-size: 0.8em;
+  background: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #555;
+}
+
+/* Bloque fecha:
+   style={{textAlign:'right', fontSize:'0.85em', color:'#666'}}
+*/
+.eventDateBlock {
+  text-align: right;
+  font-size: 0.85em;
+  color: #666;
+}
+
+/* Cuerpo de la card:
+   style={{marginTop: 10, fontSize: '0.9em', color: '#444'}}
+*/
+.eventBody {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #444;
+}
+
+/* Ruta:
+   style={{margin: '0px 0', backgroundColor:'#e9ecef', padding:'5px 10px', borderRadius:4}}
+*/
+.eventRoute {
+  margin: 0;
+  background-color: #e9ecef;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+/* Fila stats:
+   style={{display:'flex', gap: 10}}
+*/
+.eventStatsRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Contenedor botones editar/borrar:
+   style={{display: 'flex', gap: 10}}
+*/
+.manageButtons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Botón editar:
+   style={{border:'none', padding:'5px 10px', background:'#2259f1ff', cursor:'pointer'}}
+*/
+.iconButtonEdit {
+  border: none;
+  padding: 5px 10px;
+  background: #2259f1ff;
+  cursor: pointer;
+}
+
+/* Botón eliminar:
+   style={{border:'none', padding:'5px 10px', background:'#dc3545', cursor:'pointer'}}
+*/
+.iconButtonDelete {
+  border: none;
+  padding: 5px 10px;
+  background: #dc3545;
+  cursor: pointer;
+}
+
+/* Footer de la card:
+   style={{marginTop: 12, paddingTop: 10, borderTop:'1px dashed #ddd', display:'flex', justifyContent:'space-between', alignItems:'center'}}
+*/
+.eventFooter {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Botón ver asistentes:
+   style={{background: '#007bff',padding:'7px 15px', border: 'none', color: 'white', cursor: 'pointer', textDecoration: 'none', fontSize: '0.9rem'}}
+*/
+.attendeesButton {
+  background: #007bff;
+  padding: 7px 15px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+/* Botón asistir/cancelar:
+   style={{
+     padding: '6px 12px', 
+     borderRadius: 5, 
+     border: 'none', 
+     color: 'white', 
+     cursor: 'pointer',
+     fontWeight: 'bold',
+     backgroundColor: isJoined ? '#dc3545' : '#28a745'
+   }}
+   -> separo en base + variantes de color
+*/
+.joinButton {
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.joinButtonJoin {
+  background-color: #28a745;
+}
+
+.joinButtonCancel {
+  background-color: #dc3545;
+}
+
+
+.attendeesListWrapper {
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+
+.noAttendeesText {
+  margin: 0;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+
+.attendeesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+
+.attendeeItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  background-color: #e9ecef;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+
+.attendeeName {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+
+.eventsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+
+.flex1 {
+  flex: 1;
+}
+
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancelButton {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: crimson;
+  color: #fff;
+  font-weight: 600;
+}
+
+
+.submitButton {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: var(--accent-color, #28a745);
+  color: var(--btn-text, #fff);
+  font-weight: 600;
+}

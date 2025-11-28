@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './modal';
 import { useAuth } from '../context/authContext';
-// Reutilizamos los estilos del formulario de equipos para mantener consistencia
-import styles from './CreateTeamForm.module.css'; 
+import styles from './teamEventsModal.module.css'; 
 import API_URL from '../config';
 
 export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) {
@@ -11,14 +10,11 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
   const [loading, setLoading] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
-  
-  // Estado para controlar qué vista mostramos: 'list' (lista) o 'create' (formulario)
-  const [view, setView] = useState('list'); 
+  const [view, setView] = useState('list');
 
-  // Estado del formulario de creación
   const [formData, setFormData] = useState({
     title: '',
-    type: 'training', // valor por defecto
+    type: 'training',
     date: '',
     route: '',
     distance: '',
@@ -30,11 +26,10 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
     setExpandedEventId(prev => prev === eventId ? null : eventId);
   };
 
-  // Cargar eventos al abrir el modal
   useEffect(() => {
     if (isOpen && teamId) {
       fetchEvents();
-      setView('list'); // Siempre empezar en la lista
+      setView('list');
     }
   }, [isOpen, teamId]);
 
@@ -56,23 +51,20 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
     }
   };
 
-  // --- 2. FUNCIÓN PARA PREPARAR LA EDICIÓN ---
   const handleEditClick = (event) => {
-    setEditingEventId(event.id); // Guardamos el ID
-    // Llenamos el formulario con los datos actuales
+    setEditingEventId(event.id);
     setFormData({
       title: event.title,
       type: event.type,
-      date: event.date, // Asegúrate de que el formato coincida con el input datetime-local
+      date: event.date,
       route: event.route,
       distance: event.distance,
       speed: event.speed,
       duration: event.duration
     });
-    setView('create'); // Cambiamos a la vista de formulario
+    setView('create');
   };
 
-  // --- 3. FUNCIÓN PARA ELIMINAR ---
   const handleDelete = async (eventId) => {
     if (!window.confirm("¿Estás seguro de eliminar este evento?")) return;
     
@@ -82,7 +74,7 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
-      fetchEvents(); // Recargar lista
+      fetchEvents();
     } catch (error) {
       console.error(error);
     }
@@ -92,7 +84,6 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
     e.preventDefault();
     const token = localStorage.getItem('firebaseToken');
     
-    // Decidimos si es CREAR (POST) o EDITAR (PUT)
     const method = editingEventId ? 'PUT' : 'POST';
     const url = editingEventId 
       ? `${API_URL}/api/teams/${teamId}/events/${editingEventId}`
@@ -100,7 +91,7 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
 
     try {
       const response = await fetch(url, {
-        method: method,
+        method,
         headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}` 
@@ -112,9 +103,8 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
 
       alert(editingEventId ? "Evento actualizado" : "Evento creado");
       
-      // Resetear todo
       setFormData({ title: '', type: 'training', date: '', route: '', distance: '', speed: '', duration: '' });
-      setEditingEventId(null); // Limpiar modo edición
+      setEditingEventId(null);
       setView('list');
       fetchEvents();
 
@@ -123,12 +113,11 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
     }
   };
 
-  // Función auxiliar para resetear al volver
   const handleBackToList = () => {
     setFormData({ title: '', type: 'training', date: '', route: '', distance: '', speed: '', duration: '' });
     setEditingEventId(null);
     setView('list');
-  }
+  };
 
   const handleJoinToggle = async (eventId) => {
     const token = localStorage.getItem('firebaseToken');
@@ -137,13 +126,12 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` }
         });
-        fetchEvents(); // Recargar para actualizar el botón
+        fetchEvents();
     } catch (error) {
         console.error(error);
     }
   };
 
-  // Helper para renderizar la etiqueta del tipo de evento
   const getTypeLabel = (type) => {
       switch(type) {
           case 'social': return '☕ Social Ride';
@@ -156,108 +144,116 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className={styles.form}> 
         
-        {/* --- CABECERA --- */}
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 20}}>
-            <h2 className={styles.title} style={{margin:0, fontSize:'1.5rem'}}>
+        {/* CABECERA */}
+        <div className={styles.eventsHeader}>
+            <h2 className={`${styles.title} ${styles.eventsTitle}`}>
                 {view === 'create' ? (editingEventId ? 'Editar Evento' : 'Nuevo Evento') : 'Eventos del Equipo'}
             </h2>
-            {/* Botón "Volver" si estamos en crear */}
             {view === 'create' && (
-                <button onClick={() => setView('list')} style={{background:'none', border:'none', color:'#666', cursor:'pointer', textDecoration:'underline'}}>
+                <button 
+                  onClick={handleBackToList} 
+                  className={styles.backButton}
+                >
                     Volver a lista
                 </button>
             )}
         </div>
 
-        {/* --- VISTA 1: LISTA DE EVENTOS --- */}
+        {/* LISTA */}
         {view === 'list' && (
           <>
-            {/* Botón de Crear (Solo visible para el dueño) */}
             {canCreate && (
               <button 
                 onClick={() => { setEditingEventId(null); setView('create'); }}
-                className={styles.submitButton} 
-                style={{width: '100%', marginBottom: 20, backgroundColor: '#17a2b8'}}
+                className={` ${styles.createEventButton}`}
               >
                 + Crear Nuevo Evento
               </button>
             )}
             
-            <div style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {loading ? <p style={{textAlign:'center'}}>Cargando...</p> : events.length === 0 ? (
-                  <p style={{textAlign:'center', color:'#888'}}>No hay eventos próximos.</p>
+            <div className={styles.eventsList}>
+              {loading ? (
+                <p className={styles.loadingText}>Cargando...</p>
+              ) : events.length === 0 ? (
+                  <p className={styles.emptyText}>No hay eventos próximos.</p>
               ) : (
                   events.map(evt => {
                     const isJoined = evt.attendees?.includes(user.uid);
-                    const isExpanded = expandedEventId === evt.id; // ¿Está abierta esta lista?
+                    const isExpanded = expandedEventId === evt.id;
                     const canManage = canCreate || evt.createdBy === user.uid;
                     return (
-                      <div key={evt.id} style={{border: '1px solid #ddd', borderRadius: 8, padding: 12, background: '#f9f9f9'}}>
-                        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px dashed #ddd', paddingBottom: 10}}>
-                            <div>
-                                <h4 style={{margin:'0 0 5px 0', color:'#333'}}>{evt.title}</h4>
-                                <span style={{fontSize:'0.8em', background:'#e9ecef', padding:'2px 6px', borderRadius:4, color:'#555'}}>
+                      <div key={evt.id} className={styles.eventCard}>
+                        <div className={styles.eventCardHeader}>
+                            <div className={styles.eventMainInfo}>
+                                <h4 className={styles.eventTitle}>{evt.title}</h4>
+                                <span className={styles.eventTypeBadge}>
                                     {getTypeLabel(evt.type)}
                                 </span>
                             </div>
-                            {/* Fecha */}
-                            <div style={{textAlign:'right', fontSize:'0.85em', color:'#666'}}>
+                            <div className={styles.eventDateBlock}>
                                 <div>📅 {new Date(evt.date).toLocaleDateString()}</div>
                                 <div>⏰ {new Date(evt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                             </div>
                         </div>
 
-                        <div style={{marginTop: 10, fontSize: '0.9em', color: '#444'}}>
-                        
-                            <p style={{margin: '0px 0', backgroundColor:'#e9ecef', padding:'5px 10px', borderRadius:4}}>📍 <strong>Lugar de encuentro:</strong> {evt.route}</p>
-                            <br />
-                            <div style={{display:'flex', gap: 10}}>
+                        <div className={styles.eventBody}>
+                            <p className={styles.eventRoute}>
+                              📍 <strong>Lugar de encuentro:</strong> {evt.route}
+                            </p>
+
+                            <div className={styles.eventStatsRow}>
                                 <span>📏 {evt.distance} km</span>
                                 <span>⚡ {evt.speed} km/h</span>
                                 <span>⏱ {evt.duration} min</span>
-                              {canManage ? (
-                              <div style={{display: 'flex', gap: 10}}>
-                                <button onClick={() => handleEditClick(evt)} style={{border:'none', padding:'5px 10px', background:'#2259f1ff', cursor:'pointer'}}>✏️</button>
-                                <button onClick={() => handleDelete(evt.id)} style={{border:'none', padding:'5px 10px', background:'#dc3545', cursor:'pointer'}}>🗑️</button>
-                              </div>
-                          ) : null}
+
+                                {canManage && (
+                                  <div className={styles.manageButtons}>
+                                    <button 
+                                      onClick={() => handleEditClick(evt)} 
+                                      className={styles.iconButtonEdit}
+                                    >
+                                      ✏️
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDelete(evt.id)} 
+                                      className={styles.iconButtonDelete}
+                                    >
+                                      🗑️
+                                    </button>
+                                  </div>
+                                )}
                             </div>
                         </div>
                         
-                        <div style={{marginTop: 12, paddingTop: 10, borderTop:'1px dashed #ddd', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <div className={styles.eventFooter}>
                             <button 
                               onClick={() => toggleAttendees(evt.id)}
-                              style={{background: '#007bff',padding:'7px 15px', border: 'none', color: 'white', cursor: 'pointer', textDecoration: 'none', fontSize: '0.9rem'}}
+                              className={styles.attendeesButton}
                             >
                               👥 {evt.attendees?.length || 0} confirmados {isExpanded ? '▲' : '▼'}
                             </button>
 
                             <button 
                               onClick={() => handleJoinToggle(evt.id)}
-                              style={{
-                                padding: '6px 12px', 
-                                borderRadius: 5, 
-                                border: 'none', 
-                                color: 'white', 
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                backgroundColor: isJoined ? '#dc3545' : '#28a745'
-                              }}
+                              className={
+                                isJoined 
+                                  ? `${styles.joinButton} ${styles.joinButtonCancel}`
+                                  : `${styles.joinButton} ${styles.joinButtonJoin}`
+                              }
                             >
                               {isJoined ? 'Cancelar Asistencia' : 'Asistir'}
                             </button>
                         </div>
-                        {isExpanded && (
-                          <div style={{marginTop: 10, borderRadius: 5 }}>
-                              {(!evt.attendeesDetails || evt.attendeesDetails.length === 0) ? (
-                                  <p style={{margin:0, fontStyle:'italic', fontSize:'0.8rem'}}>Aún no hay asistentes.</p>
-                              ) : (
-                                  <ul style={{listStyle: 'none', padding: 0, margin: 0}}>
-                                    {evt.attendeesDetails.map(att => (
-                                      <li key={att.uid} style={{display:'flex', alignItems:'center', gap: 10, marginBottom: 5, backgroundColor:'#e9ecef', padding:'5px 10px', borderRadius:4}}>
-                                          {/* NOMBRE */}
-                                          <span style={{fontSize: '0.9rem', color: '#333'}}>{att.name}</span>
 
+                        {isExpanded && (
+                          <div className={styles.attendeesListWrapper}>
+                              {(!evt.attendeesDetails || evt.attendeesDetails.length === 0) ? (
+                                  <p className={styles.noAttendeesText}>Aún no hay asistentes.</p>
+                              ) : (
+                                  <ul className={styles.attendeesList}>
+                                    {evt.attendeesDetails.map(att => (
+                                      <li key={att.uid} className={styles.attendeeItem}>
+                                          <span className={styles.attendeeName}>{att.name}</span>
                                       </li>
                                     ))}
                                   </ul>
@@ -272,9 +268,9 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
           </>
         )}
 
-        {/* --- VISTA 2: FORMULARIO DE CREACIÓN --- */}
+        {/* FORMULARIO */}
         {view === 'create' && (
-          <form onSubmit={handleFormSubmit} style={{display:'flex', flexDirection:'column', gap: 15}}>
+          <form onSubmit={handleFormSubmit} className={styles.eventsForm}>
             
             <div className={styles.inputGroup}>
                 <label>Título del Evento</label>
@@ -292,7 +288,7 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
                 <select 
                     value={formData.type} 
                     onChange={e => setFormData({...formData, type: e.target.value})}
-                    style={{width:'100%', padding: 10, borderRadius: 5, border: '1px solid #ccc'}}
+                    className={styles.select}
                 >
                     <option value="training">Entrenamiento</option>
                     <option value="social">Social Ride (Paseo)</option>
@@ -321,25 +317,48 @@ export default function TeamEventsModal({ isOpen, onClose, teamId, canCreate }) 
                 />
             </div>
 
-            <div style={{display:'flex', gap: 10}}>
-                <div className={styles.inputGroup} style={{flex:1}}>
+            <div className={styles.row}>
+                <div className={`${styles.inputGroup} ${styles.flex1}`}>
                     <label>Distancia (km)</label>
-                    <input type="number" value={formData.distance} onChange={e => setFormData({...formData, distance: e.target.value})} />
+                    <input 
+                      type="number" 
+                      value={formData.distance} 
+                      onChange={e => setFormData({...formData, distance: e.target.value})} 
+                    />
                 </div>
-                <div className={styles.inputGroup} style={{flex:1}}>
+                <div className={`${styles.inputGroup} ${styles.flex1}`}>
                     <label>Vel. Prom. (km/h)</label>
-                    <input type="number" value={formData.speed} onChange={e => setFormData({...formData, speed: e.target.value})} />
+                    <input 
+                      type="number" 
+                      value={formData.speed} 
+                      onChange={e => setFormData({...formData, speed: e.target.value})} 
+                    />
                 </div>
             </div>
             
             <div className={styles.inputGroup}>
                 <label>Duración Estimada (min)</label>
-                <input type="number" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} />
+                <input 
+                  type="number" 
+                  value={formData.duration} 
+                  onChange={e => setFormData({...formData, duration: e.target.value})} 
+                />
             </div>
 
             <div className={styles.buttonContainer}>
-                <button type="button" onClick={() => setView('list')} className={styles.cancelButton}>Cancelar</button>
-                <button type="submit" className={styles.submitButton}>Publicar Evento</button>
+                <button 
+                  type="button" 
+                  onClick={handleBackToList} 
+                  className={styles.cancelButton}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className={styles.submitButton}
+                >
+                  Publicar Evento
+                </button>
             </div>
           </form>
         )}
