@@ -6,6 +6,7 @@ import Modal from "../components/modal.jsx";
 import API_URL from '../config';
 import EditTeamForm from './editTeamModal.jsx';
 import DefaultTeamLogo from '../assets/default-team-logo-500.png';
+import TeamEventsModal from './teamEventsModal.jsx'; // Importar
 
 function MyTeamInfo({ setTeamColor }) {
   const { user, refreshUser } = useAuth();
@@ -16,6 +17,10 @@ function MyTeamInfo({ setTeamColor }) {
   const [toastMessage, setToastMessage] = useState("");
   const [toastKey, setToastKey] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isEventsModalOpen, setIsEventsModalOpen] = useState(false);
+  const [memberToEdit, setMemberToEdit] = useState(null); // Guarda el objeto del miembro a editar
+  const [newRole, setNewRole] = useState(''); // Guarda el rol seleccionado en el select
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Estado del modal
 
@@ -58,6 +63,40 @@ function MyTeamInfo({ setTeamColor }) {
       resetAccentToDefault();
       if (typeof setTeamColor === "function") setTeamColor("");
       localStorage.removeItem("teamColor"); // elimina del storage
+    }
+  };
+
+  const openRoleEditor = (member) => {
+    setMemberToEdit(member);
+    setNewRole(member.team_role || 'Miembro'); // Pre-selecciona el actual
+    setIsRoleModalOpen(true);
+  };
+
+  // --- NUEVA FUNCIÓN: Guardar Rol ---
+  const handleSaveRole = async () => {
+    if (!memberToEdit || !newRole) return;
+    const token = localStorage.getItem('firebaseToken');
+
+    try {
+      const response = await fetch(`/api/teams/${teamData.id}/members/${memberToEdit.uid}/role`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ newRole })
+      });
+
+      if (!response.ok) throw new Error(await response.text());
+
+      alert(`Rol de ${memberToEdit.name} actualizado a ${newRole}`);
+      setIsRoleModalOpen(false);
+      
+      // Recargar datos para ver el cambio (puedes llamar a fetchMyTeam o recargar página)
+      window.location.reload(); 
+
+    } catch (error) {
+      alert(error.message);
     }
   };
 
@@ -163,6 +202,14 @@ function MyTeamInfo({ setTeamColor }) {
   if (!teamData) return <p>No pertences.</p>;
 
   const isOwner = user?.uid === teamData.owner_uid; // Verificar si es el dueño
+  const myMemberData = teamData.members?.find(m => m.uid === user.uid);
+  const myRole = myMemberData ? myMemberData.role : '';
+
+  console.log({myMemberData})
+  console.log(">>> Debug Rol:", { soyOwner: isOwner, miRol: myRole });
+
+  // ¿Puedo crear eventos? (Líder, Comandante o Veterano)
+  const canCreateEvents = isOwner || myRole === 'Comandante' || myRole === 'Veterano';
   const val = (value, unit) => (value ? `${value} ${unit}` : "--");
 
   return (
@@ -198,7 +245,14 @@ function MyTeamInfo({ setTeamColor }) {
         </button>
       )}
     </div>
-  </div>
+      <button 
+      onClick={() => setIsEventsModalOpen(true)} 
+      className={styles.button} 
+      style={{background: '#17a2b8', color: 'white', marginRight: 10}}
+      >
+        Eventos del Equipo
+      </button>
+    </div>
 
   {/* --- 2. CARD DE REQUERIMIENTOS --- */}
   <div className={styles.requirementsCard}>
@@ -253,6 +307,18 @@ function MyTeamInfo({ setTeamColor }) {
                     </span>
                   )}
                 </span>
+                
+
+              {isOwner && member.uid !== user.uid && (
+                <button 
+                  onClick={() => openRoleEditor(member)}
+                  className={styles.memberYouBadge}
+                  style={{padding: '3px 8px'}}
+                  title="Editar Rol"
+                >
+                  ✏️
+                </button>
+              )}
 
                 {member.uid === user.uid && (
                   <span className={styles.memberYouBadge}>Tú</span>
@@ -263,6 +329,8 @@ function MyTeamInfo({ setTeamColor }) {
                 {member.role}
               </span>
             </div>
+
+            
           </li>
         ))}
       </ul>
@@ -282,6 +350,43 @@ function MyTeamInfo({ setTeamColor }) {
           onTeamUpdated={handleTeamUpdated}
         />
       </Modal>
+
+      <Modal isOpen={isRoleModalOpen} onClose={() => setIsRoleModalOpen(false)}>
+        <div style={{padding: 20, textAlign: 'center', minWidth: 300}}>
+          <h3 style={{marginTop: 0, color: '#333'}}>Editar Rol</h3>
+          <p>Miembro: <strong>{memberToEdit?.name}</strong></p>
+          
+          <div style={{margin: '20px 0', textAlign: 'left'}}>
+            <label style={{display: 'block', marginBottom: 5, fontWeight: 'bold'}}>Seleccionar nuevo rol:</label>
+            <select 
+              value={newRole} 
+              onChange={(e) => setNewRole(e.target.value)}
+              style={{width: '100%', padding: 10, borderRadius: 5, border: '1px solid #ccc'}}
+            >
+              <option value="Miembro">Miembro</option>
+              <option value="Veterano">Veterano</option>
+              <option value="Comandante">Comandante</option>
+              {/* Puedes añadir los roles que quieras */}
+            </select>
+          </div>
+
+          <div style={{display: 'flex', justifyContent: 'flex-end', gap: 10}}>
+            <button onClick={() => setIsRoleModalOpen(false)} className={`${styles.button} ${styles.cancelButton}`}>
+              Cancelar
+            </button>
+            <button onClick={handleSaveRole} className={`${styles.createButton}`}>
+              Guardar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <TeamEventsModal 
+        isOpen={isEventsModalOpen} 
+        onClose={() => setIsEventsModalOpen(false)}
+        teamId={teamData.id}
+        canCreate={canCreateEvents}
+      />
 
       {showConfirmModal && (
         <Modal isOpen={true} onClose={() => setShowConfirmModal(false)}>

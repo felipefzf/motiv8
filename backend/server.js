@@ -1087,6 +1087,70 @@ app.get("/api/teams/:teamId/details", verifyToken, async (req, res) => {
   }
 });
 
+// Ruta para cambiar el rol de un miembro
+app.put('/api/teams/:teamId/members/:memberId/role', verifyToken, express.json(), async (req, res) => {
+  const { teamId, memberId } = req.params;
+  const { newRole } = req.body;
+  const user = req.user;
+
+  try {
+    const teamRef = db.collection('teams').doc(teamId);
+    const teamDoc = await teamRef.get();
+
+    if (!teamDoc.exists) return res.status(404).send('Equipo no encontrado');
+
+    const teamData = teamDoc.data();
+
+    // Validar Permisos
+    if (teamData.owner_uid !== user.uid) {
+      return res.status(403).send('Solo el líder puede gestionar roles.');
+    }
+
+    // --- DEBUGGING LOGS ---
+    console.log(`Intentando cambiar rol de: ${memberId} a ${newRole}`);
+    console.log("Miembros actuales en DB:", JSON.stringify(teamData.members));
+    // ---------------------
+
+    let memberFound = false;
+
+    // Actualizar el array
+    const updatedMembers = teamData.members.map(member => {
+      // 1. Hacemos que funcione con 'uid' O 'member_uid' (para arreglar datos viejos)
+      const currentMemberId = member.uid || member.member_uid;
+
+      // 2. Comparamos
+      if (currentMemberId === memberId) {
+        memberFound = true;
+        console.log("✅ ¡Miembro encontrado! Actualizando rol...");
+        
+        // Retornamos el objeto actualizado
+        // Aseguramos estandarizar a 'uid' de ahora en adelante
+        return { 
+          uid: currentMemberId, 
+          role: newRole 
+        };
+      }
+      return member; // Dejar igual si no es el usuario
+    });
+
+    if (!memberFound) {
+      console.error("❌ ERROR: El ID del miembro no coincide con nadie en el array.");
+      // Aunque devolvamos 200, sabremos por la consola por qué no cambió
+    }
+
+    // Guardar en Firestore (Sobrescribir el array viejo con el nuevo)
+    await teamRef.update({
+      members: updatedMembers
+    });
+
+    res.status(200).json({ message: 'Rol actualizado', members: updatedMembers });
+
+  } catch (error) {
+    console.error("Error al cambiar rol:", error);
+    res.status(500).send('Error interno al cambiar rol.');
+  }
+});
+
 // Salir de un equipo (ELIMINAR si eres el dueño)
 app.delete("/api/teams/leave", verifyToken, async (req, res) => {
   const user = req.user; // Obtenido del verifyToken (contiene uid, id_team, team_member)
@@ -1168,6 +1232,189 @@ app.delete("/api/teams/leave", verifyToken, async (req, res) => {
   } catch (error) {
     console.error("Error al salir del equipo:", error);
     res.status(500).send(error.message || "Error interno al salir del equipo.");
+  }
+});
+
+// 1. CREAR EVENTO (Solo Líder)
+app.post('/api/teams/:teamId/events', verifyToken, express.json(), async (req, res) => {
+  const { teamId } = req.params;
+  const { title, type, route, date, duration, distance, speed } = req.body;
+  const user = req.user;
+
+  try {
+    // Verificar si es el líder
+    const teamDoc = await db.collection('teams').doc(teamId).get();
+    if (!teamDoc.exists) return res.status(404).send('Equipo no encontrado');
+    
+    if (teamDoc.data().owner_uid !== user.uid) {
+      return res.status(403).send('Solo el líder puede crear eventos.');
+    }
+
+    const memberRecord = teamData.members.find(m => (m.uid || m.member_uid) === user.uid);
+    const userRole = memberRecord ? memberRecord.team_role : '';
+
+    // 2. Definimos quién tiene permiso
+    // Es el dueño O tiene rol de Comandante O tiene rol de Veterano
+    const isOwner = teamData.owner_uid === user.uid;
+    const hasPermission = isOwner || userRole === 'Comandante' || userRole === 'Veterano';
+
+    if (!hasPermission) {
+      return res.status(403).send('No tienes permisos para crear eventos (Se requiere rango de Veterano o superior).');
+    }
+
+    const newEvent = {
+      title,
+      type, // 'social', 'training', 'race'
+      route,
+      date, // ISO String
+      duration, // minutos
+      distance, // km
+      speed, // km/h
+      createdBy: user.uid,
+      attendees: [user.uid], // El creador va por defecto
+      teamName: teamDoc.data().team_name, // Guardamos el nombre del equipo para mostrarlo fácil en el perfil
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    // Guardar en sub-colección 'events' dentro del equipo
+    await db.collection('teams').doc(teamId).collection('events').add(newEvent);
+
+    res.status(201).json({ message: 'Evento creado' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error al crear evento');
+  }
+});
+
+// 2. LISTAR EVENTOS DEL EQUIPO
+app.get('/api/teams/:teamId/events', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  try {
+    const snapshot = await db.collection('teams').doc(teamId).collection('events')
+      .orderBy('date', 'asc')
+      .get();
+
+    // Usamos Promise.all para procesar todos los eventos en paralelo
+    const eventsWithAttendees = await Promise.all(snapshot.docs.map(async (doc) => {
+      const eventData = doc.data();
+      const attendeesUIDs = eventData.attendees || [];
+      
+      // --- Lógica para obtener detalles de usuarios ---
+      let attendeesDetails = [];
+      if (attendeesUIDs.length > 0) {
+        const userPromises = attendeesUIDs.map(uid => db.collection('users').doc(uid).get());
+        const userDocs = await Promise.all(userPromises);
+        
+        attendeesDetails = userDocs.map(userDoc => {
+          if (userDoc.exists) {
+            const uData = userDoc.data();
+            return {
+              uid: userDoc.id,
+              name: uData.name || 'Usuario',
+              photo: uData.profile_image_url || null // Para mostrar la foto pequeña
+            };
+          }
+          return null;
+        }).filter(u => u !== null); // Filtrar usuarios eliminados
+      }
+      // -----------------------------------------------
+
+      return { 
+        id: doc.id, 
+        ...eventData,
+        attendeesDetails // <-- Enviamos el nuevo array con nombres y fotos
+      };
+    }));
+
+    res.status(200).json(eventsWithAttendees);
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error al cargar eventos');
+  }
+});
+
+// 3. UNIRSE / SALIR DE EVENTO
+app.post('/api/events/:teamId/:eventId/toggle-join', verifyToken, async (req, res) => {
+  const { teamId, eventId } = req.params;
+  const user = req.user;
+
+  try {
+    const eventRef = db.collection('teams').doc(teamId).collection('events').doc(eventId);
+    const doc = await eventRef.get();
+    
+    if (!doc.exists) return res.status(404).send('Evento no encontrado');
+
+    const attendees = doc.data().attendees || [];
+    const isJoined = attendees.includes(user.uid);
+
+    if (isJoined) {
+      await eventRef.update({
+        attendees: admin.firestore.FieldValue.arrayRemove(user.uid)
+      });
+      res.json({ message: 'Has salido del evento', joined: false });
+    } else {
+      await eventRef.update({
+        attendees: admin.firestore.FieldValue.arrayUnion(user.uid)
+      });
+      res.json({ message: 'Te uniste al evento', joined: true });
+    }
+  } catch (e) {
+    res.status(500).send('Error al unirse al evento');
+  }
+});
+
+// 4. OBTENER MIS PRÓXIMOS EVENTOS (Para el Perfil)
+app.get('/api/user/events', verifyToken, async (req, res) => {
+  const user = req.user;
+  try {
+    // "Collection Group Query": Busca en TODAS las colecciones llamadas 'events'
+    // donde el usuario esté en la lista de asistentes.
+    const snapshot = await db.collectionGroup('events')
+      .where('attendees', 'array-contains', user.uid)
+      .where('date', '>=', new Date().toISOString()) // Solo eventos futuros
+      .orderBy('date', 'asc')
+      .get();
+
+    const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.status(200).json(events);
+  } catch (e) {
+    console.error(e);
+    // NOTA: Si falla, mira la terminal. Firebase te pedirá crear un Índice.
+    res.status(500).send('Error al cargar tus eventos');
+  }
+});
+
+// 5. EDITAR EVENTO
+app.put('/api/teams/:teamId/events/:eventId', verifyToken, express.json(), async (req, res) => {
+  const { teamId, eventId } = req.params;
+  const { title, type, route, date, duration, distance, speed } = req.body;
+  
+  try {
+    const eventRef = db.collection('teams').doc(teamId).collection('events').doc(eventId);
+    
+    // Actualizamos solo los campos necesarios
+    await eventRef.update({
+      title, type, route, date, duration, distance, speed,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.status(200).json({ message: 'Evento actualizado' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error al actualizar evento');
+  }
+});
+
+// 6. ELIMINAR EVENTO
+app.delete('/api/teams/:teamId/events/:eventId', verifyToken, async (req, res) => {
+  const { teamId, eventId } = req.params;
+
+  try {
+    await db.collection('teams').doc(teamId).collection('events').doc(eventId).delete();
+    res.status(200).json({ message: 'Evento eliminado' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).send('Error al eliminar evento');
   }
 });
 

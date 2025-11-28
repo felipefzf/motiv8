@@ -32,6 +32,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
   const [isAvatarModalOpen, setAvatarModalOpen] = useState(false);
   const [isInfoModalOpen, setInfoModalOpen] = useState(false);
   const [isInventoryModalOpen, setInventoryModalOpen] = useState(false);
+  const [myEvents, setMyEvents] = useState([]);
 
   const [activities, setActivities] = useState([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
@@ -41,6 +42,18 @@ export default function Profile({ toggleTheme, setTeamColor }) {
 
   const [isRewardModalOpen, setRewardModalOpen] = useState(false);
   const [isGoalsModalOpen, setGoalsModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('firebaseToken');
+    
+    fetch(`${API_URL}/api/user/events`, {
+        headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => setMyEvents(data))
+    .catch(console.error);
+  }, [user]);
 
   // ⚡ Cargar tema desde localStorage
   useEffect(() => {
@@ -339,6 +352,18 @@ export default function Profile({ toggleTheme, setTeamColor }) {
               Reclama tu recompensa 🎁
             </button>
           )}          
+
+          <h3 className="section-title">Próximos Eventos</h3>
+              <div style={{display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10}}>
+                  {myEvents.length === 0 ? <p style={{fontStyle:'italic'}}>No tienes eventos próximos.</p> : myEvents.map(ev => (
+                      <div key={ev.id} style={{minWidth: 200, background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #ddd', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
+                          <h5 style={{margin: '0 0 5px 0', color: '#0056b3'}}>{ev.title}</h5>
+                          <small style={{display:'block', color: '#666'}}>{ev.teamName}</small>
+                          <p style={{fontSize:'0.9em', fontWeight:'bold'}}>📅 {new Date(ev.date).toLocaleDateString()}</p>
+                          <p style={{fontSize:'0.8em'}}>📍 {ev.route}</p>
+                      </div>
+                  ))}
+              </div>
 
           <br />
           <p>
