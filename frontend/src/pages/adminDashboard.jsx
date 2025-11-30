@@ -17,7 +17,18 @@ function AdminDashboard() {
   const [itemForm, setItemForm] = useState(initialItemState);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [editingItemId, setEditingItemId] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastKey, setToastKey] = useState(0);
 
+
+  
+
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setToastKey((k) => k + 1);
+  };
   // --- Helper para obtener token ---
   const getToken = () => {
     const token = localStorage.getItem("firebaseToken");
@@ -57,9 +68,14 @@ function AdminDashboard() {
     const token = getToken();
     if (!token) return;
 
+    const method = editingItemId ? "PUT" : "POST";
+    const url = editingItemId
+      ? `${API_URL}/api/shop/items/${editingItemId}`
+      : `${API_URL}/api/shop/items`;
+
     try {
-      const response = await fetch(`${API_URL}/api/shop/items`, {
-        method: "POST",
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -68,10 +84,15 @@ function AdminDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error("Error al crear el ítem.");
+        throw new Error(
+          editingItemId
+            ? "Error al actualizar el ítem."
+            : "Error al crear el ítem."
+        );
       }
 
       setItemForm(initialItemState);
+      setEditingItemId(null); // salir del modo edición
       fetchItems();
     } catch (err) {
       console.error(err);
@@ -105,10 +126,12 @@ function AdminDashboard() {
         throw new Error(data.error || "Error al eliminar el ítem.");
       }
 
+      showToast("🗑️ Ítem eliminado con éxito");
       fetchItems();
     } catch (err) {
       console.error(err);
       setError(err.message);
+      showToast("❌ Error al eliminar el ítem");
     }
   };
 
@@ -189,6 +212,27 @@ function AdminDashboard() {
             {i.name} - {i.price} Coins ({i.type})
             <div className={styles.listItemButtons}>
               <button
+                onClick={() => {
+                  setItemForm(i); // carga datos en el formulario
+                  setEditingItemId(i.id); // activa modo edición
+                }}
+                className={`${styles.button} ${styles.editButton}`}
+              >
+                Editar
+              </button>
+              {editingItemId && (
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => {
+                    setItemForm(initialItemState);
+                    setEditingItemId(null);
+                  }}
+                >
+                  Cancelar edición
+                </button>
+              )}
+              <button
                 onClick={() => handleDelete(i.id)}
                 className={`${styles.button} ${styles.deleteButton}`}
               >
@@ -198,6 +242,8 @@ function AdminDashboard() {
           </li>
         ))}
       </ul>
+      {toastMessage && <LiveToast key={toastKey} message={toastMessage} />}
+
     </div>
   );
 }

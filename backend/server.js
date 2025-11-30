@@ -2113,6 +2113,58 @@ app.post("/api/shop/purchase", verifyToken, async (req, res) => {
   }
 });
 
+app.put("/api/shop/items/:id", verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+  const {
+    name,
+    description,
+    price,
+    imageUrl,
+    type,
+    durationMin,
+  } = req.body;
+
+  // Validación básica
+  if (!name || !description || !price || !type) {
+    return res.status(400).json({ error: "Faltan campos obligatorios." });
+  }
+
+  try {
+    const itemRef = db.collection("shop_items").doc(id);
+
+    const updatedData = {
+      name,
+      description,
+      price: Number(price),
+      imageUrl: imageUrl || "",
+      type,
+      durationMin: durationMin ? Number(durationMin) : null,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await itemRef.update(updatedData);
+
+    res.status(200).json({ message: "Ítem actualizado con éxito", id });
+  } catch (error) {
+    console.error("Error al actualizar ítem:", error);
+    res.status(500).json({ error: "Error interno al actualizar el ítem." });
+  }
+});
+
+app.delete("/api/shop/items/:id", verifyToken, isAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const itemRef = db.collection("shop_items").doc(id);
+    await itemRef.delete();
+
+    res.status(200).json({ message: "Ítem eliminado con éxito", id });
+  } catch (error) {
+    console.error("Error al eliminar ítem:", error);
+    res.status(500).json({ error: "Error interno al eliminar el ítem." });
+  }
+});
+
 //--- MATCH
 const missionGroups = {};
 const missionEvents = {}; // { missionId: [ { uid, message, timestamp } ] }
