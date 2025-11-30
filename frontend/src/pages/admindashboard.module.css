@@ -6,6 +6,7 @@
   margin: 0 auto;
   margin-top: 35px;
   padding-bottom: 80px; /* espacio para navbar fijo */
+  overflow-x: hidden;
 }
 
 .form {
@@ -87,16 +88,19 @@
   margin-bottom: 10px;
   border-radius: 8px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 15px;
   color: var(--text-color);
 }
 
+.listItemInfo {
+  flex-grow: 1;
+}
+
 .listItemButtons {
   display: flex;
-  gap: 10px;
-  flex-shrink: 0;
+  gap: 5px;
+  flex-shrink: 3;
 }
 
 .error {
