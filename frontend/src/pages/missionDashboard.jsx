@@ -177,7 +177,7 @@ function MissionDashboard() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h2 style={{ color: '#0056b3', marginRight: '20px' }}>Administador de Misiones</h2>
+        <h2 className={styles.title}>Administador de Misiones</h2>
         {/* Botón "Crear" siempre visible */}
         <button onClick={openCreateModal} className={`${styles.button} ${styles.createButton}`}>
           Crear Misión
@@ -191,7 +191,7 @@ function MissionDashboard() {
           {missions.map(mission => (
             <li key={mission.id} className={styles.listItem}>
               <div className={styles.missionInfo}>
-                <h3 style={{ color: '#0056b3' }}>{mission.name}</h3>
+                <h3 className={styles.missionName}>{mission.name}</h3>
                 <p><strong>Descripción:</strong> {mission.description}</p>
                 <p><strong>Objetivo:</strong> {mission.targetValue} {mission.unit} ({mission.type})</p>
                 <p><strong>Recompensa:</strong> {mission.reward}</p>
