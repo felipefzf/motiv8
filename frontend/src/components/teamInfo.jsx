@@ -389,8 +389,8 @@ function MyTeamInfo({ setTeamColor }) {
       >
         <div className={styles.roleModal}>
           <h3 className={styles.roleModalTitle}>Editar Rol</h3>
-          <p className={styles.roleModalMember}>
-            Miembro: <strong>{memberToEdit?.name}</strong>
+          <p >
+            Miembro: <strong className={styles.roleModalMember}>{memberToEdit?.name}</strong>
           </p>
 
           <div className={styles.roleModalField}>

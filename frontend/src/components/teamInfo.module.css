@@ -1,4 +1,3 @@
-/* === Teams Container === */
 .container {
   background-color: var(--card-bg);
   color: var(--text-color);
@@ -13,20 +12,18 @@
   max-width: 100vw;
   box-sizing: border-box;
   overflow-y: auto;
-  overflow-x: hidden; /* evita scroll horizontal */
+  overflow-x: hidden;
 }
 
-/* === HEADER: IMAGEN + TÍTULO + BOTONES === */
 .headerSection {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 20px;
   margin-bottom: 20px;
-  flex-wrap: nowrap; /* en escritorio se mantiene horizontal */
+  flex-wrap: nowrap; 
 }
 
-/* Columna izquierda: imagen */
 .headerLeft {
   flex-shrink: 0;
   display: flex;
@@ -34,12 +31,11 @@
   align-items: center;
 }
 
-/* Imagen responsive, pero manteniendo look en escritorio */
 .teamLogo,
 .teamLogoDefault {
   width: 220px;
   height: 220px;
-  max-width: 45vw;  /* en pantallas pequeñas se reduce */
+  max-width: 45vw; 
   max-height: 45vw;
   object-fit: cover;
   border-radius: 50%;
@@ -48,7 +44,6 @@
   display: block;
 }
 
-/* Columna derecha: título + botones */
 .headerRight {
   flex: 1 1 0;
   display: flex;
@@ -59,7 +54,6 @@
   min-width: 0;
 }
 
-/* Título (misma posición, alineado a la izquierda) */
 .teamName {
   font-weight: bold;
   font-size: 1.8rem;
@@ -68,14 +62,12 @@
   word-break: break-word;
 }
 
-/* Contenedor de botones debajo del título */
 .headerButtons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-/* Botón Editar Equipo */
 .editButton {
   padding: 6px 12px;
   font-size: 0.9rem;
@@ -91,7 +83,6 @@
   transform: scale(1.05);
 }
 
-/* Botón Eventos del Equipo */
 .eventsButton {
   padding: 8px 14px;
   border-radius: 6px;
@@ -107,11 +98,6 @@
   transform: scale(1.05);
 }
 
-/* ===================== */
-/*  MEDIA QUERIES        */
-/* ===================== */
-
-/* En pantallas medianas: reducimos un poco la imagen y el título */
 @media (max-width: 900px) {
   .teamLogo,
   .teamLogoDefault {
@@ -127,7 +113,6 @@
 }
 
 
-/* ====== RESTO DE ESTILOS QUE YA TENÍAS ====== */
 
 .teamList {
   list-style: none;
@@ -164,7 +149,6 @@
   padding: 15px;
 }
 
-/* === Sección color del equipo === */
 .colorSection {
   display: flex;
   align-items: center;
@@ -242,13 +226,24 @@
 }
 
 .createButton {
-  background-color: var(--info);
+  background-color: var(--accent-color);
   color: var(--btn-text);
   margin-top: 10px;
 }
 
 .createButton:hover {
-  background-color: var(--info-hover);
+  background-color: var(--accent-color);
+  transform: scale(1.05);
+}
+
+.cancelButton {
+  background-color: crimson;
+  color: var(--btn-text);
+  margin-top: 10px;
+}
+
+.cancelButton:hover {
+  background-color: crimson;
   transform: scale(1.05);
 }
 
@@ -423,4 +418,44 @@
 
 .crown {
   font-size: 1rem;
+}
+
+.roleModal{
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.roleModalTitle{
+  color: var(--accent-color);
+  margin-bottom: 10px;
+}
+
+.roleModalMember{
+  margin-top: auto;
+  padding: auto;
+  color: var(--accent-color);
+}
+
+.roleModalLabel{
+  font-weight: bold;
+}
+
+.roleModalSelect{
+  width: 90%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.roleModalActions{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }

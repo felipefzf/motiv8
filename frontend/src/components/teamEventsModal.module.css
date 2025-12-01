@@ -31,9 +31,7 @@
   text-decoration: underline;
 }
 
-/* Botón "+ Crear Nuevo Evento":
-   style={{width: '100%', marginBottom: 20, backgroundColor: '#17a2b8'}}
-*/
+
 .createEventButton {
   width: 100%;
   margin-bottom: 20px;
@@ -41,9 +39,7 @@
   color: #fff;
 }
 
-/* Contenedor lista de eventos:
-   style={{ maxHeight: '400px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}
-*/
+
 .eventsList {
   max-height: 400px;
   overflow-y: auto;
@@ -52,20 +48,16 @@
   gap: 10px;
 }
 
-/* Texto "Cargando..." -> style={{textAlign:'center'}} */
 .loadingText {
   text-align: center;
 }
 
-/* Texto "No hay eventos próximos." -> style={{textAlign:'center', color:'#888'}} */
 .emptyText {
   text-align: center;
   color: #888;
 }
 
-/* Card de evento:
-   style={{border: '1px solid #ddd', borderRadius: 8, padding: 12, background: '#f9f9f9'}}
-*/
+
 .eventCard {
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -73,9 +65,7 @@
   background: #f9f9f9;
 }
 
-/* Header de la card:
-   style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px dashed #ddd', paddingBottom: 10}}
-*/
+
 .eventCardHeader {
   display: flex;
   justify-content: space-between;
@@ -84,23 +74,18 @@
   padding-bottom: 10px;
 }
 
-/* Contenedor de título + tipo (no tenía estilo inline, pero es útil tenerlo) */
 .eventMainInfo {
   display: flex;
   flex-direction: column;
 }
 
-/* Título de evento:
-   style={{margin:'0 0 5px 0', color:'#333'}}
-*/
+
 .eventTitle {
   margin: 0 0 5px 0;
   color: #333;
 }
 
-/* Badge de tipo:
-   style={{fontSize:'0.8em', background:'#e9ecef', padding:'2px 6px', borderRadius:4, color:'#555'}}
-*/
+
 .eventTypeBadge {
   font-size: 0.8em;
   background: #e9ecef;
