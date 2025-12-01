@@ -17,7 +17,7 @@
   padding: 0 16px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-
+  
 }
 
 .header-left {
@@ -32,7 +32,8 @@
   right: 0;
   text-align: center;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: bold;
+
 }
 
 /* 🔹 Aseguramos que nada del header “ensucie” los botones */

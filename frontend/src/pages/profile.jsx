@@ -354,13 +354,14 @@ export default function Profile({ toggleTheme, setTeamColor }) {
           )}          
 
           <h3 className="section-title">Próximos Eventos</h3>
-              <div style={{display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10}}>
+          <br />
+              <div className="events-container">
                   {myEvents.length === 0 ? <p style={{fontStyle:'italic'}}>No tienes eventos próximos.</p> : myEvents.map(ev => (
-                      <div key={ev.id} style={{minWidth: 200, background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #ddd', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
-                          <h5 style={{margin: '0 0 5px 0', color: '#0056b3'}}>{ev.title}</h5>
-                          <small style={{display:'block', color: '#666'}}>{ev.teamName}</small>
-                          <p style={{fontSize:'0.9em', fontWeight:'bold'}}>📅 {new Date(ev.date).toLocaleDateString()}</p>
-                          <p style={{fontSize:'0.8em'}}>📍 {ev.route}</p>
+                      <div key={ev.id} className="event-card">
+                          <h5 className="ev-title">{ev.title}</h5>
+                          <small className="team-name">{ev.teamName}</small>
+                          <p className='event-date'>📅 {new Date(ev.date).toLocaleDateString()}</p>
+                          <p className='event-route'>📍 {ev.route}</p>
                       </div>
                   ))}
               </div>

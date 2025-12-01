@@ -17,6 +17,8 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;      /* Firefox */
+  font-weight: bold;
+
 }
 
 /* Ocultar scrollbar en WebKit */

@@ -2,6 +2,8 @@
   color: var(--text-color);
   padding: 20px;
   margin-top: 60px;
+  font-weight: bold;
+
 }
 
 .ranking-title {
@@ -24,6 +26,7 @@
   flex: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
+  
 }
 
 /* Scroll personalizado */

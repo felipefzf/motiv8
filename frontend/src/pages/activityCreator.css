@@ -2,6 +2,8 @@
 .act-container {
   color: var(--text-color);
   padding: 20px;
+  font-weight: bold;
+
 }
 
 /* === Títulos === */

@@ -6,6 +6,8 @@
   text-align: center;
   overflow: hidden;
   background-color: var(--bg-color);
+  font-weight: bold;
+
 }
 
 /* Título principal */
@@ -77,7 +79,7 @@
 /* Botón comprar */
 .btn-comprar {
   background-color: var(--accent-color);
-  color: var(--button-text);
+  color: var(--btn-text);
   border: none;
   padding: 10px 20px;
   cursor: pointer;
@@ -85,6 +87,7 @@
   border-radius: 999px;
   transition: background-color 0.3s ease, color 0.3s ease,
     transform 0.1s ease;
+  font-weight: bold;
 
   /* 🔹 Esto empuja el botón al fondo del card */
   margin-top: auto;
