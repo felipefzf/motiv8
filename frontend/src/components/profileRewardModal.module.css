@@ -38,18 +38,19 @@
 .joinButton:hover {
   background-color: rgb(9, 202, 9);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* Botón de cancelar */
 .cancelButton {
   background-color: var(--accent-color);
-  color: var(--text-color);
+  color: var(--btn-text);
   padding: 8px 14px;
 }
 
 .cancelButton:hover {
-  background-color: #d0d0d0;
+  background-color: var(--accent-color);
+  transform: translateY(-1px);
+
 }
 
 /* Acciones del modal (contenedor del botón cancelar) */
