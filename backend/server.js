@@ -1250,6 +1250,8 @@ app.post('/api/teams/:teamId/events', verifyToken, express.json(), async (req, r
       return res.status(403).send('Solo el líder puede crear eventos.');
     }
 
+    const teamData = teamDoc.data();
+
     const memberRecord = teamData.members.find(m => (m.uid || m.member_uid) === user.uid);
     const userRole = memberRecord ? memberRecord.team_role : '';
 
