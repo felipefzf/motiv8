@@ -67,11 +67,7 @@ io.on("connection", (socket) => {
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://motiv8-b965b.web.app", // <-- ¡AÑADE TU DOMINIO DE FIREBASE AQUÍ!
-      "https://motiv8-b965b.firebaseapp.com", // (Añade también este por si acaso)
-    ], // ¡IMPORTANTE! Asegúrate de que este sea el puerto donde corre tu frontend
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })

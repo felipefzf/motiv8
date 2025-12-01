@@ -1,4 +1,4 @@
 const API_URL = 
-  'http://localhost:5000';
+  'http://172.20.10.2:5000';
 
 export default API_URL;
