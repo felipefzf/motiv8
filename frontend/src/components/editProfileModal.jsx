@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './modal'; // Tu componente Modal genérico
+import Modal from './modal'; 
 import { useAuth } from '../context/authContext';
-import styles from './CreateTeamForm.module.css'; // Reutilizamos estilos del form
+import styles from './CreateTeamForm.module.css'; 
 import { regionesYcomunas } from "../utils/funcionUtils";
 import API_URL from '../config'; 
 
@@ -9,7 +9,7 @@ import API_URL from '../config';
 function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
   const { user, refreshUser } = useAuth();
 
-  // Estados para los campos
+
   const [name, setName] = useState("");
   const [comuna, setComuna] = useState("");
   const [region, setRegion] = useState("");
@@ -19,7 +19,7 @@ function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
   const [error, setError] = useState("");
 
   
-  // Cargar datos del usuario al abrir el modal
+
   useEffect(() => {
     if (user && isOpen) {
       setName(user.name || "");
@@ -39,9 +39,9 @@ function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
 
     try {
       const response = await fetch(`${API_URL}/api/users/profile`, {
-        method: 'PUT', // Usamos PUT para actualizaciones
+        method: 'PUT', 
         headers: { 
-          'Content-Type': 'application/json', // Enviamos JSON
+          'Content-Type': 'application/json', 
           'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify({
@@ -56,9 +56,9 @@ function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
         throw new Error("Error al actualizar el perfil");
       }
 
-      // Éxito
-      await refreshUser(); // Actualiza el contexto
-      onClose(); // Cierra el modal
+     
+      await refreshUser(); 
+      onClose(); 
       showToast("Perfil actualizado correctamente");
     } catch (err) {
       console.error(err);
@@ -91,7 +91,7 @@ function EditProfileInfoModal({ isOpen, onClose, showToast  }) {
     value={region}
     onChange={(e) => {
       setRegion(e.target.value);
-      setComuna(''); // reset comuna al cambiar región
+      setComuna('');
     }}
     required
   >

@@ -1,24 +1,23 @@
-/* Layout general del formulario */
+
 .form {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-height: 80vh;           /* Limitar altura */
+  max-height: 80vh;          
   padding: 20px 10px;
   box-sizing: border-box;
-  overflow-y: auto;           /* Si se hace muy alto, que haga scroll interno */
+  overflow-y: auto;       
 }
 
-/* Título y mensajes de error */
 .title {
-  font-size: 1.6rem;          /* Mantener siempre este tamaño */
+  font-size: 1.6rem;          
   margin-bottom: 10px;
   text-align: center;
 }
 
 .subtitle {
-  font-size: 1.2rem;          /* Si tienes subtítulo, también fijo */
+  font-size: 1.2rem;         
   margin-bottom: 8px;
   text-align: center;
 }
@@ -32,7 +31,7 @@
 /* Grupos de inputs */
 .inputGroup {
   width: 100%;
-  max-width: 420px;           /* Para que no se haga enorme en pantallas grandes */
+  max-width: 420px;           
   margin-bottom: 12px;
 }
 

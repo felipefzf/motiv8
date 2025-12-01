@@ -1,6 +1,4 @@
-// src/components/Navbar/Navbar.jsx
 
-// 1. Importa los hooks necesarios
 import { NavLink, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react"; 
 import styles from "./Navbar.module.css"; 
@@ -11,7 +9,7 @@ import aboutImg from "../assets/about.png";
 import shopImg from "../assets/shop.png";
 import teamImg from "../assets/team.png";
 
-// ... (tus imports de imágenes) ...
+
 
 export default function Navbar() {
   const links = [
@@ -27,7 +25,7 @@ export default function Navbar() {
   const location = useLocation();
 
   // --- ARREGLO AQUÍ ---
-  // El estado inicial SOLO controla lo horizontal y la opacidad.
+ 
   const [bubbleStyle, setBubbleStyle] = useState({
     opacity: 0,
     left: 0,
@@ -44,28 +42,27 @@ export default function Navbar() {
       const { offsetLeft, offsetWidth } = activeLink;
       
       // --- ARREGLO AQUÍ ---
-      // Solo actualizamos las propiedades horizontales.
+ 
       setBubbleStyle({
         left: offsetLeft,
         width: offsetWidth,
-        opacity: 1, // Opacidad de la burbuja (puedes cambiarla)
+        opacity: 1, 
       });
     } else {
-      // Ocultamos la burbuja si no hay link activo
+      
       setBubbleStyle({
         opacity: 0,
-        left: bubbleStyle.left, // Mantenemos la posición para que se desvanezca
+        left: bubbleStyle.left, 
         width: bubbleStyle.width,
       });
     }
-    // Añadimos bubbleStyle.left y bubbleStyle.width a las dependencias
+    
   }, [location.pathname, bubbleStyle.left, bubbleStyle.width]);
 
   return (
     <nav ref={navRef} className={styles.navbar}>
       
-      {/* TRABAJANDO EN BUBBLE AQUI ABAJITO */}
-      {/* <div className={styles.bubble} style={bubbleStyle} /> */}
+     
 
       {links.map((link) => (
         <NavLink

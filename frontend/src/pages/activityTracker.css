@@ -20,7 +20,6 @@
   text-align: center;
   color: var(--text-color);
 }
-/* Selector de deporte (estado idle) */
 .activity-select-wrapper {
   margin-bottom: 20px;
   text-align: center;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/authContext';
-import styles from './CreateTeamForm.module.css'; // Reutilizamos estilos
+import styles from './CreateTeamForm.module.css'; 
 import API_URL from '../config';
 
 // 1. Imports del Cropper
@@ -19,13 +19,13 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
 function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
   const { user } = useAuth();
   
-  // Estados inicializados con los datos del equipo
+
   const [team_name, setTeamName] = useState(teamData.team_name || '');
   const [sport_type, setSportType] = useState(teamData.sport_type || '');
   const [description, setDescription] = useState(teamData.description || '');
   const [team_color, setTeamColor] = useState(teamData.team_color || '#CCCCCC');
   
-  // Estados de Requisitos (Desglosamos el objeto requirements)
+
   const [reqValue, setReqValue] = useState('');
   const [reqDist, setReqDist] = useState('');
 
@@ -36,13 +36,12 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null); // Vista previa local
-  const [blobToSend, setBlobToSend] = useState(null); // El archivo a subir
+  const [previewUrl, setPreviewUrl] = useState(null); 
+  const [blobToSend, setBlobToSend] = useState(null); 
   
   const imgRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Cargar requisitos existentes al montar
   useEffect(() => {
     if (teamData.requirements) {
       const sport = (teamData.sport_type || '').toLowerCase();
@@ -149,7 +148,7 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
     const finalValidation = validateCreatorEligibility();
     if (!finalValidation.valid) {
       setError(finalValidation.msg);
-      setIsLoading(false); // Importante: desbloquear loading
+      setIsLoading(false); 
       return; 
     }
 
@@ -172,7 +171,7 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
     formData.append('team_color', team_color);
     formData.append('requirements', JSON.stringify(requirementsObj));
 
-    // Solo enviamos imagen si hay una NUEVA recortada
+ 
     if (blobToSend) {
       formData.append('teamImageFile', blobToSend, 'logo_editado.png');
     }
@@ -208,13 +207,13 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
         <input type="text" value={team_name} onChange={e => setTeamName(e.target.value)} required />
       </div>
 
-      {/* --- SECCIÓN DE IMAGEN (CROPPER) --- */}
+  
       <div className={styles.inputGroup}>
         <label>Cambiar Logo (Opcional)</label>
         <input type="file" accept="image/*" onChange={onSelectFile} />
       </div>
 
-      {/* Cropper UI */}
+  
       {!!imgSrc && (
         <div className={styles.cropContainer}>
           <ReactCrop
@@ -232,7 +231,7 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
         </div>
       )}
 
-      {/* Vista Previa */}
+  
       {!!previewUrl && !imgSrc && (
         <div className={styles.previewContainer}>
           <p>Nueva imagen lista:</p>
@@ -256,7 +255,6 @@ function EditTeamForm({ teamData, onClose, onTeamUpdated }) {
         </select>
       </div>
 
-      {/* Inputs de Requisitos */}
       <div className={styles.requirements}>
           <h4>Requisitos</h4>
           <div className={styles.inputGroup}>

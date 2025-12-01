@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useAuth } from '../context/authContext';
-import './login.css'; // 👈 Importamos los estilos externos
-import API_URL from '../config'; // (Ajusta la ruta de importación)
+import './login.css'; 
+import API_URL from '../config'; 
 
 function Login() {
   const [email, setEmail] = useState('');

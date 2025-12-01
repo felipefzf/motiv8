@@ -34,7 +34,7 @@ export default function JoinTeam() {
     setJoiningTeamId(teamId);
 
     try {
-      const token = localStorage.getItem('firebaseToken'); // 👈 Asegúrate de tener el token
+      const token = localStorage.getItem('firebaseToken'); 
       const response = await axios.post(
         `http://localhost:5000/api/teams/${teamId}/join`,
         {},
@@ -45,8 +45,8 @@ export default function JoinTeam() {
         }
       );
 
-      alert(response.data.message); // ✅ Lee el mensaje JSON correctamente
-      window.location.href = '/';   // ✅ Redirige después del alert
+      alert(response.data.message); 
+      window.location.href = '/';   
     } catch (error) {
       console.error('Error al unirse al equipo:', error);
       alert(error.response?.data?.error || 'Error al unirse al equipo.');

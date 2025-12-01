@@ -1,11 +1,10 @@
 /* === Teams.module.css con soporte de modo claro/oscuro === */
 
-/* === Contenedor principal adaptado a navbar y responsive === */
+
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Ocupa toda la altura de la pantalla */
-  /* Ajuste para no tapar el Navbar inferior (aprox 80px) y el superior si tienes */
+  height: 100vh; 
   max-height: calc(100vh - 80px);
   overflow-y: hidden;
 
@@ -21,19 +20,19 @@
   margin: 0 auto;
 }
 
-/* === Lista de equipos (scroll solo aquí) === */
+/* === Lista de equipos === */
 .teamList {
   list-style: none;
   padding: 0;
   margin-top: 20px;
   color: var(--text-color, #ffffff);
 
-  flex: 1; /* ocupa el espacio disponible antes del botón */
+  flex: 1; 
   overflow-y: auto;
   scroll-behavior: smooth;
 }
 
-/* Scroll personalizado */
+
 .teamList::-webkit-scrollbar {
   width: 6px;
 }
@@ -98,7 +97,7 @@
 
 /* === Sección del botón crear equipo al final === */
 .bottomSection {
-  margin-top: auto; /* empuja el contenido hacia el fondo */
+  margin-top: auto; 
   text-align: center;
   padding-top: 20px;
   border-top: 1px solid var(--border-color, #ddd);
@@ -205,7 +204,6 @@
   transition: color 0.3s ease;
 }
 
-/* Fila con título + botón "Crear nuevo equipo" */
 .headerRow {
   display: flex;
   justify-content: space-between;

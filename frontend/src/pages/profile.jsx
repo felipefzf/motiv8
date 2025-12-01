@@ -55,7 +55,7 @@ export default function Profile({ toggleTheme, setTeamColor }) {
     .catch(console.error);
   }, [user]);
 
-  // ⚡ Cargar tema desde localStorage
+  
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "dark";
     setTheme(savedTheme);

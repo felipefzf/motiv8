@@ -5,12 +5,12 @@ import ActivityMap from "../components/ActivityMap";
 import "./ActivityTracker.css";
 import LiveToast from "../components/liveToast";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header"; // 👈 IMPORTANTE
+import Header from "../components/Header"; 
 
 function ActivityTracker() {
   const { user } = useAuth();
 
-  const [status, setStatus] = useState("idle"); // 'idle' | 'running' | 'finished'
+  const [status, setStatus] = useState("idle"); 
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [activityType, setActivityType] = useState("Running");
@@ -153,13 +153,9 @@ function ActivityTracker() {
 
   return (
     <div className="activity-page-with-header">
-      {/* 🔹 HEADER FIJO ARRIBA */}
       <Header title="Actividades" />
-
-      {/* 🔹 CONTENIDO DEBAJO DEL HEADER */}
       <div className="activity-container">
-        {/* Ya no necesitas el H1 grande con MOTIV8, eso va en el header */}
-        {/* <h1 className="activity-title">MOTIV8</h1> */}
+        
         <h2 className="activity-subtitle">Registrar Actividad</h2>
 
         {status === "idle" && (

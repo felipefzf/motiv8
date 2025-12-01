@@ -1,15 +1,15 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Navbar from './navbar'; // <-- Asegúrate de que esta ruta sea correcta
+import Navbar from './navbar'; 
 import HamburgerMenu from './hamburgerMenu';
 
 const MainLayout = () => {
   return (
     <>
-      {/* 1. El Navbar se renderiza primero */}
+      
       <Navbar /> 
       <HamburgerMenu />
-      {/* 2. El resto de la página (ej. Dashboard) se renderiza aquí */}
+     
       <main style={{paddingBottom: '80px'}}>
         <Outlet />
       </main>

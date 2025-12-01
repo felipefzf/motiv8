@@ -3,11 +3,11 @@ import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { canvasPreview, getCanvasBlob } from '../utils/canvasPreview';
 import { useAuth } from '../context/authContext';
-import Modal from './modal'; // Tu componente Modal genérico
-import styles from './CreateTeamForm.module.css'; // Reutilizamos estilos del form
+import Modal from './modal';
+import styles from './CreateTeamForm.module.css'; 
 import API_URL from '../config';
 
-// Centrar el crop inicial
+
 function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   return centerCrop(
     makeAspectCrop({ unit: '%', width: 90 }, aspect, mediaWidth, mediaHeight),
@@ -16,7 +16,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
 }
 
 function EditAvatarModal({ isOpen, onClose , showToast}) {
-  const { refreshUser } = useAuth(); // Para actualizar la UI al terminar
+  const { refreshUser } = useAuth(); 
   const [imgSrc, setImgSrc] = useState('');
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
@@ -45,13 +45,13 @@ function EditAvatarModal({ isOpen, onClose , showToast}) {
 
     setIsLoading(true);
     try {
-      // 1. Generar el Blob recortado
+      
       canvasPreview(imgRef.current, canvasRef.current, completedCrop);
       const blob = await getCanvasBlob(canvasRef.current);
 
       // 2. Preparar FormData
       const formData = new FormData();
-      // La llave debe coincidir con backend: 'profileImageFile'
+   
       formData.append('profileImageFile', blob, 'avatar.jpg'); 
 
       // 3. Enviar al Backend
@@ -66,10 +66,10 @@ function EditAvatarModal({ isOpen, onClose , showToast}) {
 
       // 4. Éxito
       
-      await refreshUser(); // Actualiza el contexto para mostrar la nueva foto
-      onClose(); // Cierra el modal
+      await refreshUser(); 
+      onClose(); 
       showToast('Foto de perfil actualizada!');
-      setImgSrc(''); // Limpia
+      setImgSrc(''); 
 
     } catch (error) {
       console.error(error);
@@ -102,7 +102,7 @@ function EditAvatarModal({ isOpen, onClose , showToast}) {
           </div>
         )}
 
-        {/* Canvas oculto para procesamiento */}
+       
         <canvas ref={canvasRef} style={{ display: 'none' }} />
 
         <div className={styles.buttonContainer} style={{marginTop: 20, justifyContent: 'center'}}>

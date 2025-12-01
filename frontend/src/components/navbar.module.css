@@ -1,7 +1,7 @@
 /* === VARIABLES DE NAVBAR === */
-/* Ya NO fijamos colores acá, solo derivamos de las globales */
+
 :root {
-  /* Valores por defecto basados en accent global */
+
   --navbar-bg: var(--accent-color);
   --navbar-shadow: rgba(0, 0, 0, 0.1);
   --nav-icon-glow: #fefefe;
@@ -10,7 +10,7 @@
 }
 
 [data-theme="dark"] {
-  /* En oscuro también derivamos del accent (que ya es amarillo en tu index.css) */
+
   --navbar-bg: var(--accent-color);
   --navbar-shadow: rgba(255, 255, 255, 0.1);
   --nav-icon-glow: #fefefe;
@@ -24,26 +24,26 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(10px, 4vw, 25px); /* espacio adaptable entre íconos o botones */
-  box-shadow: 0 -2px 8px var(--navbar-shadow); /* sombra sutil hacia arriba */
+  gap: clamp(10px, 4vw, 25px); 
+  box-shadow: 0 -2px 8px var(--navbar-shadow); 
 
-  /* Pegada completamente a los bordes */
+  
   position: fixed;
   bottom: -1px;
   left: 0;
-  right: 0; /* asegura que no haya espacio lateral */
+  right: 0;
   width: 100%;
-  margin: 0; /* elimina cualquier margen */
-  padding: 0; /* sin padding interno, solo si los botones ya tienen espacio */
+  margin: 0; 
+  padding: 0; 
   z-index: 1000;
 
-  /* Tamaño adaptable */
+ 
   height: clamp(50px, 8vh, 70px);
 
   transition: background-color 0.3s ease, box-shadow 0.3s ease, height 0.3s ease;
 }
 
-/* === Burbuja animada === */
+
 .bubble {
   position: absolute;
   z-index: 1;

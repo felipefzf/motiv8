@@ -4,9 +4,9 @@ import API_URL from '../config';
 function MissionCreator() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState('distance'); // Valor por defecto
+  const [type, setType] = useState('distance'); 
   const [targetValue, setTargetValue] = useState('');
-  const [unit, setUnit] = useState('meters'); // Valor por defecto
+  const [unit, setUnit] = useState('meters'); 
   const [reward, setReward] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -18,7 +18,7 @@ function MissionCreator() {
     setMessage('');
     setIsError(false);
 
-    // Validar que el token esté presente
+   
     const token = localStorage.getItem('firebaseToken');
     if (!token) {
       setIsError(true);
@@ -30,7 +30,7 @@ function MissionCreator() {
       name,
       description,
       type,
-      targetValue: parseFloat(targetValue), // Convertir a número flotante
+      targetValue: parseFloat(targetValue), 
       unit,
       reward,
       startDate,
@@ -38,11 +38,11 @@ function MissionCreator() {
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/missions`, { // URL a tu backend
+      const response = await fetch(`${API_URL}/api/missions`, { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Incluir el token en el encabezado
+          'Authorization': `Bearer ${token}` 
         },
         body: JSON.stringify(missionData),
       });
@@ -51,7 +51,6 @@ function MissionCreator() {
 
       if (response.ok) {
         setMessage(`¡Misión creada con éxito! ID: ${data.id}`);
-        // Limpiar formulario
         setName('');
         setDescription('');
         setType('distance');

@@ -16,9 +16,9 @@
   z-index: 100;
 
   /* Tamaño adaptable */
-  width: clamp(280px, 80vw, 500px);   /* se agranda o achica según el ancho del viewport */
-  height: clamp(300px, 70vh, 600px);  /* se adapta al alto del dispositivo */
-  padding: clamp(20px, 4vw, 40px);    /* padding responsivo */
+  width: clamp(280px, 80vw, 500px);   
+  height: clamp(300px, 70vh, 600px);  
+  padding: clamp(20px, 4vw, 40px);    
 
   display: flex;
   flex-direction: column;

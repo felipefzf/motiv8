@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { NavLink, useLocation } from 'react-router-dom';
 import styles from './HamburgerMenu.module.css';
-// Necesitarás react-icons para los iconos
-// Instálalo con: npm install react-icons
+
 import { FaBars, FaTimes } from 'react-icons/fa';
 
 function HamburgerMenu() {
@@ -30,12 +29,12 @@ function HamburgerMenu() {
   // 5. Si es admin, renderiza el botón y el menú
   return (
     <div className={styles.hamburgerContainer}>
-      {/* El botón de la hamburguesa */}
+    
       <button onClick={toggleMenu} className={styles.toggleButton}>
         {isOpen ? <FaTimes /> : <FaBars />}
       </button>
 
-      {/* El menú desplegable (usa clases CSS para mostrar/ocultar) */}
+    
       <nav className={`${styles.menu} ${isOpen ? styles.open : ''}`}>
         <ul>
           <li>
@@ -56,7 +55,7 @@ function HamburgerMenu() {
               Administrar Misiones
             </NavLink>
           </li>
-          {/* Añade aquí más rutas de admin si las necesitas */}
+   
         </ul>
       </nav>
     </div>

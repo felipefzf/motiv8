@@ -1,5 +1,5 @@
 import React from "react";
-import Modal from "./modal"; // Tu componente Modal genérico
+import Modal from "./modal"; 
 import "./InventoryModal.css";
 
 

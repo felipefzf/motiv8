@@ -9,18 +9,18 @@ function EditGoalsModal({ isOpen, onClose }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Estados para Running
+
   const [runPace, setRunPace] = useState("");
   const [runDist, setRunDist] = useState("");
 
-  // Estados para Cycling
+
   const [cycleSpeed, setCycleSpeed] = useState("");
   const [cycleDist, setCycleDist] = useState("");
 
   const [toastMessage, setToastMessage] = useState("");
   const [toastKey, setToastKey] = useState(0);
 
-  // Cargar datos existentes cuando se abre el modal
+
   useEffect(() => {
     if (user && isOpen) {
       setRunPace(user.performance?.running?.pace || "");
@@ -87,7 +87,7 @@ function EditGoalsModal({ isOpen, onClose }) {
 
         {error && <p className={styles.error}>{error}</p>}
 
-        {/* Sección Running */}
+  
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>🏃‍♂️ Running</h3>
 
@@ -117,7 +117,7 @@ function EditGoalsModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Sección Cycling */}
+ 
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>🚴‍♀️ Ciclismo</h3>
 

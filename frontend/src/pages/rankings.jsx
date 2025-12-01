@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./Rankings.css";
 import API_URL from "../config";
-import Header from "../components/Header"; // 👈 importa tu header
+import Header from "../components/Header"; 
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
   const [comunas, setComunas] = useState([]);
   const [destacados, setDestacados] = useState({});
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("nivel"); // filtro por defecto
-  const [comunaFilter, setComunaFilter] = useState(""); // filtro por comuna
+  const [filter, setFilter] = useState("nivel"); 
+  const [comunaFilter, setComunaFilter] = useState(""); 
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -38,14 +38,8 @@ const Ranking = () => {
 
   return (
     <div className="ranking-page-with-header">
-      {/* 🔹 HEADER FIJO */}
-      <Header title="Ranking" />
-
-      {/* 🔹 CONTENIDO DEBAJO DEL HEADER */}
+      <Header title="Ranking" /> 
       <div className="ranking-container">
-        {/* Ya no necesitas el H1 “MOTIV8” aquí, lo pone el Header */}
-        {/* <h1 className="ranking-title">MOTIV8</h1> */}
-        {/* Destacados */}
         {destacados && (
           <div className="destacados">
             <h4>Usuarios destacados</h4>

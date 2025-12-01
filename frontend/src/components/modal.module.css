@@ -15,7 +15,7 @@
 
 /* === Contenido del Modal === */
 .modalContent {
-  background: var(--card-bg, white); /* Fondo blanco o de tema */
+  background: var(--card-bg, white); 
   padding: 0px;
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow-color, rgba(0,0,0,0.15));
@@ -28,7 +28,7 @@
   
   /* --- 3. SÍ debe estar encima del backdrop --- */
   position: relative; 
-  z-index: 1001; /* Capa superior */
+  z-index: 1001; 
 
   /* --- 4. Define el tamaño --- */
   width: 90%;

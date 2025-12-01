@@ -1,4 +1,4 @@
-// src/components/teamDetailModal.jsx
+
 import React, { useState, useEffect } from "react";
 import Modal from "./modal";
 import styles from "./teamDetailModal.module.css";
@@ -60,7 +60,7 @@ function TeamDetailModal({ team, isOpen, onClose, onJoin, canJoin }) {
           ) : (
             <img src={Bicycle} alt="Cycling" className={styles.sportIcon} />
           )}
-          {/* Bloque de requisitos */}
+          
           <div className={styles.requirementsBox}>
             <h4 className={styles.requirementsTitle}>Requisitos de Entrada:</h4>
 

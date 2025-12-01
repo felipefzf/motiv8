@@ -78,7 +78,7 @@ export default function Register() {
   const handleRegionChange = (e) => {
     const selectedRegion = e.target.value;
     setRegion(selectedRegion);
-    // 💡 Resetear la comuna cuando cambia la región
+    // Resetear la comuna cuando cambia la región
     setComuna("");
   };
   const handleComunaChange = (e) => {

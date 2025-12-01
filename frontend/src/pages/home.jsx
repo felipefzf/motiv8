@@ -3,10 +3,10 @@ import axios from "axios";
 import "./Home.css";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import { io } from "socket.io-client"; // ✅ frontend client
+import { io } from "socket.io-client"; 
 import LiveToast from "../components/liveToast";
 import API_URL from "../config";
-import Header from "../components/Header.jsx"; // 👈 IMPORTA EL HEADER
+import Header from "../components/Header.jsx"; 
 
 export default function Home() {
   const [misiones, setMisiones] = useState([]);
@@ -129,7 +129,7 @@ useEffect(() => {
       setTimeout(() => {
         setToastMessage(`🔥 ¡Subiste al nivel ${nuevoNivel}!`);
         setToastKey((prev) => prev + 1);
-      }, 1000); // pequeño delay para no solapar toasts
+      }, 1000); 
     }
 
 

@@ -1,4 +1,4 @@
-// src/pages/CreateTeamForm.jsx
+
 
 import React, { useState, useRef } from "react";
 import { useAuth } from "../context/authContext";
@@ -12,7 +12,7 @@ function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
   return centerCrop(
     makeAspectCrop(
       {
-        unit: "%", // porcentaje
+        unit: "%", 
         width: 90,
       },
       aspect,
@@ -33,14 +33,14 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [runPaceRequirement, setRunPaceRequirement] = useState(''); // Minutos por km (ej. 5.30)
-  const [runDistRequirement, setRunDistRequirement] = useState(''); // Km
+  const [runPaceRequirement, setRunPaceRequirement] = useState(''); 
+  const [runDistRequirement, setRunDistRequirement] = useState(''); 
 
-  const [cycleSpeedRequirement, setCycleSpeedRequirement] = useState(''); // Km/h
-  const [cycleDistRequirement, setCycleDistRequirement] = useState(''); // Km
+  const [cycleSpeedRequirement, setCycleSpeedRequirement] = useState(''); 
+  const [cycleDistRequirement, setCycleDistRequirement] = useState('');
 
-  const [reqValue, setReqValue] = useState(''); // Ritmo o Velocidad
-  const [reqDist, setReqDist] = useState('');   // Distancia
+  const [reqValue, setReqValue] = useState(''); 
+  const [reqDist, setReqDist] = useState('');   
 
 
   const [imgSrc, setImgSrc] = useState("");
@@ -66,30 +66,30 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
   const validateCreatorEligibility = () => {
     const sport = sport_type ? sport_type.toLowerCase() : '';
 
-    // Si no hay perfil de usuario, error.
+ 
     if (!user?.performance) {
       return { valid: false, msg: "Configura tus metas en el perfil primero." };
     }
 
     // === CASO RUNNING ===
     if (sport === 'running') {
-      // 1. Usamos las variables específicas de Running
+      
       const reqPaceVal = runPaceRequirement ? parseFloat(runPaceRequirement) : null;
       const reqDistVal = runDistRequirement ? parseFloat(runDistRequirement) : null;
       
-      // Si no hay requisitos escritos, es válido.
+   
       if (reqPaceVal === null && reqDistVal === null) return { valid: true };
 
       const myStats = user.performance.running || {};
       const myPace = parseFloat(myStats.pace || 0);
       const myDist = parseFloat(myStats.distance || 0);
 
-      // Validación Ritmo (Menor es mejor)
+    
       if (reqPaceVal !== null) {
          if (myPace === 0) return { valid: false, msg: "No tienes ritmo registrado." };
          if (myPace > reqPaceVal) return { valid: false, msg: `Tu ritmo (${myPace}) es insuficiente para el requisito (${reqPaceVal}).` };
       }
-      // Validación Distancia
+   
       if (reqDistVal !== null) {
          if (myDist === 0) return { valid: false, msg: "No tienes distancia registrada." };
          if (myDist < reqDistVal) return { valid: false, msg: `Tu distancia (${myDist}) es menor a la exigida.` };
@@ -98,23 +98,23 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
 
     // === CASO CYCLING ===
     if (sport === 'cycling' || sport === 'ciclismo') {
-      // 2. Usamos las variables específicas de Cycling
+    
       const reqSpeedVal = cycleSpeedRequirement ? parseFloat(cycleSpeedRequirement) : null;
       const reqDistVal = cycleDistRequirement ? parseFloat(cycleDistRequirement) : null;
 
-      // Si no hay requisitos escritos, es válido.
+  
       if (reqSpeedVal === null && reqDistVal === null) return { valid: true };
 
       const myStats = user.performance.cycling || {};
       const mySpeed = parseFloat(myStats.speed || 0);
       const myDist = parseFloat(myStats.distance || 0);
 
-      // Validación Velocidad (Mayor es mejor)
+    
       if (reqSpeedVal !== null) {
          if (mySpeed === 0) return { valid: false, msg: "No tienes velocidad registrada." };
          if (mySpeed < reqSpeedVal) return { valid: false, msg: `Tu velocidad (${mySpeed}) es menor a la exigida (${reqSpeedVal}).` };
       }
-      // Validación Distancia
+ 
       if (reqDistVal !== null) {
          if (myDist === 0) return { valid: false, msg: "No tienes distancia registrada." };
          if (myDist < reqDistVal) return { valid: false, msg: `Tu distancia (${myDist}) es menor a la exigida (${reqDistVal}).` };
@@ -124,7 +124,7 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
     return { valid: true };
   };
 
-  // Llamamos a la función aquí para el feedback visual en tiempo real (deshabilitar botón)
+
   const creatorStatus = validateCreatorEligibility();
 
   const onImageLoad = (e) => {
@@ -176,7 +176,7 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
 
     if (!finalValidation.valid) {
       setError(finalValidation.msg);
-      // 🛑 DETENEMOS LA FUNCIÓN AQUÍ 🛑
+
       return; 
     }
 
@@ -229,7 +229,7 @@ function CreateTeamForm({ onClose, onTeamCreated, showToast }) {
       distancia_escrita: reqDist
     });
     
-    // Ejecutamos la validación manual aquí para ver qué dice
+
     const resultado = validateCreatorEligibility();
     console.log("Resultado de validación en tiempo real:", resultado);
 

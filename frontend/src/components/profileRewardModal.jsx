@@ -1,6 +1,6 @@
 import React from "react";
-import Modal from "./modal"; // Asegúrate de que la ruta sea correcta
-import styles from "./teamDetailModal.module.css"; // Reutilizamos estilos existentes
+import Modal from "./modal"; 
+import styles from "./teamDetailModal.module.css"; 
 
 function ProfileRewardModal({ isOpen, onClose, onClaim }) {
   return (

@@ -20,7 +20,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
   const containerRef = useRef(null);
 
-  // 🔁 cargar equipos disponibles
+
   useEffect(() => {
     const fetchAvailableTeams = async () => {
       const token = localStorage.getItem("firebaseToken");
@@ -54,7 +54,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
     fetchAvailableTeams();
   }, []);
 
-  // 🎨 helper para aplicar color de equipo globalmente
+
   const applyTeamColor = (color) => {
     if (!color) return;
 
@@ -70,10 +70,10 @@ function JoinTeamView({ setTeamColor, showToast }) {
   const checkEligibility = (team) => {
     const req = team.requirements || {};
 
-    // 1. Si no hay requisitos (o el objeto está vacío), pase libre.
+   
     if (!req || Object.keys(req).length === 0) return true;
 
-    // 2. Si hay requisitos pero el usuario no tiene datos, rebota.
+   
     if (!user?.performance) return false;
 
     const sport = team.sport_type ? team.sport_type.toLowerCase() : '';
@@ -81,18 +81,16 @@ function JoinTeamView({ setTeamColor, showToast }) {
     // === CASO RUNNING ===
     if (sport === 'running') {
       const myStats = user.performance.running || {};
-      // Convertimos a número por seguridad
+      
       const myPace = parseFloat(myStats.pace || 0);
       const myDist = parseFloat(myStats.distance || 0);
 
-      // VALIDACIÓN RITMO (Menor es mejor)
-      // Si el equipo pide 5.00 (req.pace) y yo tengo 6.00 (myPace) -> NO CUMPLO
+     
       if (req.pace && req.pace > 0) {
         if (myPace === 0 || myPace > req.pace) return false;
       }
 
-      // VALIDACIÓN DISTANCIA (Mayor es mejor)
-      // Si el equipo pide 10km (req.distance) y yo corro 5km (myDist) -> NO CUMPLO
+      
       if (req.distance && req.distance > 0) {
         if (myDist === 0 || myDist < req.distance) return false;
       }
@@ -104,22 +102,21 @@ function JoinTeamView({ setTeamColor, showToast }) {
       const mySpeed = parseFloat(myStats.speed || 0);
       const myDist = parseFloat(myStats.distance || 0);
 
-      // VALIDACIÓN VELOCIDAD (Mayor es mejor)
-      // Si el equipo pide 30km/h (req.speed) y yo voy a 20km/h (mySpeed) -> NO CUMPLO
+      // VALIDACIÓN VELOCIDAD
       if (req.speed && req.speed > 0) {
         if (mySpeed === 0 || mySpeed < req.speed) return false;
       }
 
-      // VALIDACIÓN DISTANCIA (Mayor es mejor)
+    
       if (req.distance && req.distance > 0) {
         if (myDist === 0 || myDist < req.distance) return false;
       }
     }
 
-    return true; // Si pasa todas las pruebas, es apto.
+    return true; 
   };
 
-  // 👉 unirse a un equipo
+
   const handleJoinTeam = async (teamId, teamName) => {
     setActionError(null);
     const token = localStorage.getItem("firebaseToken");
@@ -141,10 +138,10 @@ function JoinTeamView({ setTeamColor, showToast }) {
         throw new Error(errData || `Error al unirse al equipo.`);
       }
 
-      // ⬇️ asumo que el backend devuelve los datos del equipo
+   
       const data = await response.json();
 
-      // 🎨 aplicar color del equipo
+    
       if (data.team_color) {
         applyTeamColor(data.team_color);
       }
@@ -175,19 +172,19 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
   const closeCreateModal = () => setIsCreateModalOpen(false);
 
-  // 👉 al crear un equipo desde el modal
+
   const handleTeamCreated = (newTeamData) => {
     if (typeof showToast === "function") {
       showToast(`🎉 Equipo "${newTeamData.team_name}" creado`);
     }
 
 
-    // 🎨 si el backend envía el color, lo aplicamos
+
     if (newTeamData.team_color) {
       applyTeamColor(newTeamData.team_color);
     }
 
-    // si tu backend devuelve un id o algo similar:
+
     if (updateUserTeamStatus && newTeamData.teamId) {
       updateUserTeamStatus(newTeamData.teamId);
     }
@@ -239,19 +236,19 @@ function JoinTeamView({ setTeamColor, showToast }) {
         <ul className={styles.teamList}>
           {availableTeams.map((team) => {
 
-            // Calculamos si cumple para mostrar el aviso visual
+       
             const isEligible = checkEligibility(team);
 
             return (
               <li
                 key={team.id}
                 className={styles.teamItemClickable}
-                // 1. EL CLICK EN TODA LA TARJETA ABRE EL MODAL
+         
                 onClick={() => openDetailModal(team)}
               >
                 <div className={styles.jointeam}>
                   <div className={styles.jointeambody}>
-                    {/* Columna izquierda: imagen */}
+    
                     <div className={styles.teamImageWrapper}>
                       {team.team_image_url ? (
                         <img
@@ -268,7 +265,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
                       )}
                     </div>
 
-                    {/* Columna derecha: textos */}
+
                     <div className={styles.teamInfoRight}>
                       <div>
                         <span className={styles.teamName}>{team.team_name}</span>
@@ -291,7 +288,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
                   </div>
                 </div>
 
-                {/* 3. ¡SIN BOTONES AQUÍ! */}
+       
               </li>
             );
           })}
@@ -300,7 +297,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
 
       <hr className={styles.divider} />
 
-      {/* Modal crear equipo */}
+
       <Modal isOpen={isCreateModalOpen} onClose={closeCreateModal}>
         <CreateTeamForm
           onClose={closeCreateModal}
@@ -308,7 +305,7 @@ function JoinTeamView({ setTeamColor, showToast }) {
         />
       </Modal>
 
-      {/* Modal detalle equipo + botón unirse */}
+   
       <TeamDetailModal
         isOpen={isDetailModalOpen}
         onClose={closeDetailModal}

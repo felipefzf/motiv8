@@ -46,7 +46,7 @@ export default function ActivityCreator() {
     e.preventDefault();
 
     const actividad = {
-      path: [], // opcional
+      path: [], 
       distance: Number(formData.kilometros),
       time: Number(formData.tiempo),
       avg_speed: Number(formData.velocidadPromedio),

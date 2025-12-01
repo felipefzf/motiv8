@@ -25,7 +25,7 @@ function MyTeamInfo({ setTeamColor }) {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Estado para usar o no el color del equipo
+  
   const [useTeamColor, setUseTeamColor] = useState(() => {
     const stored = localStorage.getItem("useTeamColor");
     return stored === "true";
@@ -61,12 +61,12 @@ function MyTeamInfo({ setTeamColor }) {
     localStorage.setItem("useTeamColor", newValue);
 
     if (newValue && teamData?.team_color) {
-      // Activar color del equipo
+      
       applyTeamColor(teamData.team_color);
       if (typeof setTeamColor === "function") setTeamColor(teamData.team_color);
       localStorage.setItem("teamColor", teamData.team_color);
     } else {
-      // Desactivar color del equipo
+      
       resetAccentToDefault();
       if (typeof setTeamColor === "function") setTeamColor("");
       localStorage.removeItem("teamColor");
@@ -212,7 +212,7 @@ function MyTeamInfo({ setTeamColor }) {
 
   return (
     <div className={styles.container}>
-      {/* HEADER: logo + nombre + botones */}
+      
       <div className={styles.headerSection}>
         <div className={styles.headerLeft}>
           {teamData.team_image_url ? (
@@ -250,13 +250,13 @@ function MyTeamInfo({ setTeamColor }) {
           </button>
         </div>
       </div>
-      {/* DESCRIPCIÓN */}
+      
       <div className={styles.descriptionSection}>
         <p>{teamData.description}</p>
       </div>
       <br />
 
-      {/* CARD REQUERIMIENTOS */}
+      
       <div className={styles.requirementsCard}>
         {teamData.sport_type === "running" && (
           <div className="card-body performance-card-body">
@@ -299,7 +299,7 @@ function MyTeamInfo({ setTeamColor }) {
         )}
       </div>
 
-      {/* SECCIÓN COLOR DEL EQUIPO */}
+      
       <div className={styles.colorSection}>
         <div
           className={styles.colorBadge}
@@ -320,7 +320,7 @@ function MyTeamInfo({ setTeamColor }) {
 
       
 
-      {/* LISTA DE MIEMBROS */}
+      
       <h3 className={styles.membersTitle}>Miembros del equipo</h3>
       <ul className={styles.memberList}>
         {teamData.members?.map((member) => (
@@ -370,7 +370,7 @@ function MyTeamInfo({ setTeamColor }) {
         Salir del Equipo
       </button>
 
-      {/* MODAL EDITAR EQUIPO */}
+      
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
@@ -382,7 +382,7 @@ function MyTeamInfo({ setTeamColor }) {
         />
       </Modal>
 
-      {/* MODAL EDITAR ROL */}
+      
       <Modal
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
@@ -422,7 +422,7 @@ function MyTeamInfo({ setTeamColor }) {
         </div>
       </Modal>
 
-      {/* MODAL EVENTOS */}
+      
       <TeamEventsModal
         isOpen={isEventsModalOpen}
         onClose={() => setIsEventsModalOpen(false)}
@@ -430,7 +430,7 @@ function MyTeamInfo({ setTeamColor }) {
         canCreate={canCreateEvents}
       />
 
-      {/* MODAL CONFIRMAR SALIDA */}
+      
       {showConfirmModal && (
         <Modal isOpen={true} onClose={() => setShowConfirmModal(false)}>
           <div className={styles.confirmBox}>
