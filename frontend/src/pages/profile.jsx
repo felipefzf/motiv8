@@ -337,16 +337,6 @@ export default function Profile({ toggleTheme, setTeamColor }) {
             </div>
           )}
 
-          {stats &&
-            stats.nivelActual % 2 === 0 &&
-            stats.ultimoNivelRecompensado !== stats.nivelActual && (
-              <button
-                className="btn-recompensa"
-                onClick={() => setRewardModalOpen(true)}
-              >
-                Reclama tu recompensa 🎁
-              </button>
-            )}
           {stats && stats.nivelActual % 2 === 0 && stats.ultimoNivelRecompensado !== stats.nivelActual && (
             <button className="btn-recompensa" onClick={() => setRewardModalOpen(true)}>
               Reclama tu recompensa 🎁

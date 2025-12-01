@@ -518,3 +518,20 @@ input:checked + .slider:before {
   color: var(--text-color);
   margin: 2px 0 0 0;
 }
+
+.btn-recompensa{
+  margin-top: 20px;
+  padding: 10px 15px;
+  background-color: rgb(9, 202, 9);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-recompensa:hover{
+  background-color: rgb(9, 202, 9);
+  transform: scale(1.05);
+}
